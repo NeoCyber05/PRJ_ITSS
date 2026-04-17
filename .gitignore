@@ -36,3 +36,7 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+## File specific ignores
+BussinessLogic.md
+
