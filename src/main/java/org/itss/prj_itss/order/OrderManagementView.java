@@ -1,4 +1,4 @@
-package org.itss.prj_itss;
+package org.itss.prj_itss.order;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -7,6 +7,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+
+import org.itss.prj_itss.layout.MainLayoutController;
 
 
 public class OrderManagementView {

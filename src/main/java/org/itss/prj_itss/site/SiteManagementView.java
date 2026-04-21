@@ -1,4 +1,4 @@
-package org.itss.prj_itss;
+package org.itss.prj_itss.site;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;

@@ -1,4 +1,4 @@
-package org.itss.prj_itss;
+package org.itss.prj_itss.request;
 
 import javafx.beans.property.SimpleIntegerProperty;
 import javafx.collections.FXCollections;
@@ -13,6 +13,8 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+
+import org.itss.prj_itss.layout.MainLayoutController;
 
 import java.util.*;
 

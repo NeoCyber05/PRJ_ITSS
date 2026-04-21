@@ -1,4 +1,4 @@
-package org.itss.prj_itss;
+package org.itss.prj_itss.request;
 
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -9,6 +9,8 @@ import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+
+import org.itss.prj_itss.layout.MainLayoutController;
 
 /**
  * Yêu cầu đã nhận (Received Requests) View.
@@ -311,6 +313,7 @@ public class ReceivedRequestsView {
         eyeBtn.setOnMouseExited(e -> eyeBtn.setStyle(
             "-fx-background-color: #F0F4F2; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-size: 14px; -fx-padding: 6 10;"));
         eyeBtn.setTooltip(new Tooltip("Xem chi tiết yêu cầu " + maYC));
+        eyeBtn.setOnAction(e -> RequestDetailPopup.show(view.getScene() == null ? null : view.getScene().getWindow(), maYC));
 
         box.getChildren().add(eyeBtn);
 

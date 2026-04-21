@@ -10,6 +10,6 @@ module org.itss.prj_itss {
     requires org.kordamp.ikonli.javafx;
     requires org.kordamp.bootstrapfx.core;
 
-    opens org.itss.prj_itss to javafx.fxml;
+    opens org.itss.prj_itss.hello to javafx.fxml;
     exports org.itss.prj_itss;
 }

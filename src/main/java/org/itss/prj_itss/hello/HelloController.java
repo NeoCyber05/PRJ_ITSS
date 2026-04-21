@@ -1,4 +1,4 @@
-package org.itss.prj_itss;
+package org.itss.prj_itss.hello;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;

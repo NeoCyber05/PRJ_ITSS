@@ -2,11 +2,13 @@ package org.itss.prj_itss;
 
 import javafx.application.Application;
 import javafx.scene.Scene;
-import javafx.scene.layout.*;
+import javafx.scene.layout.BorderPane;
 import javafx.stage.Stage;
 
+import org.itss.prj_itss.layout.MainLayoutController;
 
-public class InternationalOrderingApp extends Application {
+
+public class App extends Application {
 
     @Override
     public void start(Stage stage) {
@@ -17,10 +19,10 @@ public class InternationalOrderingApp extends Application {
         Scene scene = new Scene(root, 1280, 800);
 
         // Load the CSS stylesheet
-        String css = getClass().getResource("styles/main-style.css").toExternalForm();
+        String css = getClass().getResource("/org/itss/prj_itss/styles/main-style.css").toExternalForm();
         scene.getStylesheets().add(css);
 
-        stage.setTitle("Hệ thống đặt hàng nhập khẩu - Bộ phận đặt hàng quốc tế");
+        stage.setTitle("Hệ thống đặt hàng nhập khẩu");
         stage.setMinWidth(1100);
         stage.setMinHeight(700);
         stage.setScene(scene);
