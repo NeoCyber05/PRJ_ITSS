@@ -5,634 +5,429 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.ColumnConstraints;
-import javafx.scene.layout.GridPane;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 
-import java.util.LinkedHashMap;
+import org.itss.prj_itss.common.StatusBadgeFactory;
+import org.itss.prj_itss.dao.DAOFactory;
+import org.itss.prj_itss.dao.IMerchandiseDAO;
+import org.itss.prj_itss.dao.IOrderDAO;
+import org.itss.prj_itss.dao.ISiteDAO;
+import org.itss.prj_itss.entity.Merchandise;
+import org.itss.prj_itss.entity.Order;
+import org.itss.prj_itss.entity.OrderMerchandise;
+import org.itss.prj_itss.entity.Site;
+
+import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.Map;
 
 public class OrderDetailPanel {
 
-    public enum LayoutMode {
-        STANDARD,
-        COMPACT
+    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
+
+    private final int orderId;
+    private final Runnable onBack;
+    private final IOrderDAO orderDAO;
+    private final ISiteDAO siteDAO;
+    private final IMerchandiseDAO merchandiseDAO;
+    private final double panelWidth;
+    private final boolean wideLayout;
+
+    private final BorderPane root;
+
+    public OrderDetailPanel(String orderIdRaw, Runnable onBack, DAOFactory daoFactory) {
+        this(orderIdRaw, onBack, daoFactory, 540);
     }
 
-    public record OrderItem(
-        String index,
-        String code,
-        String name,
-        String quantity,
-        String unit,
-        String transport
-    ) { }
+    public OrderDetailPanel(String orderIdRaw, Runnable onBack, DAOFactory daoFactory, double preferredWidth) {
+        this.onBack = onBack;
+        this.orderDAO = daoFactory.getOrderDAO();
+        this.siteDAO = daoFactory.getSiteDAO();
+        this.merchandiseDAO = daoFactory.getMerchandiseDAO();
+        this.orderId = parseOrderId(orderIdRaw);
+        this.panelWidth = Math.max(540, preferredWidth);
+        this.wideLayout = this.panelWidth >= 720;
 
-    public record OrderDetailData(
-        String orderId,
-        String siteCode,
-        String siteName,
-        String createdAt,
-        String status,
-        List<OrderItem> items
-    ) { }
-
-    private static final Map<String, OrderDetailData> SAMPLE_DATA = buildSampleData();
-
-    private final OrderDetailData detail;
-    private final Runnable onBackAction;
-    private final LayoutMode layoutMode;
-    private final boolean compact;
-    private final VBox view;
-
-    public OrderDetailPanel(String orderId, Runnable onBackAction) {
-        this(orderId, onBackAction, LayoutMode.STANDARD);
+        root = new BorderPane();
+        root.setMinWidth(this.panelWidth);
+        root.setPrefWidth(this.panelWidth);
+        root.setMaxWidth(this.panelWidth);
+        root.setStyle("-fx-background-color: #F5F7FB;");
+        buildContent();
     }
 
-    public OrderDetailPanel(String orderId, Runnable onBackAction, LayoutMode layoutMode) {
-        this.detail = getOrderDetailData(orderId);
-        this.onBackAction = onBackAction;
-        this.layoutMode = layoutMode;
-        this.compact = layoutMode == LayoutMode.COMPACT;
-        this.view = buildView();
-    }
+    private void buildContent() {
+        Order order = orderDAO.findById(orderId);
+        if (order == null) {
+            Label errorLabel = new Label("Không tìm thấy đơn hàng.");
+            errorLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #DC2626; -fx-padding: 40;");
+            root.setCenter(new StackPane(errorLabel));
+            return;
+        }
 
-    public static OrderDetailData getOrderDetailData(String orderId) {
-        return SAMPLE_DATA.getOrDefault(orderId, SAMPLE_DATA.get("DH-2026-004"));
-    }
+        Site site = siteDAO.findById(order.getSiteId());
+        List<OrderMerchandise> items = orderDAO.findItemsByOrderId(orderId);
 
-    public Node getView() {
-        return view;
-    }
+        VBox header = new VBox(18);
+        header.setPadding(new Insets(28, 28, 22, 28));
+        header.setStyle("-fx-background-color: white; -fx-border-color: transparent transparent #E7EDF5 transparent; -fx-border-width: 0 0 1 0;");
 
-    private VBox buildView() {
-        VBox content = new VBox(compact ? 16 : 24);
-        content.setPadding(new Insets(compact ? 18 : 28));
-        content.setStyle("-fx-background-color: white;");
+        HBox topRow = new HBox(14);
+        topRow.setAlignment(Pos.CENTER_LEFT);
 
+        Button backButton = new Button("‹");
+        backButton.setOnAction(event -> {
+            if (onBack != null) {
+                onBack.run();
+            }
+        });
+        backButton.setStyle(
+            "-fx-background-color: white;" +
+            "-fx-border-color: #D9E2EE;" +
+            "-fx-border-radius: 10;" +
+            "-fx-background-radius: 10;" +
+            "-fx-text-fill: #475569;" +
+            "-fx-font-size: 26px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-min-width: 38;" +
+            "-fx-min-height: 38;" +
+            "-fx-cursor: hand;"
+        );
+
+        VBox titleBox = new VBox(6);
+        Label titleLabel = new Label("Chi tiết đơn hàng");
+        titleLabel.setStyle("-fx-font-size: 21px; -fx-font-weight: bold; -fx-text-fill: #1E293B;");
+        Label subtitleLabel = new Label("Mã đơn hàng: " + String.format("DH-2026-%03d", order.getId()));
+        subtitleLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #7B8DA6;");
+        titleBox.getChildren().addAll(titleLabel, subtitleLabel);
+
+        topRow.getChildren().addAll(backButton, titleBox);
+
+        Label topStatusBadge = buildTopStatusBadge(order.getStatus());
+        header.getChildren().addAll(topRow, topStatusBadge);
+
+        VBox content = new VBox(22);
+        content.setPadding(new Insets(22, 22, 28, 22));
         content.getChildren().addAll(
-            buildHeader(),
-            buildInfoCard(),
-            buildProgressCard(),
-            buildItemsCard()
+            buildOverviewCard(order, site, items),
+            buildProgressCard(order.getStatus()),
+            buildItemsCard(items)
         );
 
-        return content;
+        ScrollPane scrollPane = new ScrollPane(content);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+
+        root.setTop(header);
+        root.setCenter(scrollPane);
     }
 
-    private HBox buildHeader() {
-        HBox header = new HBox(compact ? 12 : 16);
-        header.setAlignment(Pos.TOP_LEFT);
+    private VBox buildOverviewCard(Order order, Site site, List<OrderMerchandise> items) {
+        VBox card = buildCard("Thông tin tổng quan");
 
-        if (onBackAction != null) {
-            Button backButton = new Button("←");
-            backButton.setOnAction(event -> onBackAction.run());
-            backButton.setStyle(
-                "-fx-background-color: white;" +
-                "-fx-border-color: #D8E2EF;" +
-                "-fx-border-radius: " + (compact ? 10 : 12) + ";" +
-                "-fx-background-radius: " + (compact ? 10 : 12) + ";" +
-                "-fx-cursor: hand;" +
-                "-fx-font-size: " + (compact ? 16 : 20) + "px;" +
-                "-fx-font-weight: bold;" +
-                "-fx-text-fill: #64748B;" +
-                "-fx-padding: " + (compact ? "7 11" : "10 16") + ";"
-            );
-            header.getChildren().add(backButton);
-        }
-
-        VBox textGroup = new VBox(compact ? 6 : 10);
-        HBox.setHgrow(textGroup, Priority.ALWAYS);
-
-        Label title = new Label("Chi tiết đơn hàng");
-        title.setStyle(
-            "-fx-font-size: " + (compact ? 22 : 32) + "px;" +
-            "-fx-font-weight: bold;" +
-            "-fx-text-fill: #1E293B;"
+        VBox grid = new VBox(24);
+        grid.getChildren().addAll(
+            buildOverviewRow(
+                buildInfoCell("Mã đơn hàng", String.format("DH-2026-%03d", order.getId())),
+                buildInfoCell("Mã Site", site != null ? site.getSiteCode() : "N/A"),
+                buildInfoCell("Tên Site", site != null ? site.getName() : "N/A")
+            ),
+            buildOverviewRow(
+                buildInfoCell("Ngày tạo", formatDateTime(order)),
+                buildBadgeInfoCell("Trạng thái", order.getStatus()),
+                buildInfoCell("Tổng số mặt hàng", items.size() + " mặt hàng")
+            )
         );
-
-        Label subtitle = new Label("Mã đơn hàng: " + detail.orderId());
-        subtitle.setStyle(
-            "-fx-font-size: " + (compact ? 12 : 13) + "px;" +
-            "-fx-font-weight: bold;" +
-            "-fx-text-fill: #64748B;"
-        );
-
-        textGroup.getChildren().addAll(title, subtitle, buildStatusBadge(detail.status()));
-        header.getChildren().add(textGroup);
-        return header;
-    }
-
-    private VBox buildInfoCard() {
-        VBox card = buildCardShell("Thông tin tổng quan");
-
-        GridPane grid = new GridPane();
-        grid.setHgap(compact ? 18 : 28);
-        grid.setVgap(compact ? 14 : 20);
-        grid.setPadding(new Insets(6, 0, 0, 0));
-
-        int columnCount = compact ? 2 : 3;
-        for (int i = 0; i < columnCount; i++) {
-            ColumnConstraints column = new ColumnConstraints();
-            column.setPercentWidth(100.0 / columnCount);
-            column.setHgrow(Priority.ALWAYS);
-            grid.getColumnConstraints().add(column);
-        }
-
-        if (compact) {
-            grid.add(buildInfoItem("Mã đơn hàng", detail.orderId()), 0, 0);
-            grid.add(buildInfoItem("Mã Site", detail.siteCode()), 1, 0);
-            grid.add(buildInfoItem("Tên Site", detail.siteName()), 0, 1);
-            grid.add(buildInfoItem("Ngày tạo", detail.createdAt()), 1, 1);
-            grid.add(buildInfoStatus("Trạng thái", detail.status()), 0, 2);
-            grid.add(buildInfoItem("Tổng số mặt hàng", detail.items().size() + " mặt hàng"), 1, 2);
-        } else {
-            grid.add(buildInfoItem("Mã đơn hàng", detail.orderId()), 0, 0);
-            grid.add(buildInfoItem("Mã Site", detail.siteCode()), 1, 0);
-            grid.add(buildInfoItem("Tên Site", detail.siteName()), 2, 0);
-            grid.add(buildInfoItem("Ngày tạo", detail.createdAt()), 0, 1);
-            grid.add(buildInfoStatus("Trạng thái", detail.status()), 1, 1);
-            grid.add(buildInfoItem("Tổng số mặt hàng", detail.items().size() + " mặt hàng"), 2, 1);
-        }
 
         card.getChildren().add(grid);
         return card;
     }
 
-    private VBox buildInfoItem(String labelText, String value) {
-        VBox item = new VBox(compact ? 4 : 6);
+    private VBox buildProgressCard(String status) {
+        VBox card = buildCard("Tiến trình đơn hàng");
 
-        Label label = new Label(labelText);
-        label.setStyle(
-            "-fx-font-size: " + (compact ? 11 : 12) + "px;" +
-            "-fx-font-weight: bold;" +
-            "-fx-text-fill: #64748B;"
-        );
+        String normalizedStatus = normalizeStatusKey(status);
+        boolean delivered = "completed".equals(normalizedStatus);
+        boolean shipping = delivered || "shipping".equals(normalizedStatus);
+        boolean confirmed = shipping || "confirmed".equals(normalizedStatus);
 
-        Label valueLabel = new Label(value);
-        valueLabel.setWrapText(true);
-        valueLabel.setStyle(
-            "-fx-font-size: " + (compact ? 15 : 18) + "px;" +
-            "-fx-font-weight: bold;" +
-            "-fx-text-fill: #1E293B;"
-        );
-
-        item.getChildren().addAll(label, valueLabel);
-        return item;
-    }
-
-    private VBox buildInfoStatus(String labelText, String status) {
-        VBox item = new VBox(compact ? 4 : 6);
-
-        Label label = new Label(labelText);
-        label.setStyle(
-            "-fx-font-size: " + (compact ? 11 : 12) + "px;" +
-            "-fx-font-weight: bold;" +
-            "-fx-text-fill: #64748B;"
-        );
-
-        HBox statusBox = new HBox(8);
-        statusBox.setAlignment(Pos.CENTER_LEFT);
-
-        Circle dot = new Circle(compact ? 4 : 5);
-        dot.setFill(Color.web(statusColor(status)));
-
-        Label value = new Label(status);
-        value.setStyle(
-            "-fx-font-size: " + (compact ? 14 : 16) + "px;" +
-            "-fx-font-weight: bold;" +
-            "-fx-text-fill: " + statusTextColor(status) + ";"
-        );
-
-        statusBox.getChildren().addAll(dot, value);
-        item.getChildren().addAll(label, statusBox);
-        return item;
-    }
-
-    private VBox buildProgressCard() {
-        VBox card = buildCardShell("Tiến trình đơn hàng");
-        HBox progress = new HBox();
+        HBox progress = new HBox(0);
         progress.setAlignment(Pos.CENTER);
-        progress.setPadding(new Insets(compact ? 0 : 8, compact ? 2 : 6, 0, compact ? 2 : 6));
 
-        int activeStep = resolveActiveStep(detail.status());
-        String[] labels = {"Chờ xác nhận", "Đang giao", "Hoàn thành"};
-        String[] symbols = {"◔", "🚚", "✓"};
-
-        for (int i = 0; i < labels.length; i++) {
-            progress.getChildren().add(buildStepNode(labels[i], symbols[i], i, activeStep));
-
-            if (i < labels.length - 1) {
-                Region connector = new Region();
-                connector.setPrefHeight(3);
-                connector.setMinHeight(3);
-                connector.setMaxHeight(3);
-                connector.setPrefWidth(compact ? 54 : 120);
-                connector.setStyle(
-                    "-fx-background-color: " + (i < activeStep ? "#3B82F6" : "#DCE3EE") + ";" +
-                    "-fx-background-radius: 999;"
-                );
-
-                VBox connectorWrap = new VBox(connector);
-                connectorWrap.setAlignment(Pos.CENTER);
-                connectorWrap.setPadding(new Insets(0, 0, compact ? 20 : 24, 0));
-                HBox.setHgrow(connectorWrap, Priority.ALWAYS);
-                progress.getChildren().add(connectorWrap);
-            }
-        }
+        progress.getChildren().add(buildProgressStep("1", "Chờ xác nhận", confirmed ? "#F59E0B" : "#CBD5E1", confirmed));
+        progress.getChildren().add(buildProgressLine(shipping ? "#60A5FA" : "#D6DFEA"));
+        progress.getChildren().add(buildProgressStep("2", "Đang giao", shipping ? "#3B82F6" : "#CBD5E1", shipping));
+        progress.getChildren().add(buildProgressLine(delivered ? "#22C55E" : "#D6DFEA"));
+        progress.getChildren().add(buildProgressStep("3", "Hoàn thành", delivered ? "#22C55E" : "#CBD5E1", delivered));
 
         card.getChildren().add(progress);
         return card;
     }
 
-    private VBox buildStepNode(String labelText, String symbol, int index, int activeStep) {
-        VBox step = new VBox(compact ? 8 : 10);
-        step.setAlignment(Pos.CENTER);
-        step.setMinWidth(compact ? 72 : 110);
+    private VBox buildItemsCard(List<OrderMerchandise> items) {
+        VBox card = buildCard("Danh sách mặt hàng");
 
-        boolean passed = index < activeStep;
-        boolean current = index == activeStep;
-
-        String background = passed ? "#F59E0B" : current ? "#3B82F6" : "#FFFFFF";
-        String textColor = passed || current ? "#FFFFFF" : "#94A3B8";
-        String border = passed || current ? "transparent" : "#D9E2EE";
-        int badgeSize = compact ? 38 : 48;
-
-        Label badge = new Label(symbol);
-        badge.setAlignment(Pos.CENTER);
-        badge.setStyle(
-            "-fx-background-color: " + background + ";" +
-            "-fx-text-fill: " + textColor + ";" +
-            "-fx-border-color: " + border + ";" +
-            "-fx-border-width: 2;" +
-            "-fx-border-radius: 999;" +
-            "-fx-background-radius: 999;" +
-            "-fx-min-width: " + badgeSize + ";" +
-            "-fx-min-height: " + badgeSize + ";" +
-            "-fx-pref-width: " + badgeSize + ";" +
-            "-fx-pref-height: " + badgeSize + ";" +
-            "-fx-font-size: " + (compact ? 16 : 20) + "px;" +
-            "-fx-font-weight: bold;"
-        );
-
-        Label label = new Label(labelText);
-        label.setWrapText(true);
-        label.setMaxWidth(compact ? 82 : 110);
-        label.setAlignment(Pos.CENTER);
-        label.setStyle(
-            "-fx-font-size: " + (compact ? 11 : 13) + "px;" +
-            "-fx-font-weight: bold;" +
-            "-fx-text-fill: " + (current ? "#2563EB" : passed ? "#B45309" : "#64748B") + ";"
-        );
-
-        step.getChildren().addAll(badge, label);
-        return step;
-    }
-
-    private VBox buildItemsCard() {
-        return compact ? buildCompactItemsCard() : buildStandardItemsCard();
-    }
-
-    private VBox buildStandardItemsCard() {
-        VBox card = buildCardShell("Danh sách mặt hàng");
+        double indexWidth = wideLayout ? 50 : 42;
+        double codeWidth = wideLayout ? 110 : 90;
+        double nameWidth = wideLayout ? 240 : 170;
+        double quantityWidth = wideLayout ? 120 : 92;
+        double unitWidth = wideLayout ? 100 : 88;
+        double transportWidth = wideLayout ? 170 : 120;
 
         VBox table = new VBox(0);
         table.setStyle(
             "-fx-background-color: white;" +
-            "-fx-border-color: #E2E8F0;" +
-            "-fx-border-radius: 18;" +
-            "-fx-background-radius: 18;"
+            "-fx-background-radius: 16;" +
+            "-fx-border-radius: 16;" +
+            "-fx-border-color: #E7EDF5;" +
+            "-fx-border-width: 1;"
         );
 
-        table.getChildren().add(buildItemHeaderRow());
-        for (OrderItem item : detail.items()) {
-            table.getChildren().add(buildItemRow(item));
+        HBox header = new HBox();
+        header.setPadding(new Insets(14, 18, 14, 18));
+        header.setAlignment(Pos.CENTER_LEFT);
+        header.setStyle("-fx-background-color: #FBFCFE; -fx-background-radius: 16 16 0 0;");
+        header.getChildren().addAll(
+            headerCell("STT", indexWidth),
+            headerCell("MÃ HÀNG", codeWidth),
+            headerCell("TÊN MẶT HÀNG", nameWidth),
+            headerCell("SỐ LƯỢNG ĐẶT", quantityWidth),
+            headerCell("ĐƠN VỊ TÍNH", unitWidth),
+            headerCell("PHƯƠNG THỨC VẬN CHUYỂN", transportWidth)
+        );
+        table.getChildren().add(header);
+
+        if (items.isEmpty()) {
+            Label emptyLabel = new Label("Không có mặt hàng.");
+            emptyLabel.setStyle("-fx-font-size: 13px; -fx-text-fill: #94A3B8; -fx-padding: 18 20;");
+            table.getChildren().add(emptyLabel);
+        } else {
+            int index = 1;
+            for (OrderMerchandise item : items) {
+                Merchandise merchandise = merchandiseDAO.findById(item.getMerchandiseId());
+                HBox row = new HBox();
+                row.setAlignment(Pos.CENTER_LEFT);
+                row.setPadding(new Insets(16, 18, 16, 18));
+                row.setStyle("-fx-border-color: transparent transparent #EEF3F8 transparent; -fx-border-width: 0 0 1 0;");
+                row.getChildren().addAll(
+                    tableCell(String.valueOf(index++), indexWidth, false),
+                    tableCell(merchandise != null ? merchandise.getCode() : "N/A", codeWidth, true),
+                    tableCell(merchandise != null ? merchandise.getName() : "N/A", nameWidth, false),
+                    tableCell(item.getQuantity() != null ? item.getQuantity().toPlainString() : "0", quantityWidth, true),
+                    tableCell(merchandise != null && merchandise.getUnit() != null ? merchandise.getUnit() : "N/A", unitWidth, false),
+                    buildTransportCell(displayTransportMethod(item.getDeliveryMethod()), transportWidth)
+                );
+                table.getChildren().add(row);
+            }
         }
 
         card.getChildren().add(table);
         return card;
     }
 
-    private VBox buildCompactItemsCard() {
-        VBox card = buildCardShell("Danh sách mặt hàng");
-        VBox list = new VBox(10);
+    private VBox buildCard(String title) {
+        VBox card = new VBox(18);
+        card.setPadding(new Insets(22));
+        card.setStyle(
+            "-fx-background-color: white;" +
+            "-fx-background-radius: 18;" +
+            "-fx-border-radius: 18;" +
+            "-fx-border-color: #E5ECF4;" +
+            "-fx-border-width: 1;"
+        );
 
-        for (OrderItem item : detail.items()) {
-            list.getChildren().add(buildCompactItemCard(item));
-        }
-
-        card.getChildren().add(list);
+        Label titleLabel = new Label(title);
+        titleLabel.setStyle("-fx-font-size: 17px; -fx-font-weight: bold; -fx-text-fill: #1F2937;");
+        card.getChildren().add(titleLabel);
         return card;
     }
 
-    private VBox buildCompactItemCard(OrderItem item) {
-        VBox itemCard = new VBox(10);
-        itemCard.setStyle(
-            "-fx-background-color: #F8FAFC;" +
-            "-fx-border-color: #E2E8F0;" +
-            "-fx-border-radius: 16;" +
-            "-fx-background-radius: 16;" +
-            "-fx-padding: 14;"
-        );
-
-        HBox topRow = new HBox(8);
-        topRow.setAlignment(Pos.CENTER_LEFT);
-
-        Label codeBadge = new Label(item.code());
-        codeBadge.setStyle(
-            "-fx-background-color: #EAF1FF;" +
-            "-fx-text-fill: #2563EB;" +
-            "-fx-background-radius: 999;" +
-            "-fx-padding: 5 10;" +
-            "-fx-font-size: 11px;" +
-            "-fx-font-weight: bold;"
-        );
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        topRow.getChildren().addAll(codeBadge, spacer, buildTransportBadge(item.transport()));
-
-        Label itemName = new Label(item.name());
-        itemName.setWrapText(true);
-        itemName.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: #1E293B;");
-
-        HBox metaRow = new HBox(12);
-        metaRow.getChildren().addAll(
-            buildCompactMeta("SL", item.quantity()),
-            buildCompactMeta("ĐVT", item.unit()),
-            buildCompactMeta("STT", item.index())
-        );
-
-        itemCard.getChildren().addAll(topRow, itemName, metaRow);
-        return itemCard;
-    }
-
-    private VBox buildCompactMeta(String labelText, String valueText) {
-        VBox meta = new VBox(3);
-
-        Label label = new Label(labelText);
-        label.setStyle("-fx-font-size: 10px; -fx-font-weight: bold; -fx-text-fill: #64748B;");
-
-        Label value = new Label(valueText);
-        value.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #1E293B;");
-
-        meta.getChildren().addAll(label, value);
-        return meta;
-    }
-
-    private HBox buildItemHeaderRow() {
-        HBox row = new HBox();
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(14, 18, 14, 18));
-        row.setStyle(
-            "-fx-background-color: #F8FAFC;" +
-            "-fx-background-radius: 18 18 0 0;" +
-            "-fx-border-color: transparent transparent #E2E8F0 transparent;" +
-            "-fx-border-width: 0 0 1 0;"
-        );
-
-        row.getChildren().addAll(
-            itemHeader("STT", 48, Pos.CENTER),
-            itemHeader("MÃ HÀNG", 84, Pos.CENTER_LEFT),
-            itemHeader("TÊN MẶT HÀNG", 154, Pos.CENTER_LEFT),
-            itemHeader("SỐ LƯỢNG ĐẶT", 86, Pos.CENTER),
-            itemHeader("ĐƠN VỊ TÍNH", 82, Pos.CENTER),
-            itemHeader("PHƯƠNG THỨC VẬN CHUYỂN", 130, Pos.CENTER)
-        );
-
+    private HBox buildOverviewRow(VBox first, VBox second, VBox third) {
+        HBox row = new HBox(18, first, second, third);
+        row.setAlignment(Pos.TOP_LEFT);
         return row;
     }
 
-    private HBox buildItemRow(OrderItem item) {
-        HBox row = new HBox();
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(16, 18, 16, 18));
-        row.setStyle("-fx-border-color: transparent transparent #EDF2F7 transparent; -fx-border-width: 0 0 1 0;");
+    private VBox buildInfoCell(String label, String value) {
+        VBox cell = new VBox(10);
+        HBox.setHgrow(cell, Priority.ALWAYS);
+        cell.setPrefWidth(140);
 
-        row.getChildren().addAll(
-            itemValue(item.index(), 48, Pos.CENTER, false),
-            itemValue(item.code(), 84, Pos.CENTER_LEFT, true),
-            itemValue(item.name(), 154, Pos.CENTER_LEFT, false),
-            itemValue(item.quantity(), 86, Pos.CENTER, true),
-            itemValue(item.unit(), 82, Pos.CENTER, false),
-            buildTransportCell(item.transport(), 130)
-        );
+        Label labelNode = new Label(label);
+        labelNode.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #7B8DA6;");
 
-        return row;
+        Label valueNode = new Label(value);
+        valueNode.setWrapText(true);
+        valueNode.setStyle("-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1F2937;");
+
+        cell.getChildren().addAll(labelNode, valueNode);
+        return cell;
     }
 
-    private Label itemHeader(String text, double width, Pos alignment) {
+    private VBox buildBadgeInfoCell(String label, String status) {
+        VBox cell = new VBox(10);
+        HBox.setHgrow(cell, Priority.ALWAYS);
+        cell.setPrefWidth(140);
+
+        Label labelNode = new Label(label);
+        labelNode.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #7B8DA6;");
+
+        cell.getChildren().addAll(labelNode, StatusBadgeFactory.buildStatusBadge(displayStatus(status)));
+        return cell;
+    }
+
+    private VBox buildProgressStep(String iconText, String label, String color, boolean active) {
+        VBox step = new VBox(10);
+        step.setAlignment(Pos.CENTER);
+
+        Circle circle = new Circle(18);
+        circle.setStyle("-fx-fill: " + (active ? color : "#FFFFFF") + "; -fx-stroke: " + color + "; -fx-stroke-width: 3;");
+
+        Label iconLabel = new Label(iconText);
+        iconLabel.setStyle("-fx-text-fill: " + (active ? "white" : color) + "; -fx-font-size: 13px; -fx-font-weight: bold;");
+
+        StackPane iconWrapper = new StackPane(circle, iconLabel);
+        Label labelNode = new Label(label);
+        labelNode.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #475569;");
+
+        step.getChildren().addAll(iconWrapper, labelNode);
+        return step;
+    }
+
+    private Region buildProgressLine(String color) {
+        Region line = new Region();
+        double lineWidth = wideLayout ? 112 : 74;
+        line.setPrefWidth(lineWidth);
+        line.setMinWidth(lineWidth);
+        line.setMaxWidth(lineWidth);
+        line.setMinHeight(4);
+        line.setPrefHeight(4);
+        line.setStyle("-fx-background-color: " + color + "; -fx-background-radius: 999;");
+        VBox wrapper = new VBox(line);
+        wrapper.setAlignment(Pos.CENTER);
+        return wrapper;
+    }
+
+    private Label headerCell(String text, double width) {
         Label label = new Label(text);
-        label.setAlignment(alignment);
         label.setWrapText(true);
         label.setMinWidth(width);
         label.setPrefWidth(width);
-        label.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #64748B;");
+        label.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #7B8DA6;");
         return label;
     }
 
-    private Label itemValue(String text, double width, Pos alignment, boolean highlight) {
+    private Label tableCell(String text, double width, boolean bold) {
         Label label = new Label(text);
-        label.setAlignment(alignment);
         label.setWrapText(true);
         label.setMinWidth(width);
         label.setPrefWidth(width);
         label.setStyle(
             "-fx-font-size: 13px;" +
-            "-fx-font-weight: " + (highlight ? "bold" : "normal") + ";" +
-            "-fx-text-fill: #1E293B;"
+            "-fx-text-fill: #334155;" +
+            (bold ? "-fx-font-weight: bold;" : "")
         );
         return label;
     }
 
-    private HBox buildTransportCell(String transport, double width) {
-        HBox box = new HBox();
-        box.setAlignment(Pos.CENTER);
+    private HBox buildTransportCell(String deliveryMethod, double width) {
+        HBox box = new HBox(StatusBadgeFactory.buildTransportBadgeCompact(deliveryMethod));
+        box.setAlignment(Pos.CENTER_LEFT);
         box.setMinWidth(width);
         box.setPrefWidth(width);
-        box.getChildren().add(buildTransportBadge(transport));
         return box;
     }
 
-    private Label buildTransportBadge(String transport) {
-        String icon = "Đường biển".equals(transport) ? "🚢 " : "✈ ";
-        String background = "Đường biển".equals(transport) ? "#E8F1FF" : "#FFF5E6";
-        String foreground = "Đường biển".equals(transport) ? "#2563EB" : "#D97706";
+    private Label buildTopStatusBadge(String status) {
+        String effectiveStatus = displayStatus(status);
+        String normalizedStatus = normalizeStatusKey(status);
+        String background = "#E8F1FF";
+        String foreground = "#2563EB";
 
-        Label badge = new Label(icon + transport);
-        badge.setStyle(
+        if ("confirmed".equals(normalizedStatus)) {
+            background = "#FFF4E5";
+            foreground = "#D97706";
+        } else if ("completed".equals(normalizedStatus)) {
+            background = "#EAF8EF";
+            foreground = "#15803D";
+        }
+
+        Label label = new Label(effectiveStatus);
+        label.setStyle(
             "-fx-background-color: " + background + ";" +
             "-fx-text-fill: " + foreground + ";" +
-            "-fx-background-radius: 999;" +
-            "-fx-padding: " + (compact ? "5 10" : "6 12") + ";" +
-            "-fx-font-size: " + (compact ? 11 : 12) + "px;" +
+            "-fx-background-radius: 12;" +
+            "-fx-padding: 10 16;" +
+            "-fx-font-size: 13px;" +
             "-fx-font-weight: bold;"
         );
-        return badge;
+        return label;
     }
 
-    private Label buildStatusBadge(String status) {
-        String icon;
-        String background;
-        String foreground;
-
-        switch (status) {
-            case "Chờ xác nhận":
-                icon = "◔ ";
-                background = "#FFF3E8";
-                foreground = "#D97706";
-                break;
-            case "Đang giao":
-                icon = "🚚 ";
-                background = "#E8F1FF";
-                foreground = "#2563EB";
-                break;
-            case "Hoàn thành":
-                icon = "✓ ";
-                background = "#EAF8EF";
-                foreground = "#15803D";
-                break;
-            default:
-                icon = "• ";
-                background = "#F3F4F6";
-                foreground = "#6B7280";
-                break;
+    private String formatDateTime(Order order) {
+        if (order.getCreatedAt() == null) {
+            return "N/A";
         }
-
-        Label badge = new Label(icon + status);
-        badge.setStyle(
-            "-fx-background-color: " + background + ";" +
-            "-fx-text-fill: " + foreground + ";" +
-            "-fx-border-color: " + foreground + "22;" +
-            "-fx-border-width: 1;" +
-            "-fx-border-radius: 14;" +
-            "-fx-background-radius: 14;" +
-            "-fx-padding: " + (compact ? "7 12" : "9 16") + ";" +
-            "-fx-font-size: " + (compact ? 12 : 13) + "px;" +
-            "-fx-font-weight: bold;"
-        );
-        return badge;
+        return order.getCreatedAt().toLocalTime().withSecond(0).withNano(0)
+            + "\n"
+            + order.getCreatedAt().toLocalDate().format(DATE_FORMAT);
     }
 
-    private VBox buildCardShell(String titleText) {
-        VBox card = new VBox(compact ? 14 : 18);
-        card.setStyle(
-            "-fx-background-color: white;" +
-            "-fx-border-color: #D7E1EE;" +
-            "-fx-border-width: 1;" +
-            "-fx-border-radius: " + (compact ? 18 : 22) + ";" +
-            "-fx-background-radius: " + (compact ? 18 : 22) + ";" +
-            "-fx-padding: " + (compact ? 18 : 28) + ";" +
-            "-fx-effect: dropshadow(gaussian, rgba(15,23,42,0.06), 16, 0, 0, 4);"
-        );
-
-        Label title = new Label(titleText);
-        title.setStyle(
-            "-fx-font-size: " + (compact ? 16 : 18) + "px;" +
-            "-fx-font-weight: bold;" +
-            "-fx-text-fill: #1E293B;"
-        );
-
-        card.getChildren().add(title);
-        return card;
+    private String displayStatus(String status) {
+        if (status == null || status.isBlank()) {
+            return "N/A";
+        }
+        return switch (status.trim()) {
+            case "Cho xu ly", "Chờ xử lý" -> "Chờ xử lý";
+            case "Dang xu ly", "Đang xử lý" -> "Đang xử lý";
+            case "Cho xac nhan", "Chờ xác nhận" -> "Chờ xác nhận";
+            case "Dang giao", "Đang giao" -> "Đang giao";
+            case "Da hoan thanh", "Hoan thanh", "Đã hoàn thành", "Hoàn thành" -> "Đã hoàn thành";
+            case "Da huy", "Đã hủy" -> "Đã hủy";
+            default -> status;
+        };
     }
 
-    private int resolveActiveStep(String status) {
-        switch (status) {
-            case "Chờ xác nhận":
-                return 0;
-            case "Đang giao":
-                return 1;
-            case "Hoàn thành":
-                return 2;
-            default:
-                return -1;
+    private String displayTransportMethod(String deliveryMethod) {
+        if (deliveryMethod == null || deliveryMethod.isBlank()) {
+            return "N/A";
+        }
+        return switch (deliveryMethod.trim()) {
+            case "May bay", "Máy bay" -> "Máy bay";
+            case "Tau", "Tàu" -> "Tàu";
+            case "Duong bien", "Đường biển" -> "Đường biển";
+            default -> deliveryMethod;
+        };
+    }
+
+    private String normalizeStatusKey(String status) {
+        if (status == null) {
+            return "other";
+        }
+        return switch (status.trim()) {
+            case "Cho xac nhan", "Chờ xác nhận" -> "confirmed";
+            case "Dang giao", "Đang giao" -> "shipping";
+            case "Da hoan thanh", "Hoan thanh", "Đã hoàn thành", "Hoàn thành" -> "completed";
+            default -> "other";
+        };
+    }
+
+    private int parseOrderId(String orderIdRaw) {
+        try {
+            return Integer.parseInt(orderIdRaw.replaceAll("\\D+", ""));
+        } catch (NumberFormatException exception) {
+            return 1;
         }
     }
 
-    private String statusColor(String status) {
-        switch (status) {
-            case "Chờ xác nhận":
-                return "#F59E0B";
-            case "Đang giao":
-                return "#3B82F6";
-            case "Hoàn thành":
-                return "#22C55E";
-            default:
-                return "#9CA3AF";
-        }
-    }
-
-    private String statusTextColor(String status) {
-        switch (status) {
-            case "Chờ xác nhận":
-                return "#B45309";
-            case "Đang giao":
-                return "#1D4ED8";
-            case "Hoàn thành":
-                return "#15803D";
-            default:
-                return "#6B7280";
-        }
-    }
-
-    private static Map<String, OrderDetailData> buildSampleData() {
-        Map<String, OrderDetailData> data = new LinkedHashMap<>();
-
-        data.put("DH-2026-001", new OrderDetailData(
-            "DH-2026-001",
-            "SITE004",
-            "Singapore Trade Center",
-            "09:15 03/04/2026",
-            "Hoàn thành",
-            List.of(
-                new OrderItem("1", "MH003", "MacBook Pro M4", "50", "Chiếc", "Đường biển")
-            )
-        ));
-
-        data.put("DH-2026-002", new OrderDetailData(
-            "DH-2026-002",
-            "SITE001",
-            "Tokyo Electronics Hub",
-            "10:30 02/04/2026",
-            "Đang giao",
-            List.of(
-                new OrderItem("1", "MH004", "iPad Air M3", "100", "Chiếc", "Hàng không"),
-                new OrderItem("2", "MH006", "Apple Watch Ultra 3", "80", "Chiếc", "Hàng không")
-            )
-        ));
-
-        data.put("DH-2026-003", new OrderDetailData(
-            "DH-2026-003",
-            "SITE004",
-            "Singapore Trade Center",
-            "10:30 02/04/2026",
-            "Chờ xác nhận",
-            List.of(
-                new OrderItem("1", "MH006", "Apple Watch Ultra 3", "30", "Chiếc", "Đường biển")
-            )
-        ));
-
-        data.put("DH-2026-004", new OrderDetailData(
-            "DH-2026-004",
-            "SITE003",
-            "Shenzhen Import Co.",
-            "08:45 01/04/2026",
-            "Đang giao",
-            List.of(
-                new OrderItem("1", "MH002", "Samsung Galaxy S25 Ultra", "300", "Chiếc", "Đường biển"),
-                new OrderItem("2", "MH005", "Sony WH-1000XM5", "150", "Chiếc", "Đường biển"),
-                new OrderItem("3", "MH004", "iPad Air M3", "80", "Chiếc", "Đường biển")
-            )
-        ));
-
-        return data;
+    public Node getView() {
+        return root;
     }
 }

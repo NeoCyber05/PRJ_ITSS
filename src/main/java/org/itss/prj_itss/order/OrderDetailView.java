@@ -1,33 +1,41 @@
 package org.itss.prj_itss.order;
 
-import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.ScrollPane;
-import javafx.scene.layout.BorderPane;
+import javafx.scene.effect.GaussianBlur;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
-import org.itss.prj_itss.layout.MainLayoutController;
+import org.itss.prj_itss.dao.DAOFactory;
+import org.itss.prj_itss.layout.Navigator;
 
 public class OrderDetailView {
 
-    private final BorderPane view;
+    private final StackPane view;
 
-    public OrderDetailView(MainLayoutController mainController, String orderId) {
-        view = new BorderPane();
-        view.setStyle("-fx-background-color: #F5F9F6;");
+    public OrderDetailView(Navigator navigator, DAOFactory daoFactory, String orderId) {
+        view = new StackPane();
+        view.setStyle("-fx-background-color: #F3F7FB;");
 
-        Node detailContent = new OrderDetailPanel(orderId, () -> mainController.showView("orders")).getView();
+        Node background = new OrderManagementView(navigator, daoFactory).getView();
+        background.setEffect(new GaussianBlur(14));
+        background.setOpacity(0.96);
 
-        StackPane wrapper = new StackPane(detailContent);
-        wrapper.setPadding(new Insets(24, 36, 36, 36));
-        wrapper.setStyle("-fx-background-color: #F5F9F6;");
+        Region backdrop = new Region();
+        backdrop.setStyle("-fx-background-color: rgba(15,23,42,0.34);");
+        backdrop.setOnMouseClicked(event -> navigator.showView("orders"));
 
-        ScrollPane scrollPane = new ScrollPane(wrapper);
-        scrollPane.setFitToWidth(true);
-        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
-        scrollPane.setStyle("-fx-background-color: #F5F9F6; -fx-background: #F5F9F6;");
+        Node drawer = new OrderDetailPanel(orderId, () -> navigator.showView("orders"), daoFactory).getView();
 
-        view.setCenter(scrollPane);
+        HBox drawerLayer = new HBox();
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        drawerLayer.getChildren().addAll(spacer, drawer);
+        drawerLayer.setAlignment(Pos.CENTER_RIGHT);
+
+        view.getChildren().addAll(background, backdrop, drawerLayer);
     }
 
     public Node getView() {

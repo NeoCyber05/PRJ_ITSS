@@ -40,3 +40,6 @@ build/
 ## File specific ignores
 BussinessLogic.md
 
+### Database credentials ###
+db.properties
+
