@@ -299,19 +299,25 @@ public class ReceivedRequestsView {
         HBox box = new HBox(8);
         box.setAlignment(Pos.CENTER_LEFT);
 
-        // Eye button
-        Button eyeBtn = new Button("👁");
+        // Detail button
+        Button eyeBtn = new Button("Chi tiết");
         eyeBtn.setStyle(
-            "-fx-background-color: #F0F4F2;" +
+            "-fx-background-color: white;" +
+            "-fx-border-color: #D0DAD5;" +
+            "-fx-border-radius: 6;" +
             "-fx-background-radius: 6;" +
+            "-fx-text-fill: #3A4A40;" +
             "-fx-cursor: hand;" +
-            "-fx-font-size: 14px;" +
-            "-fx-padding: 6 10;"
+            "-fx-font-size: 12px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-padding: 5 10;"
         );
         eyeBtn.setOnMouseEntered(e -> eyeBtn.setStyle(
-            "-fx-background-color: #D8EAE0; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-size: 14px; -fx-padding: 6 10;"));
+            "-fx-background-color: #F0F4F2; -fx-border-color: #D0DAD5; -fx-border-radius: 6; -fx-background-radius: 6; " +
+            "-fx-text-fill: #1a2e22; -fx-cursor: hand; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 5 10;"));
         eyeBtn.setOnMouseExited(e -> eyeBtn.setStyle(
-            "-fx-background-color: #F0F4F2; -fx-background-radius: 6; -fx-cursor: hand; -fx-font-size: 14px; -fx-padding: 6 10;"));
+            "-fx-background-color: white; -fx-border-color: #D0DAD5; -fx-border-radius: 6; -fx-background-radius: 6; " +
+            "-fx-text-fill: #3A4A40; -fx-cursor: hand; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 5 10;"));
         eyeBtn.setTooltip(new Tooltip("Xem chi tiết yêu cầu " + maYC));
         eyeBtn.setOnAction(e -> RequestDetailPopup.show(view.getScene() == null ? null : view.getScene().getWindow(), maYC));
 

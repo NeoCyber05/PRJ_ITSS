@@ -20,10 +20,7 @@ import org.itss.prj_itss.request.ReceivedRequestsView;
 import org.itss.prj_itss.request.RequestProcessingView;
 import org.itss.prj_itss.site.SiteManagementView;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
-import java.util.Locale;
 import java.util.Map;
 
 
@@ -31,9 +28,6 @@ public class MainLayoutController {
 
     private final BorderPane root;
     private final StackPane contentArea;
-    private final Label workspaceTitle;
-    private final Label workspaceSubtitle;
-    private final Label workspaceTag;
     private final Map<String, Button> navButtons;
 
     private final HomeView homeView;
@@ -46,15 +40,6 @@ public class MainLayoutController {
         root.getStyleClass().add("app-shell");
 
         navButtons = new LinkedHashMap<>();
-        workspaceTitle = new Label();
-        workspaceTitle.getStyleClass().add("workspace-title");
-
-        workspaceSubtitle = new Label();
-        workspaceSubtitle.getStyleClass().add("workspace-subtitle");
-
-        workspaceTag = new Label();
-        workspaceTag.getStyleClass().add("workspace-pill");
-
         homeView = new HomeView(this);
         siteManagementView = new SiteManagementView();
         receivedRequestsView = new ReceivedRequestsView(this);
@@ -66,7 +51,7 @@ public class MainLayoutController {
         VBox workspaceShell = new VBox(18);
         workspaceShell.getStyleClass().add("workspace-shell");
         VBox.setVgrow(contentArea, Priority.ALWAYS);
-        workspaceShell.getChildren().addAll(buildWorkspaceStrip(), contentArea);
+        workspaceShell.getChildren().add(contentArea);
 
         root.setLeft(buildSidebar());
         root.setCenter(workspaceShell);
@@ -104,19 +89,6 @@ public class MainLayoutController {
             createNavButton("Đơn hàng", "orders")
         );
 
-        VBox pulseCard = new VBox(14);
-        pulseCard.getStyleClass().add("sidebar-insight-card");
-
-        Label pulseTitle = new Label("Tóm tắt nhanh");
-        pulseTitle.getStyleClass().add("sidebar-insight-title");
-
-        pulseCard.getChildren().addAll(
-            pulseTitle,
-            buildSidebarMetric("03", "yêu cầu chờ xử lý"),
-            buildSidebarMetric("05", "đơn hàng đã tạo"),
-            buildSidebarMetric("04", "site hoạt động")
-        );
-
         Region spacer = new Region();
         VBox.setVgrow(spacer, Priority.ALWAYS);
 
@@ -140,25 +112,8 @@ public class MainLayoutController {
 
         userCard.getChildren().addAll(avatarPane, userMeta);
 
-        sidebar.getChildren().addAll(brandBox, navSection, pulseCard, spacer, userCard);
+        sidebar.getChildren().addAll(brandBox, navSection, spacer, userCard);
         return sidebar;
-    }
-
-    private HBox buildSidebarMetric(String value, String label) {
-        HBox row = new HBox();
-        row.setAlignment(Pos.CENTER_LEFT);
-
-        Label valueLabel = new Label(value);
-        valueLabel.getStyleClass().add("sidebar-metric-value");
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Label labelText = new Label(label);
-        labelText.getStyleClass().add("sidebar-metric-label");
-
-        row.getChildren().addAll(valueLabel, spacer, labelText);
-        return row;
     }
 
     private Button createNavButton(String text, String viewId) {
@@ -171,33 +126,8 @@ public class MainLayoutController {
         return button;
     }
 
-    private HBox buildWorkspaceStrip() {
-        HBox strip = new HBox(16);
-        strip.getStyleClass().add("workspace-strip");
-        strip.setAlignment(Pos.CENTER_LEFT);
-
-        VBox textGroup = new VBox(5);
-
-        Label eyebrow = new Label("KHÔNG GIAN LÀM VIỆC");
-        eyebrow.getStyleClass().add("workspace-eyebrow");
-
-        textGroup.getChildren().addAll(eyebrow, workspaceTitle, workspaceSubtitle);
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        Label datePill = new Label(
-            LocalDate.now().format(DateTimeFormatter.ofPattern("EEE, dd/MM/yyyy", new Locale("vi", "VN")))
-        );
-        datePill.getStyleClass().addAll("workspace-pill", "workspace-pill-soft");
-
-        strip.getChildren().addAll(textGroup, spacer, workspaceTag, datePill);
-        return strip;
-    }
-
     public void showView(String viewId) {
         contentArea.getChildren().clear();
-        updateWorkspaceMeta(viewId);
         setActiveNav(resolveNavTarget(viewId));
 
         switch (viewId) {
@@ -245,39 +175,6 @@ public class MainLayoutController {
             return "received-requests";
         }
         return viewId;
-    }
-
-    private void updateWorkspaceMeta(String viewId) {
-        String title = "Trang chủ";
-        String subtitle = "Điểm vào nhanh cho các luồng chính của bộ phận đặt hàng quốc tế.";
-        String tag = "Màn hình chính";
-
-        if ("site-management".equals(viewId)) {
-            title = "Quản lý site";
-            subtitle = "Quản lý thông tin đối tác, thời gian vận chuyển và danh mục hàng.";
-            tag = "Thông tin site";
-        } else if ("received-requests".equals(viewId)) {
-            title = "Yêu cầu đã nhận";
-            subtitle = "Kiểm tra nhu cầu từ bộ phận bán hàng và mở xử lý khi cần.";
-            tag = "Danh sách yêu cầu";
-        } else if ("orders".equals(viewId)) {
-            title = "Đơn hàng đã tạo";
-            subtitle = "Theo dõi trạng thái xác nhận, giao hàng và hoàn thành đơn hàng.";
-            tag = "Theo dõi đơn hàng";
-        } else if ("request-processing".equals(viewId)) {
-            title = "Xử lý yêu cầu";
-            subtitle = "Phân bổ theo hạn giao, tồn kho và số lượng site phù hợp.";
-            tag = "Đang xử lý";
-        } else if (viewId.startsWith("order-detail:")) {
-            String orderId = viewId.substring("order-detail:".length());
-            title = "Chi tiết đơn hàng";
-            subtitle = "Xem tiến trình giao hàng, danh sách mặt hàng và thông tin site của " + orderId + ".";
-            tag = orderId;
-        }
-
-        workspaceTitle.setText(title);
-        workspaceSubtitle.setText(subtitle);
-        workspaceTag.setText(tag);
     }
 
     public BorderPane getRoot() {

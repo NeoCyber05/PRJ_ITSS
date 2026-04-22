@@ -298,17 +298,25 @@ public class OrderManagementView {
         HBox box = new HBox(8);
         box.setAlignment(Pos.CENTER_LEFT);
 
-        // Eye button (always)
-        Button eyeBtn = new Button("👁");
+        // Detail button (always)
+        Button eyeBtn = new Button("Chi tiết");
         eyeBtn.setStyle(
-            "-fx-background-color: #F0F4F2; -fx-background-radius: 50;" +
-            "-fx-cursor: hand; -fx-font-size: 14px; -fx-padding: 6 10;" +
-            "-fx-min-width: 34; -fx-min-height: 34;"
+            "-fx-background-color: white;" +
+            "-fx-border-color: #D0DAD5;" +
+            "-fx-border-radius: 6;" +
+            "-fx-background-radius: 6;" +
+            "-fx-text-fill: #3A4A40;" +
+            "-fx-cursor: hand;" +
+            "-fx-font-size: 12px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-padding: 5 10;"
         );
         eyeBtn.setOnMouseEntered(e -> eyeBtn.setStyle(
-            "-fx-background-color: #D8EAE0; -fx-background-radius: 50; -fx-cursor: hand; -fx-font-size: 14px; -fx-padding: 6 10; -fx-min-width: 34; -fx-min-height: 34;"));
+            "-fx-background-color: #F0F4F2; -fx-border-color: #D0DAD5; -fx-border-radius: 6; -fx-background-radius: 6; " +
+            "-fx-text-fill: #1a2e22; -fx-cursor: hand; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 5 10;"));
         eyeBtn.setOnMouseExited(e -> eyeBtn.setStyle(
-            "-fx-background-color: #F0F4F2; -fx-background-radius: 50; -fx-cursor: hand; -fx-font-size: 14px; -fx-padding: 6 10; -fx-min-width: 34; -fx-min-height: 34;"));
+            "-fx-background-color: white; -fx-border-color: #D0DAD5; -fx-border-radius: 6; -fx-background-radius: 6; " +
+            "-fx-text-fill: #3A4A40; -fx-cursor: hand; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 5 10;"));
         eyeBtn.setTooltip(new Tooltip("Xem chi tiết " + maDon));
         eyeBtn.setOnAction(e -> mainController.showView("order-detail:" + maDon));
 
