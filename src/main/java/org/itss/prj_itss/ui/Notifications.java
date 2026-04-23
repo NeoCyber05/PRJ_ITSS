@@ -1,4 +1,4 @@
-package org.itss.prj_itss.common;
+package org.itss.prj_itss.ui;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -11,35 +11,36 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+public final class Notifications {
 
-public final class ToastHelper {
-
-    private ToastHelper() { }
-
+    private Notifications() {
+    }
 
     public static void showToast(String message) {
         Stage toast = new Stage();
         toast.setAlwaysOnTop(true);
         toast.initModality(Modality.NONE);
-        Label lbl = new Label(message);
-        lbl.setStyle(
+
+        Label label = new Label(message);
+        label.setStyle(
             "-fx-background-color: #253D2C; -fx-text-fill: white;" +
             "-fx-padding: 14 24; -fx-background-radius: 10;" +
             "-fx-font-size: 14px; -fx-font-weight: bold;"
         );
-        Scene s = new Scene(new StackPane(lbl));
-        s.setFill(null);
-        toast.setScene(s);
+
+        Scene scene = new Scene(new StackPane(label));
+        scene.setFill(null);
+        toast.setScene(scene);
         toast.show();
 
-        Timeline tl = new Timeline(
-            new KeyFrame(Duration.seconds(2.5), ev -> toast.close())
+        Timeline timeline = new Timeline(
+            new KeyFrame(Duration.seconds(2.5), event -> toast.close())
         );
-        tl.play();
+        timeline.play();
     }
 
     public static void styleDialog(Alert alert) {
-        DialogPane dp = alert.getDialogPane();
-        dp.setStyle("-fx-background-color: white; -fx-font-size: 13px;");
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.setStyle("-fx-background-color: white; -fx-font-size: 13px;");
     }
 }

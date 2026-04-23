@@ -1,15 +1,19 @@
 package org.itss.prj_itss.order;
 
+import javafx.fxml.FXMLLoader;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
+import javafx.scene.control.Label;
 import javafx.scene.effect.GaussianBlur;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
+import org.itss.prj_itss.App;
 import org.itss.prj_itss.dao.DAOFactory;
 import org.itss.prj_itss.layout.Navigator;
+import org.itss.prj_itss.layout.ViewController;
 
 public class OrderDetailView {
 
@@ -19,7 +23,7 @@ public class OrderDetailView {
         view = new StackPane();
         view.setStyle("-fx-background-color: #F3F7FB;");
 
-        Node background = new OrderManagementView(navigator, daoFactory).getView();
+        Node background = loadOrdersBackground(navigator, daoFactory);
         background.setEffect(new GaussianBlur(14));
         background.setOpacity(0.96);
 
@@ -36,6 +40,23 @@ public class OrderDetailView {
         drawerLayer.setAlignment(Pos.CENTER_RIGHT);
 
         view.getChildren().addAll(background, backdrop, drawerLayer);
+    }
+
+    private Node loadOrdersBackground(Navigator navigator, DAOFactory daoFactory) {
+        try {
+            FXMLLoader loader = new FXMLLoader(App.class.getResource("/org/itss/prj_itss/order/order-management-view.fxml"));
+            Node background = loader.load();
+            Object controller = loader.getController();
+            if (controller instanceof ViewController viewController) {
+                viewController.init(navigator, daoFactory);
+            }
+            return background;
+        } catch (Exception exception) {
+            Label errorLabel = new Label("Khong the tai danh sach don hang.");
+            StackPane fallback = new StackPane(errorLabel);
+            fallback.getStyleClass().add("content-area");
+            return fallback;
+        }
     }
 
     public Node getView() {

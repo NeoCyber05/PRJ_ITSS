@@ -14,7 +14,6 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 
-import org.itss.prj_itss.common.StatusBadgeFactory;
 import org.itss.prj_itss.dao.DAOFactory;
 import org.itss.prj_itss.dao.IMerchandiseDAO;
 import org.itss.prj_itss.dao.IOrderDAO;
@@ -23,6 +22,7 @@ import org.itss.prj_itss.entity.Merchandise;
 import org.itss.prj_itss.entity.Order;
 import org.itss.prj_itss.entity.OrderMerchandise;
 import org.itss.prj_itss.entity.Site;
+import org.itss.prj_itss.ui.StatusNodes;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -279,7 +279,7 @@ public class OrderDetailPanel {
         Label labelNode = new Label(label);
         labelNode.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #7B8DA6;");
 
-        cell.getChildren().addAll(labelNode, StatusBadgeFactory.buildStatusBadge(displayStatus(status)));
+        cell.getChildren().addAll(labelNode, StatusNodes.buildStatusBadge(displayStatus(status)));
         return cell;
     }
 
@@ -338,7 +338,7 @@ public class OrderDetailPanel {
     }
 
     private HBox buildTransportCell(String deliveryMethod, double width) {
-        HBox box = new HBox(StatusBadgeFactory.buildTransportBadgeCompact(deliveryMethod));
+        HBox box = new HBox(StatusNodes.buildTransportBadgeCompact(deliveryMethod));
         box.setAlignment(Pos.CENTER_LEFT);
         box.setMinWidth(width);
         box.setPrefWidth(width);

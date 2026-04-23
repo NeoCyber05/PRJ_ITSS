@@ -11,8 +11,6 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.common.AppStyles;
-import org.itss.prj_itss.common.ToastHelper;
 import org.itss.prj_itss.dao.DAOFactory;
 import org.itss.prj_itss.dao.IInventoryDAO;
 import org.itss.prj_itss.dao.IMerchandiseDAO;
@@ -26,6 +24,7 @@ import org.itss.prj_itss.layout.ViewController;
 import org.itss.prj_itss.request.RequestModels.Allocation;
 import org.itss.prj_itss.request.RequestModels.ItemReq;
 import org.itss.prj_itss.request.RequestModels.SiteInfo;
+import org.itss.prj_itss.ui.Notifications;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -118,7 +117,7 @@ public class RequestProcessingController implements ViewController {
             alert.setTitle("Chưa hoàn tất");
             alert.setHeaderText("Vui lòng kiểm tra:");
             alert.setContentText(String.join("\n", errors));
-            ToastHelper.styleDialog(alert);
+            Notifications.styleDialog(alert);
             alert.showAndWait();
             return;
         }
@@ -129,11 +128,11 @@ public class RequestProcessingController implements ViewController {
         int totalQuantity = items.stream().mapToInt(item -> item.required).sum();
         long siteCount = allocations.values().stream().flatMap(map -> map.keySet().stream()).distinct().count();
         confirmAlert.setContentText("Tổng: " + totalQuantity + " chiếc | " + siteCount + " site");
-        ToastHelper.styleDialog(confirmAlert);
+        Notifications.styleDialog(confirmAlert);
         Optional<ButtonType> result = confirmAlert.showAndWait();
         if (result.isPresent() && result.get() == ButtonType.OK) {
             navigator.showView("orders");
-            ToastHelper.showToast("Đã tạo đơn hàng thành công.");
+            Notifications.showToast("Đã tạo đơn hàng thành công.");
         }
     }
 
@@ -228,6 +227,7 @@ public class RequestProcessingController implements ViewController {
         );
         allocationSection.setAllocFractionLabels(allocationFractionLabels);
         allocationSection.setOnAllocationChanged(this::refreshAllocationLabels);
+        allocationSection.setOnPlanApplied(this::rebuildItemsAndAllocationSections);
 
         allocationContainer.getChildren().setAll(allocationSection.buildWrapper());
         refreshAllocationLabels();
@@ -235,7 +235,7 @@ public class RequestProcessingController implements ViewController {
 
     private VBox buildItemsTable() {
         VBox card = new VBox(0);
-        card.setStyle(AppStyles.cardStyle());
+        card.getStyleClass().add("forest-card");
         card.setPadding(Insets.EMPTY);
 
         HBox header = new HBox();
@@ -247,12 +247,12 @@ public class RequestProcessingController implements ViewController {
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
         header.getChildren().addAll(
-            AppStyles.colHeader("MÃ HÀNG", 140),
-            AppStyles.colHeader("SỐ LƯỢNG YÊU CẦU", 150),
-            AppStyles.colHeader("NGÀY CẦN GIAO", 140),
-            AppStyles.colHeader("ĐÃ PHÂN BỔ", 160),
+            tableHeaderLabel("MÃ HÀNG", 140),
+            tableHeaderLabel("SỐ LƯỢNG YÊU CẦU", 150),
+            tableHeaderLabel("NGÀY CẦN GIAO", 140),
+            tableHeaderLabel("ĐÃ PHÂN BỔ", 160),
             spacer,
-            AppStyles.colHeader("TỔNG TỒN KHO", 120)
+            tableHeaderLabel("TỔNG TỒN KHO", 120)
         );
 
         card.getChildren().add(header);
@@ -363,6 +363,14 @@ public class RequestProcessingController implements ViewController {
 
         fractionLabel.setText(allocated + "/" + item.required + " chiếc");
         fractionLabel.setStyle("-fx-font-size:13px;-fx-text-fill:" + (done ? "#2E6F40" : "#E65100") + ";-fx-font-weight:bold;");
+    }
+
+    private Label tableHeaderLabel(String text, double width) {
+        Label label = new Label(text);
+        label.getStyleClass().add("forest-table-header-label");
+        label.setMinWidth(width);
+        label.setPrefWidth(width);
+        return label;
     }
 
     private int getAllocated(int merchandiseId) {

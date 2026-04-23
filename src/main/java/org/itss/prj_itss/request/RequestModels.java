@@ -4,10 +4,6 @@ import javafx.beans.property.SimpleIntegerProperty;
 
 import java.util.Map;
 
-/**
- * Data models dùng riêng cho Request Processing flow.
- * Tách ra khỏi RequestProcessingView để giảm độ dài file.
- */
 public final class RequestModels {
 
     private RequestModels() { }

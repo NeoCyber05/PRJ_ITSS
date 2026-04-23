@@ -499,3 +499,144 @@
     -fx-font-size: 14px;
     -fx-text-fill: -fx-text-gray;
 }
+
+.forest-card {
+    -fx-background-color: white;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: #E0EBE4;
+    -fx-border-width: 1;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);
+}
+
+.forest-table-header-label {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #8FA899;
+}
+
+.button.forest-primary-button {
+    -fx-background-color: #2E6F40;
+    -fx-text-fill: white;
+    -fx-background-radius: 7;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 9 20;
+}
+
+.button.forest-secondary-button {
+    -fx-background-color: white;
+    -fx-text-fill: #2E6F40;
+    -fx-background-radius: 7;
+    -fx-border-color: #2E6F40;
+    -fx-border-radius: 7;
+    -fx-border-width: 1.5;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 9 20;
+}
+
+.button.forest-dark-button {
+    -fx-background-color: #253D2C;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 7 16;
+}
+
+.button.forest-dark-button:hover {
+    -fx-background-color: #1A2E20;
+}
+
+.button.request-toolbar-secondary-button {
+    -fx-background-color: linear-gradient(to right, rgba(15, 23, 42, 0.03), rgba(15, 118, 110, 0.10));
+    -fx-text-fill: #0F5160;
+    -fx-background-radius: 14;
+    -fx-border-color: rgba(15, 118, 110, 0.38);
+    -fx-border-radius: 14;
+    -fx-border-width: 1.3;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 11 22;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.08), 12, 0, 0, 3);
+}
+
+.button.request-toolbar-secondary-button:hover {
+    -fx-background-color: linear-gradient(to right, rgba(15, 23, 42, 0.06), rgba(20, 184, 166, 0.16));
+    -fx-border-color: rgba(20, 184, 166, 0.52);
+    -fx-text-fill: #0B3B46;
+}
+
+.button.request-toolbar-primary-button {
+    -fx-background-color: linear-gradient(to right, #0F172A, #0F2740 52%, #0F766E);
+    -fx-text-fill: white;
+    -fx-background-radius: 14;
+    -fx-border-radius: 14;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 11 24;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.18), 16, 0, 0, 5);
+}
+
+.button.request-toolbar-primary-button:hover {
+    -fx-background-color: linear-gradient(to right, #111C34, #10304D 50%, #0D8C80);
+}
+
+.button.request-confirm-button {
+    -fx-background-color: linear-gradient(to right, #0F172A, #0F2740 48%, #0F766E);
+    -fx-text-fill: white;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-color: transparent;
+    -fx-cursor: hand;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 12 34;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.20), 18, 0, 0, 6);
+}
+
+.button.request-confirm-button:hover {
+    -fx-background-color: linear-gradient(to right, #111C34, #10304D 46%, #109186);
+}
+
+.button.forest-outline-button {
+    -fx-background-color: white;
+    -fx-border-color: #D0DAD5;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-text-fill: #3A4A40;
+    -fx-cursor: hand;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 5 10;
+}
+
+.button.forest-outline-button:hover {
+    -fx-background-color: #F0F4F2;
+    -fx-text-fill: #1A2E22;
+}
+
+.button.forest-chip-button {
+    -fx-background-radius: 14;
+    -fx-cursor: hand;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 5 14;
+}
+
+.text-field.forest-filter-search {
+    -fx-background-color: #F5F9F6;
+    -fx-border-color: #D0DAD5;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 9 14;
+    -fx-font-size: 13px;
+    -fx-prompt-text-fill: #A0B0A6;
+}

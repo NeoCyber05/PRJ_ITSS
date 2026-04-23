@@ -99,7 +99,7 @@ public class MainLayoutController implements Navigator {
 
         if (viewId.startsWith("request-processing:")) {
             int requestId = parsePositiveInt(viewId.substring("request-processing:".length()), 1);
-            return new LoadedView(new RequestProcessingView(this, daoFactory, requestId).getView(), null);
+            return loadRequestProcessingView(requestId);
         }
 
         return switch (viewId) {
@@ -107,9 +107,13 @@ public class MainLayoutController implements Navigator {
             case "site-management" -> getOrLoadCachedView("site-management", "/org/itss/prj_itss/site/site-management-view.fxml");
             case "received-requests" -> getOrLoadCachedView("received-requests", "/org/itss/prj_itss/request/received-requests-view.fxml");
             case "orders" -> getOrLoadCachedView("orders", "/org/itss/prj_itss/order/order-management-view.fxml");
-            case "request-processing" -> new LoadedView(new RequestProcessingView(this, daoFactory, 1).getView(), null);
+            case "request-processing" -> loadRequestProcessingView(1);
             default -> getOrLoadCachedView("home", "/org/itss/prj_itss/home/home-view.fxml");
         };
+    }
+
+    private LoadedView loadRequestProcessingView(int requestId) {
+        return new LoadedView(new RequestProcessingView(this, daoFactory, requestId).getView(), null);
     }
 
     private LoadedView getOrLoadCachedView(String cacheKey, String resourcePath) {

@@ -12,12 +12,12 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.common.AppStyles;
 import org.itss.prj_itss.request.RequestModels.SiteInfo;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 public class SiteFilterSection {
@@ -28,8 +28,15 @@ public class SiteFilterSection {
     private final Set<Integer> excludedSiteIds = new LinkedHashSet<>();
 
     private VBox siteListContainer;
+    private VBox filterContent;
     private HBox priorityTagsBox;
     private HBox excludeTagsBox;
+    private TextField searchBox;
+    private Label countLabel;
+    private Label toggleSummaryLabel;
+    private Label toggleChevronLabel;
+    private Button toggleButton;
+    private boolean expanded;
     private Runnable onFiltersChanged;
 
     public SiteFilterSection(List<SiteInfo> allSites) {
@@ -51,47 +58,64 @@ public class SiteFilterSection {
 
     public VBox build() {
         VBox card = new VBox(14);
-        card.setStyle(AppStyles.cardStyle());
+        card.getStyleClass().add("forest-card");
         card.setPadding(new Insets(20));
 
-        Label sectionLabel = new Label("BỘ LỌC SITE");
+        Label sectionLabel = new Label("B\u1ed8 L\u1eccC SITE");
         sectionLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #2E6F40;");
-        Label title = new Label("Chọn site ưu tiên hoặc loại bỏ");
+
+        Label title = new Label("Ch\u1ecdn site \u01b0u ti\u00ean ho\u1eb7c lo\u1ea1i b\u1ecf");
         title.setStyle("-fx-font-size: 15px; -fx-font-weight: bold; -fx-text-fill: #1a2e22;");
 
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
+        toggleSummaryLabel = new Label();
+        toggleSummaryLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6B7C72;");
 
-        Button clearAllButton = new Button("Xóa bộ lọc");
+        toggleChevronLabel = new Label();
+        toggleChevronLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #6B7C72;");
+
+        VBox toggleTextBox = new VBox(2, sectionLabel, title);
+        Region toggleSpacer = new Region();
+        HBox.setHgrow(toggleSpacer, Priority.ALWAYS);
+
+        HBox toggleGraphic = new HBox(12, toggleTextBox, toggleSpacer, toggleSummaryLabel, toggleChevronLabel);
+        toggleGraphic.setAlignment(Pos.CENTER_LEFT);
+
+        toggleButton = new Button();
+        toggleButton.setGraphic(toggleGraphic);
+        toggleButton.setMaxWidth(Double.MAX_VALUE);
+        toggleButton.setAlignment(Pos.CENTER_LEFT);
+        toggleButton.setStyle(collapsedButtonStyle());
+        toggleButton.setOnAction(event -> setExpanded(!expanded));
+
+        Button clearAllButton = new Button("X\u00f3a b\u1ed9 l\u1ecdc");
         clearAllButton.setStyle("-fx-background-color: transparent; -fx-text-fill: #6B7C72; -fx-cursor: hand; -fx-font-size: 12px; -fx-padding: 4 8;");
         clearAllButton.setOnAction(event -> clearAllFilters());
 
-        VBox headerText = new VBox(2, sectionLabel, title);
-        HBox headerRow = new HBox(headerText, spacer, clearAllButton);
-        headerRow.setAlignment(Pos.CENTER_LEFT);
+        Region clearSpacer = new Region();
+        HBox.setHgrow(clearSpacer, Priority.ALWAYS);
+        HBox actionsRow = new HBox(clearSpacer, clearAllButton);
+        actionsRow.setAlignment(Pos.CENTER_LEFT);
 
-        TextField searchBox = new TextField();
-        searchBox.setPromptText("Tìm theo tên site, mã site...");
-        searchBox.setStyle("-fx-background-color: #F5F9F6; -fx-border-color: #D0DAD5; -fx-border-radius: 6; -fx-background-radius: 6; -fx-padding: 9 14; -fx-font-size: 13px; -fx-prompt-text-fill: #A0B0A6;");
-        searchBox.textProperty().addListener((observable, oldValue, newValue) -> filterSites(newValue));
+        searchBox = new TextField();
+        searchBox.setPromptText("T\u00ecm theo t\u00ean site, m\u00e3 site...");
+        searchBox.getStyleClass().add("forest-filter-search");
+        searchBox.textProperty().addListener((observable, oldValue, newValue) -> refreshVisibleSites());
 
         HBox tagRow = new HBox(24);
 
         VBox priorityColumn = new VBox(6);
-        Label priorityLabel = new Label("SITE ƯU TIÊN");
+        Label priorityLabel = new Label("SITE \u01afu TI\u00caN");
         priorityLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #8FA899;");
         priorityTagsBox = new HBox(8);
         priorityTagsBox.setAlignment(Pos.CENTER_LEFT);
-        updatePriorityTagsUI();
         priorityColumn.getChildren().addAll(priorityLabel, priorityTagsBox);
         HBox.setHgrow(priorityColumn, Priority.ALWAYS);
 
         VBox excludeColumn = new VBox(6);
-        Label excludeLabel = new Label("SITE LOẠI BỎ");
+        Label excludeLabel = new Label("SITE LO\u1ea0I B\u1ece");
         excludeLabel.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #8FA899;");
         excludeTagsBox = new HBox(8);
         excludeTagsBox.setAlignment(Pos.CENTER_LEFT);
-        updateExcludeTagsUI();
         excludeColumn.getChildren().addAll(excludeLabel, excludeTagsBox);
         HBox.setHgrow(excludeColumn, Priority.ALWAYS);
 
@@ -99,54 +123,80 @@ public class SiteFilterSection {
 
         HBox countRow = new HBox();
         countRow.setAlignment(Pos.CENTER_LEFT);
-        Label countLabel = new Label(visibleSites.size() + "/" + allSites.size() + " site");
+
+        countLabel = new Label();
         countLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #6B7C72;");
+
         Region countSpacer = new Region();
         HBox.setHgrow(countSpacer, Priority.ALWAYS);
-        Label hintLabel = new Label("Site ưu tiên sẽ được sắp xếp lên trên");
+
+        Label hintLabel = new Label("Site \u01b0u ti\u00ean s\u1ebd \u0111\u01b0\u1ee3c s\u1eafp x\u1ebfp l\u00ean tr\u00ean");
         hintLabel.setStyle("-fx-font-size: 11px; -fx-text-fill: #A0B0A6;");
+
         countRow.getChildren().addAll(countLabel, countSpacer, hintLabel);
 
         siteListContainer = new VBox(8);
-        rebuildSiteList();
 
-        card.getChildren().addAll(headerRow, searchBox, tagRow, countRow, siteListContainer);
+        filterContent = new VBox(14, actionsRow, searchBox, tagRow, countRow, siteListContainer);
+
+        updatePriorityTagsUI();
+        updateExcludeTagsUI();
+        refreshVisibleSites();
+        setExpanded(false);
+
+        card.getChildren().addAll(toggleButton, filterContent);
         return card;
-    }
-
-    private void filterSites(String term) {
-        visibleSites.clear();
-        String keyword = term == null ? "" : term.toLowerCase();
-        for (SiteInfo site : allSites) {
-            if (excludedSiteIds.contains(site.id)) {
-                continue;
-            }
-            if (keyword.isEmpty()
-                || site.name.toLowerCase().contains(keyword)
-                || site.siteCode.toLowerCase().contains(keyword)) {
-                visibleSites.add(site);
-            }
-        }
-        rebuildSiteList();
     }
 
     private void clearAllFilters() {
         prioritySiteIds.clear();
         excludedSiteIds.clear();
-        visibleSites.setAll(allSites);
         updatePriorityTagsUI();
         updateExcludeTagsUI();
-        rebuildSiteList();
+
+        if (searchBox != null && !searchBox.getText().isEmpty()) {
+            searchBox.clear();
+        } else {
+            refreshVisibleSites();
+        }
+
         notifyFiltersChanged();
     }
 
+    private void refreshVisibleSites() {
+        visibleSites.clear();
+
+        String keyword = "";
+        if (searchBox != null && searchBox.getText() != null) {
+            keyword = searchBox.getText().trim().toLowerCase(Locale.ROOT);
+        }
+
+        for (SiteInfo site : allSites) {
+            if (excludedSiteIds.contains(site.id)) {
+                continue;
+            }
+
+            String siteName = site.name == null ? "" : site.name.toLowerCase(Locale.ROOT);
+            String siteCode = site.siteCode == null ? "" : site.siteCode.toLowerCase(Locale.ROOT);
+            if (keyword.isEmpty() || siteName.contains(keyword) || siteCode.contains(keyword)) {
+                visibleSites.add(site);
+            }
+        }
+
+        rebuildSiteList();
+    }
+
     private void rebuildSiteList() {
+        if (siteListContainer == null) {
+            return;
+        }
+
         siteListContainer.getChildren().clear();
         List<SiteInfo> sortedSites = new ArrayList<>();
 
         for (int prioritySiteId : prioritySiteIds) {
             allSites.stream()
-                .filter(site -> site.id == prioritySiteId)
+                .filter(site -> site.id == prioritySiteId && visibleSites.contains(site))
                 .findFirst()
                 .ifPresent(sortedSites::add);
         }
@@ -160,6 +210,8 @@ public class SiteFilterSection {
         for (SiteInfo site : sortedSites) {
             siteListContainer.getChildren().add(buildSiteCard(site));
         }
+
+        refreshSummaryLabels();
     }
 
     private HBox buildSiteCard(SiteInfo site) {
@@ -175,52 +227,50 @@ public class SiteFilterSection {
             + (prioritized ? " -fx-effect: dropshadow(gaussian, rgba(104,186,127,0.15), 6, 0, 0, 2);" : ""));
 
         if (prioritized) {
-            Label starLabel = new Label("★");
-            starLabel.setStyle("-fx-font-size: 14px;");
+            Label starLabel = new Label("\u2605");
+            starLabel.setStyle("-fx-font-size: 14px; -fx-text-fill: #2E6F40;");
             card.getChildren().add(starLabel);
         }
 
         VBox infoBox = new VBox(2);
         HBox.setHgrow(infoBox, Priority.ALWAYS);
 
-        Label nameLabel = new Label(site.name + (prioritized ? " — Đang ưu tiên" : ""));
+        Label nameLabel = new Label(site.name + (prioritized ? " - \u0110ang \u01b0u ti\u00ean" : ""));
         nameLabel.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: " + (prioritized ? "#2E6F40" : "#1a2e22") + ";");
-        Label codeLabel = new Label(site.siteCode + " · Tàu: " + site.shipDays + " ngày | Bay: " + site.airDays + " ngày");
+
+        Label codeLabel = new Label(site.siteCode + " | T\u00e0u: " + site.shipDays + " ng\u00e0y | Bay: " + site.airDays + " ng\u00e0y");
         codeLabel.setStyle("-fx-font-size: 12px; -fx-text-fill: #8FA899;");
+
         infoBox.getChildren().addAll(nameLabel, codeLabel);
 
         Button priorityButton;
         if (prioritized) {
-            priorityButton = new Button("Bỏ ưu tiên");
-            priorityButton.setStyle(AppStyles.btnChip("#FFF3E0", "#E65100"));
+            priorityButton = buildChipButton("B\u1ecf \u01b0u ti\u00ean", "#FFF3E0", "#E65100");
             priorityButton.setOnAction(event -> {
                 prioritySiteIds.remove(site.id);
                 updatePriorityTagsUI();
-                rebuildSiteList();
+                refreshVisibleSites();
                 notifyFiltersChanged();
             });
         } else {
-            priorityButton = new Button("Ưu tiên");
-            priorityButton.setStyle(AppStyles.btnChip("#E8F5E9", "#2E7D32"));
+            priorityButton = buildChipButton("\u01afu ti\u00ean", "#E8F5E9", "#2E7D32");
             priorityButton.setOnAction(event -> {
                 prioritySiteIds.add(site.id);
                 excludedSiteIds.remove(site.id);
                 updatePriorityTagsUI();
                 updateExcludeTagsUI();
-                rebuildSiteList();
+                refreshVisibleSites();
                 notifyFiltersChanged();
             });
         }
 
-        Button excludeButton = new Button("Loại bỏ");
-        excludeButton.setStyle(AppStyles.btnChip("#FEE2E2", "#DC2626"));
+        Button excludeButton = buildChipButton("Lo\u1ea1i b\u1ecf", "#FEE2E2", "#DC2626");
         excludeButton.setOnAction(event -> {
             excludedSiteIds.add(site.id);
             prioritySiteIds.remove(site.id);
-            visibleSites.remove(site);
             updateExcludeTagsUI();
             updatePriorityTagsUI();
-            rebuildSiteList();
+            refreshVisibleSites();
             notifyFiltersChanged();
         });
 
@@ -229,11 +279,16 @@ public class SiteFilterSection {
     }
 
     private void updatePriorityTagsUI() {
+        if (priorityTagsBox == null) {
+            return;
+        }
+
         priorityTagsBox.getChildren().clear();
         if (prioritySiteIds.isEmpty()) {
-            Label placeholder = new Label("Chưa chọn site ưu tiên");
+            Label placeholder = new Label("Ch\u01b0a ch\u1ecdn site \u01b0u ti\u00ean");
             placeholder.setStyle("-fx-background-color: #F0F7F2; -fx-border-color: #D0E4D6; -fx-border-radius: 14; -fx-background-radius: 14; -fx-padding: 4 14; -fx-font-size: 12px; -fx-text-fill: #8FA899;");
             priorityTagsBox.getChildren().add(placeholder);
+            refreshSummaryLabels();
             return;
         }
 
@@ -242,25 +297,32 @@ public class SiteFilterSection {
                 .filter(site -> site.id == prioritySiteId)
                 .findFirst()
                 .ifPresent(site -> {
-                    Label tag = new Label("★ " + site.name + "  ✕");
+                    Label tag = new Label("\u2605 " + site.name + "  \u2715");
                     tag.setStyle("-fx-background-color: #E8F5E9; -fx-text-fill: #2E7D32; -fx-background-radius: 14; -fx-padding: 4 12; -fx-font-size: 12px; -fx-font-weight: bold; -fx-cursor: hand;");
                     tag.setOnMouseClicked(event -> {
                         prioritySiteIds.remove(prioritySiteId);
                         updatePriorityTagsUI();
-                        rebuildSiteList();
+                        refreshVisibleSites();
                         notifyFiltersChanged();
                     });
                     priorityTagsBox.getChildren().add(tag);
                 });
         }
+
+        refreshSummaryLabels();
     }
 
     private void updateExcludeTagsUI() {
+        if (excludeTagsBox == null) {
+            return;
+        }
+
         excludeTagsBox.getChildren().clear();
         if (excludedSiteIds.isEmpty()) {
-            Label placeholder = new Label("Chưa loại bỏ site nào");
+            Label placeholder = new Label("Ch\u01b0a lo\u1ea1i b\u1ecf site n\u00e0o");
             placeholder.setStyle("-fx-background-color: #F0F7F2; -fx-border-color: #D0E4D6; -fx-border-radius: 14; -fx-background-radius: 14; -fx-padding: 4 14; -fx-font-size: 12px; -fx-text-fill: #8FA899;");
             excludeTagsBox.getChildren().add(placeholder);
+            refreshSummaryLabels();
             return;
         }
 
@@ -269,21 +331,75 @@ public class SiteFilterSection {
                 .filter(site -> site.id == excludedSiteId)
                 .findFirst()
                 .ifPresent(site -> {
-                    Label tag = new Label("⊘ " + site.name + "  ✕");
+                    Label tag = new Label("\u2715 " + site.name + "  \u2715");
                     tag.setStyle("-fx-background-color: #FEE2E2; -fx-text-fill: #DC2626; -fx-background-radius: 14; -fx-padding: 4 12; -fx-font-size: 12px; -fx-font-weight: bold; -fx-cursor: hand;");
                     tag.setOnMouseClicked(event -> {
                         excludedSiteIds.remove(excludedSiteId);
-                        allSites.stream()
-                            .filter(candidate -> candidate.id == excludedSiteId)
-                            .findFirst()
-                            .ifPresent(visibleSites::add);
                         updateExcludeTagsUI();
-                        rebuildSiteList();
+                        refreshVisibleSites();
                         notifyFiltersChanged();
                     });
                     excludeTagsBox.getChildren().add(tag);
                 });
         }
+
+        refreshSummaryLabels();
+    }
+
+    private void refreshSummaryLabels() {
+        String summaryText = visibleSites.size() + "/" + allSites.size() + " site | "
+            + prioritySiteIds.size() + " \u01b0u ti\u00ean | "
+            + excludedSiteIds.size() + " lo\u1ea1i b\u1ecf";
+
+        if (countLabel != null) {
+            countLabel.setText(visibleSites.size() + "/" + allSites.size() + " site");
+        }
+
+        if (toggleSummaryLabel != null) {
+            toggleSummaryLabel.setText(summaryText);
+        }
+    }
+
+    private void setExpanded(boolean expanded) {
+        this.expanded = expanded;
+
+        if (filterContent != null) {
+            filterContent.setManaged(expanded);
+            filterContent.setVisible(expanded);
+        }
+
+        if (toggleChevronLabel != null) {
+            toggleChevronLabel.setText(expanded ? "\u25be" : "\u25b8");
+        }
+
+        if (toggleButton != null) {
+            toggleButton.setStyle(expanded ? expandedButtonStyle() : collapsedButtonStyle());
+        }
+    }
+
+    private String collapsedButtonStyle() {
+        return "-fx-background-color: #F5F9F6; "
+            + "-fx-border-color: #D0DAD5; "
+            + "-fx-border-radius: 12; "
+            + "-fx-background-radius: 12; "
+            + "-fx-padding: 12 16; "
+            + "-fx-cursor: hand;";
+    }
+
+    private String expandedButtonStyle() {
+        return "-fx-background-color: #EDF6F0; "
+            + "-fx-border-color: #BCD4C4; "
+            + "-fx-border-radius: 12; "
+            + "-fx-background-radius: 12; "
+            + "-fx-padding: 12 16; "
+            + "-fx-cursor: hand;";
+    }
+
+    private Button buildChipButton(String text, String background, String foreground) {
+        Button button = new Button(text);
+        button.getStyleClass().add("forest-chip-button");
+        button.setStyle("-fx-background-color: " + background + "; -fx-text-fill: " + foreground + ";");
+        return button;
     }
 
     private void notifyFiltersChanged() {

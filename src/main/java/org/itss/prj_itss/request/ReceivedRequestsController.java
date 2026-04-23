@@ -15,12 +15,12 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 
-import org.itss.prj_itss.common.StatusBadgeFactory;
 import org.itss.prj_itss.dao.DAOFactory;
 import org.itss.prj_itss.dao.IRequestDAO;
 import org.itss.prj_itss.entity.Request;
 import org.itss.prj_itss.layout.Navigator;
 import org.itss.prj_itss.layout.ViewController;
+import org.itss.prj_itss.ui.StatusNodes;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -84,7 +84,7 @@ public class ReceivedRequestsController implements ViewController {
                 if (empty || status == null) {
                     setGraphic(null);
                 } else {
-                    HBox badge = StatusBadgeFactory.buildStatusDot(status);
+                    HBox badge = StatusNodes.buildStatusDot(status);
                     badge.setMinWidth(160);
                     setGraphic(badge);
                 }

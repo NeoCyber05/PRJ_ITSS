@@ -17,7 +17,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
-import org.itss.prj_itss.common.StatusBadgeFactory;
 import org.itss.prj_itss.dao.DAOFactory;
 import org.itss.prj_itss.dao.IMerchandiseDAO;
 import org.itss.prj_itss.dao.IOrderDAO;
@@ -31,6 +30,7 @@ import org.itss.prj_itss.entity.RequestMerchandise;
 import org.itss.prj_itss.entity.Site;
 import org.itss.prj_itss.layout.Navigator;
 import org.itss.prj_itss.order.OrderDetailPanel;
+import org.itss.prj_itss.ui.StatusNodes;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -213,7 +213,7 @@ public final class RequestDetailPopup {
         Label labelNode = new Label(label);
         labelNode.setStyle("-fx-font-size: 11px; -fx-font-weight: bold; -fx-text-fill: #8B9AAF;");
 
-        box.getChildren().addAll(labelNode, StatusBadgeFactory.buildStatusBadge(displayStatus(status)));
+        box.getChildren().addAll(labelNode, StatusNodes.buildStatusBadge(displayStatus(status)));
         return box;
     }
 
@@ -328,7 +328,7 @@ public final class RequestDetailPopup {
         row.getChildren().add(fixedCell(String.format("DH-2026-%03d", order.getId()), widths.get(0), true));
         row.getChildren().add(fixedCell(site != null ? site.getName() : "N/A", widths.get(1), false));
 
-        HBox transportBox = new HBox(StatusBadgeFactory.buildTransportBadgeCompact(displayTransportMethod(deliveryMethod)));
+        HBox transportBox = new HBox(StatusNodes.buildTransportBadgeCompact(displayTransportMethod(deliveryMethod)));
         transportBox.setAlignment(Pos.CENTER_LEFT);
         transportBox.setMinWidth(widths.get(2));
         transportBox.setPrefWidth(widths.get(2));
@@ -340,7 +340,7 @@ public final class RequestDetailPopup {
             false
         ));
 
-        HBox statusBox = new HBox(StatusBadgeFactory.buildStatusBadge(displayStatus(order.getStatus())));
+        HBox statusBox = new HBox(StatusNodes.buildStatusBadge(displayStatus(order.getStatus())));
         statusBox.setAlignment(Pos.CENTER_LEFT);
         statusBox.setMinWidth(widths.get(4));
         statusBox.setPrefWidth(widths.get(4));

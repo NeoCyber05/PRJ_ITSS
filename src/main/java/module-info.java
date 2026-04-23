@@ -12,7 +12,6 @@ module org.itss.prj_itss {
 
     requires java.sql;
 
-    opens org.itss.prj_itss.hello to javafx.fxml;
     opens org.itss.prj_itss.layout to javafx.fxml;
     opens org.itss.prj_itss.home to javafx.fxml;
     opens org.itss.prj_itss.site to javafx.fxml;
@@ -22,7 +21,6 @@ module org.itss.prj_itss {
     exports org.itss.prj_itss.entity;
     exports org.itss.prj_itss.db;
     exports org.itss.prj_itss.dao;
-    exports org.itss.prj_itss.common;
     exports org.itss.prj_itss.request;
     exports org.itss.prj_itss.order;
     exports org.itss.prj_itss.home;
