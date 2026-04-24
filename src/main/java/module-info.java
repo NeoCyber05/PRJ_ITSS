@@ -13,6 +13,8 @@ module org.itss.prj_itss {
     requires java.sql;
 
     opens org.itss.prj_itss.layout to javafx.fxml;
+    opens org.itss.prj_itss.auth.login to javafx.fxml;
+    opens org.itss.prj_itss.auth.workspace to javafx.fxml;
     opens org.itss.prj_itss.home to javafx.fxml;
     opens org.itss.prj_itss.site to javafx.fxml;
     opens org.itss.prj_itss.request.received to javafx.fxml;

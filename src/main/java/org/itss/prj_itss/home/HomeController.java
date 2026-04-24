@@ -33,14 +33,7 @@ public class HomeController implements ViewController {
     private DashboardService dashboardService;
     private RequestService requestService;
 
-    @FXML
-    private Label pendingSummaryLabel;
 
-    @FXML
-    private Label siteSummaryLabel;
-
-    @FXML
-    private Label orderSummaryLabel;
 
     @FXML
     private HBox quickCardsContainer;
@@ -78,13 +71,7 @@ public class HomeController implements ViewController {
         List<Request> requests = dashboardData.requests();
         List<Order> orders = dashboardData.orders();
 
-        long pendingCount = requests.stream()
-            .filter(request -> "Chờ xử lý".equals(request.getStatus()))
-            .count();
 
-        pendingSummaryLabel.setText(String.format("%02d", pendingCount));
-        siteSummaryLabel.setText(String.format("%02d", dashboardData.siteCount()));
-        orderSummaryLabel.setText(String.format("%02d", orders.size()));
 
         rebuildQuickCards();
         rebuildPendingRows(requests);

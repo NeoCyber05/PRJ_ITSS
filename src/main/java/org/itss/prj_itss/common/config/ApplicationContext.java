@@ -1,6 +1,8 @@
 package org.itss.prj_itss.common.config;
 
+import org.itss.prj_itss.repository.AccountRepository;
 import org.itss.prj_itss.repository.InventoryRepository;
+import org.itss.prj_itss.repository.JdbcAccountRepository;
 import org.itss.prj_itss.repository.JdbcMerchandiseRepository;
 import org.itss.prj_itss.repository.JdbcOrderRepository;
 import org.itss.prj_itss.repository.JdbcRequestRepository;
@@ -10,6 +12,7 @@ import org.itss.prj_itss.repository.OrderRepository;
 import org.itss.prj_itss.repository.RequestRepository;
 import org.itss.prj_itss.repository.SiteRepository;
 import org.itss.prj_itss.service.AllocationPlanningService;
+import org.itss.prj_itss.service.AuthenticationService;
 import org.itss.prj_itss.service.DashboardService;
 import org.itss.prj_itss.service.MerchandiseService;
 import org.itss.prj_itss.service.OrderService;
@@ -24,6 +27,7 @@ public final class ApplicationContext {
     private final TransactionManager transactionManager = new TransactionManager();
     private final ConnectionProvider connectionProvider = new DatabaseConnectionProvider(transactionManager);
 
+    private final AccountRepository accountRepository = new JdbcAccountRepository(connectionProvider);
     private final JdbcSiteRepository siteRepository = new JdbcSiteRepository(connectionProvider);
     private final RequestRepository requestRepository = new JdbcRequestRepository(connectionProvider);
     private final OrderRepository orderRepository = new JdbcOrderRepository(connectionProvider);
@@ -31,6 +35,7 @@ public final class ApplicationContext {
     private final SiteRepository siteReadRepository = siteRepository;
     private final InventoryRepository inventoryRepository = siteRepository;
 
+    private final AuthenticationService authenticationService = new AuthenticationService(accountRepository);
     private final RequestService requestService = new RequestService(requestRepository);
     private final OrderService orderService = new OrderService(orderRepository);
     private final SiteService siteService = new SiteService(siteReadRepository, inventoryRepository);
@@ -51,6 +56,18 @@ public final class ApplicationContext {
 
     public static ApplicationContext getInstance() {
         return INSTANCE;
+    }
+
+    public AuthenticationService authenticationService() {
+        return authenticationService;
+    }
+
+    public void warmUpDatabaseConnection() {
+        try {
+            connectionProvider.getConnection();
+        } catch (Exception exception) {
+            throw new IllegalStateException("Unable to initialize database connection", exception);
+        }
     }
 
     public RequestService requestService() {

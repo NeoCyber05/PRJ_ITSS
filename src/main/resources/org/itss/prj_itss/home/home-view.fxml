@@ -39,56 +39,10 @@
                                         <Label text="Trang này là điểm vào nhanh để xem yêu cầu đã nhận, quản lý site và theo dõi đơn hàng đã tạo."
                                                wrapText="true"
                                                style="-fx-font-size: 13px; -fx-text-fill: #D6F4F1;"/>
-                                        <HBox spacing="12">
-                                            <children>
-                                                <Button text="Yêu cầu đã nhận"
-                                                        onAction="#openReceivedRequests"
-                                                        style="-fx-background-color: white; -fx-text-fill: #0F172A; -fx-background-radius: 999; -fx-padding: 10 18; -fx-font-size: 13px; -fx-font-weight: bold; -fx-cursor: hand;"/>
-                                                <Button text="Đơn hàng đã tạo"
-                                                        onAction="#openOrders"
-                                                        style="-fx-background-color: rgba(255,255,255,0.08); -fx-text-fill: white; -fx-background-radius: 999; -fx-border-color: rgba(255,255,255,0.22); -fx-border-radius: 999; -fx-border-width: 1; -fx-padding: 10 18; -fx-font-size: 13px; -fx-font-weight: bold; -fx-cursor: hand;"/>
-                                            </children>
-                                        </HBox>
+
                                     </children>
                                 </VBox>
-                                <VBox prefWidth="250"
-                                      spacing="10"
-                                      style="-fx-background-color: rgba(255,255,255,0.08); -fx-background-radius: 18; -fx-border-color: rgba(255,255,255,0.14); -fx-border-radius: 18; -fx-border-width: 1;">
-                                    <padding>
-                                        <Insets top="18" right="18" bottom="18" left="18"/>
-                                    </padding>
-                                    <children>
-                                        <Label text="Tóm tắt"
-                                               style="-fx-font-size: 14px; -fx-font-weight: bold; -fx-text-fill: white;"/>
-                                        <HBox spacing="10">
-                                            <children>
-                                                <Label fx:id="pendingSummaryLabel"
-                                                       style="-fx-background-color: rgba(255,255,255,0.12); -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 6 10; -fx-font-size: 13px; -fx-font-weight: bold;"/>
-                                                <Label text="yêu cầu chờ xử lý"
-                                                       wrapText="true"
-                                                       style="-fx-font-size: 12px; -fx-text-fill: #D6F4F1;"/>
-                                            </children>
-                                        </HBox>
-                                        <HBox spacing="10">
-                                            <children>
-                                                <Label fx:id="siteSummaryLabel"
-                                                       style="-fx-background-color: rgba(255,255,255,0.12); -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 6 10; -fx-font-size: 13px; -fx-font-weight: bold;"/>
-                                                <Label text="site đang hoạt động"
-                                                       wrapText="true"
-                                                       style="-fx-font-size: 12px; -fx-text-fill: #D6F4F1;"/>
-                                            </children>
-                                        </HBox>
-                                        <HBox spacing="10">
-                                            <children>
-                                                <Label fx:id="orderSummaryLabel"
-                                                       style="-fx-background-color: rgba(255,255,255,0.12); -fx-text-fill: white; -fx-background-radius: 12; -fx-padding: 6 10; -fx-font-size: 13px; -fx-font-weight: bold;"/>
-                                                <Label text="đơn hàng đã tạo"
-                                                       wrapText="true"
-                                                       style="-fx-font-size: 12px; -fx-text-fill: #D6F4F1;"/>
-                                            </children>
-                                        </HBox>
-                                    </children>
-                                </VBox>
+
                             </children>
                         </HBox>
 
