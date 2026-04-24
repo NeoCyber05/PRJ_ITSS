@@ -17,11 +17,7 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 
-import org.itss.prj_itss.dao.DAOFactory;
-import org.itss.prj_itss.dao.IMerchandiseDAO;
-import org.itss.prj_itss.dao.IOrderDAO;
-import org.itss.prj_itss.dao.IRequestDAO;
-import org.itss.prj_itss.dao.ISiteDAO;
+import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.entity.Merchandise;
 import org.itss.prj_itss.entity.Order;
 import org.itss.prj_itss.entity.OrderMerchandise;
@@ -30,6 +26,10 @@ import org.itss.prj_itss.entity.RequestMerchandise;
 import org.itss.prj_itss.entity.Site;
 import org.itss.prj_itss.layout.Navigator;
 import org.itss.prj_itss.order.OrderDetailPanel;
+import org.itss.prj_itss.service.MerchandiseService;
+import org.itss.prj_itss.service.OrderService;
+import org.itss.prj_itss.service.RequestService;
+import org.itss.prj_itss.service.SiteService;
 import org.itss.prj_itss.ui.StatusNodes;
 
 import java.time.LocalDate;
@@ -45,25 +45,25 @@ public final class RequestDetailPopup {
     private RequestDetailPopup() {
     }
 
-    public static void show(Window owner, String requestCode, DAOFactory daoFactory) {
-        show(owner, requestCode, daoFactory, null);
+    public static void show(Window owner, String requestCode, ApplicationContext context) {
+        show(owner, requestCode, context, null);
     }
 
-    public static void show(Window owner, String requestCode, DAOFactory daoFactory, Navigator navigator) {
+    public static void show(Window owner, String requestCode, ApplicationContext context, Navigator navigator) {
         int requestId = parseRequestId(requestCode);
 
-        IRequestDAO requestDAO = daoFactory.getRequestDAO();
-        IMerchandiseDAO merchandiseDAO = daoFactory.getMerchandiseDAO();
-        IOrderDAO orderDAO = daoFactory.getOrderDAO();
-        ISiteDAO siteDAO = daoFactory.getSiteDAO();
+        RequestService requestService = context.requestService();
+        MerchandiseService merchandiseService = context.merchandiseService();
+        OrderService orderService = context.orderService();
+        SiteService siteService = context.siteService();
 
-        Request request = requestDAO.findById(requestId);
-        List<RequestMerchandise> requestItems = requestDAO.findItemsByRequestId(requestId);
-        List<Order> allocatedOrders = orderDAO.findAll().stream()
+        Request request = requestService.findById(requestId);
+        List<RequestMerchandise> requestItems = requestService.findItemsByRequestId(requestId);
+        List<Order> allocatedOrders = orderService.findAll().stream()
             .filter(order -> order.getRequestId() == requestId)
             .sorted(Comparator.comparingInt(Order::getId))
             .toList();
-        LocalDate earliestDeadline = requestDAO.getEarliestDeliveryDate(requestId);
+        LocalDate earliestDeadline = requestService.getEarliestDeliveryDate(requestId);
 
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
@@ -147,15 +147,15 @@ public final class RequestDetailPopup {
         VBox content = new VBox(28);
         content.setPadding(new Insets(28));
         content.getChildren().addAll(
-            buildRequestItemsSection(requestItems, merchandiseDAO),
+            buildRequestItemsSection(requestItems, merchandiseService),
             buildAllocatedOrdersSection(
                 allocatedOrders,
-                orderDAO,
-                siteDAO,
+                orderService,
+                siteService,
                 order -> showOrderDetail(
                     requestCard,
                     orderDetailContainer,
-                    daoFactory,
+                    context,
                     order.getId(),
                     requestCollapsedWidth,
                     requestExpandedWidth,
@@ -217,7 +217,7 @@ public final class RequestDetailPopup {
         return box;
     }
 
-    private static VBox buildRequestItemsSection(List<RequestMerchandise> items, IMerchandiseDAO merchandiseDAO) {
+    private static VBox buildRequestItemsSection(List<RequestMerchandise> items, MerchandiseService merchandiseService) {
         VBox section = new VBox(16);
 
         Label title = new Label("Danh sách mặt hàng");
@@ -245,7 +245,7 @@ public final class RequestDetailPopup {
             table.getChildren().add(emptyLabel);
         } else {
             for (RequestMerchandise item : items) {
-                Merchandise merchandise = merchandiseDAO.findById(item.getMerchandiseId());
+                Merchandise merchandise = merchandiseService.findById(item.getMerchandiseId());
                 table.getChildren().add(buildTableRow(
                     List.of(
                         merchandise != null ? merchandise.getCode() : "N/A",
@@ -266,8 +266,8 @@ public final class RequestDetailPopup {
 
     private static VBox buildAllocatedOrdersSection(
         List<Order> orders,
-        IOrderDAO orderDAO,
-        ISiteDAO siteDAO,
+        OrderService orderService,
+        SiteService siteService,
         Consumer<Order> onOrderSelected
     ) {
         VBox section = new VBox(16);
@@ -297,8 +297,8 @@ public final class RequestDetailPopup {
             table.getChildren().add(emptyLabel);
         } else {
             for (Order order : orders) {
-                Site site = siteDAO.findById(order.getSiteId());
-                String deliveryMethod = resolvePrimaryDeliveryMethod(orderDAO.findItemsByOrderId(order.getId()));
+                Site site = siteService.findById(order.getSiteId());
+                String deliveryMethod = resolvePrimaryDeliveryMethod(orderService.findItemsByOrderId(order.getId()));
                 table.getChildren().add(buildAllocatedOrderRow(order, site, deliveryMethod, onOrderSelected, widths));
             }
         }
@@ -373,7 +373,7 @@ public final class RequestDetailPopup {
     private static void showOrderDetail(
         VBox requestCard,
         StackPane orderDetailContainer,
-        DAOFactory daoFactory,
+        ApplicationContext context,
         int orderId,
         double requestCollapsedWidth,
         double requestExpandedWidth,
@@ -383,7 +383,7 @@ public final class RequestDetailPopup {
             new OrderDetailPanel(
                 String.valueOf(orderId),
                 () -> hideOrderDetail(requestCard, orderDetailContainer, requestExpandedWidth),
-                daoFactory,
+                context,
                 orderPanelWidth
             ).getView()
         );

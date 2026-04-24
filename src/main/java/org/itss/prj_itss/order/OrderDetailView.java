@@ -11,7 +11,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 
 import org.itss.prj_itss.App;
-import org.itss.prj_itss.dao.DAOFactory;
+import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.layout.Navigator;
 import org.itss.prj_itss.layout.ViewController;
 
@@ -19,11 +19,11 @@ public class OrderDetailView {
 
     private final StackPane view;
 
-    public OrderDetailView(Navigator navigator, DAOFactory daoFactory, String orderId) {
+    public OrderDetailView(Navigator navigator, ApplicationContext context, String orderId) {
         view = new StackPane();
         view.setStyle("-fx-background-color: #F3F7FB;");
 
-        Node background = loadOrdersBackground(navigator, daoFactory);
+        Node background = loadOrdersBackground(navigator, context);
         background.setEffect(new GaussianBlur(14));
         background.setOpacity(0.96);
 
@@ -31,7 +31,7 @@ public class OrderDetailView {
         backdrop.setStyle("-fx-background-color: rgba(15,23,42,0.34);");
         backdrop.setOnMouseClicked(event -> navigator.showView("orders"));
 
-        Node drawer = new OrderDetailPanel(orderId, () -> navigator.showView("orders"), daoFactory).getView();
+        Node drawer = new OrderDetailPanel(orderId, () -> navigator.showView("orders"), context).getView();
 
         HBox drawerLayer = new HBox();
         Region spacer = new Region();
@@ -42,13 +42,13 @@ public class OrderDetailView {
         view.getChildren().addAll(background, backdrop, drawerLayer);
     }
 
-    private Node loadOrdersBackground(Navigator navigator, DAOFactory daoFactory) {
+    private Node loadOrdersBackground(Navigator navigator, ApplicationContext context) {
         try {
             FXMLLoader loader = new FXMLLoader(App.class.getResource("/org/itss/prj_itss/order/order-management-view.fxml"));
             Node background = loader.load();
             Object controller = loader.getController();
             if (controller instanceof ViewController viewController) {
-                viewController.init(navigator, daoFactory);
+                viewController.init(navigator, context);
             }
             return background;
         } catch (Exception exception) {

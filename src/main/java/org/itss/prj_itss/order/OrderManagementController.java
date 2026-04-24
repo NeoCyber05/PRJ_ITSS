@@ -15,16 +15,16 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 
-import org.itss.prj_itss.dao.DAOFactory;
-import org.itss.prj_itss.dao.IMerchandiseDAO;
-import org.itss.prj_itss.dao.IOrderDAO;
-import org.itss.prj_itss.dao.ISiteDAO;
+import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.entity.Merchandise;
 import org.itss.prj_itss.entity.Order;
 import org.itss.prj_itss.entity.OrderMerchandise;
 import org.itss.prj_itss.entity.Site;
 import org.itss.prj_itss.layout.Navigator;
 import org.itss.prj_itss.layout.ViewController;
+import org.itss.prj_itss.service.MerchandiseService;
+import org.itss.prj_itss.service.OrderService;
+import org.itss.prj_itss.service.SiteService;
 import org.itss.prj_itss.ui.StatusNodes;
 
 import java.time.format.DateTimeFormatter;
@@ -40,9 +40,9 @@ public class OrderManagementController implements ViewController {
     private final FilteredList<OrderRow> filteredRows = new FilteredList<>(rows, row -> true);
 
     private Navigator navigator;
-    private IOrderDAO orderDAO;
-    private ISiteDAO siteDAO;
-    private IMerchandiseDAO merchandiseDAO;
+    private OrderService orderService;
+    private SiteService siteService;
+    private MerchandiseService merchandiseService;
 
     @FXML
     private TableView<OrderRow> orderTable;
@@ -135,25 +135,25 @@ public class OrderManagementController implements ViewController {
     }
 
     @Override
-    public void init(Navigator navigator, DAOFactory daoFactory) {
+    public void init(Navigator navigator, ApplicationContext context) {
         this.navigator = navigator;
-        this.orderDAO = daoFactory.getOrderDAO();
-        this.siteDAO = daoFactory.getSiteDAO();
-        this.merchandiseDAO = daoFactory.getMerchandiseDAO();
+        this.orderService = context.orderService();
+        this.siteService = context.siteService();
+        this.merchandiseService = context.merchandiseService();
         reload();
     }
 
     private void reload() {
-        rows.setAll(orderDAO.findAll().stream().map(this::toRow).toList());
+        rows.setAll(orderService.findAll().stream().map(this::toRow).toList());
         applyFilters();
     }
 
     private OrderRow toRow(Order order) {
-        Site site = siteDAO.findById(order.getSiteId());
-        List<OrderMerchandise> items = orderDAO.findItemsByOrderId(order.getId());
+        Site site = siteService.findById(order.getSiteId());
+        List<OrderMerchandise> items = orderService.findItemsByOrderId(order.getId());
         String itemSummary = items.stream()
             .map(item -> {
-                Merchandise merchandise = merchandiseDAO.findById(item.getMerchandiseId());
+                Merchandise merchandise = merchandiseService.findById(item.getMerchandiseId());
                 return merchandise == null ? "?" : merchandise.getCode();
             })
             .collect(Collectors.joining(", "));

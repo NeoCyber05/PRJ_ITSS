@@ -15,11 +15,11 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 
-import org.itss.prj_itss.dao.DAOFactory;
-import org.itss.prj_itss.dao.IRequestDAO;
+import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.entity.Request;
 import org.itss.prj_itss.layout.Navigator;
 import org.itss.prj_itss.layout.ViewController;
+import org.itss.prj_itss.service.RequestService;
 import org.itss.prj_itss.ui.StatusNodes;
 
 import java.time.LocalDate;
@@ -35,8 +35,8 @@ public class ReceivedRequestsController implements ViewController {
     private final FilteredList<RequestRow> filteredRows = new FilteredList<>(rows, row -> true);
 
     private Navigator navigator;
-    private DAOFactory daoFactory;
-    private IRequestDAO requestDAO;
+    private ApplicationContext context;
+    private RequestService requestService;
 
     @FXML
     private TableView<RequestRow> requestTable;
@@ -108,7 +108,7 @@ public class ReceivedRequestsController implements ViewController {
                 detailButton.setOnAction(event -> RequestDetailPopup.show(
                     requestTable.getScene() == null ? null : requestTable.getScene().getWindow(),
                     row.requestCode(),
-                    daoFactory,
+                    context,
                     navigator
                 ));
                 actions.getChildren().add(detailButton);
@@ -142,15 +142,15 @@ public class ReceivedRequestsController implements ViewController {
     }
 
     @Override
-    public void init(Navigator navigator, DAOFactory daoFactory) {
+    public void init(Navigator navigator, ApplicationContext context) {
         this.navigator = navigator;
-        this.daoFactory = daoFactory;
-        this.requestDAO = daoFactory.getRequestDAO();
+        this.context = context;
+        this.requestService = context.requestService();
         reload();
     }
 
     private void reload() {
-        List<RequestRow> requestRows = requestDAO.findAll().stream()
+        List<RequestRow> requestRows = requestService.findAll().stream()
             .map(this::toRow)
             .toList();
         rows.setAll(requestRows);
@@ -158,14 +158,14 @@ public class ReceivedRequestsController implements ViewController {
     }
 
     private RequestRow toRow(Request request) {
-        LocalDate earliestDelivery = requestDAO.getEarliestDeliveryDate(request.getId());
+        LocalDate earliestDelivery = requestService.getEarliestDeliveryDate(request.getId());
         String createdAt = request.getCreatedAt() == null ? "" : request.getCreatedAt().toLocalDate().format(DATE_FORMAT);
         String deadline = earliestDelivery == null ? "N/A" : earliestDelivery.format(DATE_FORMAT);
         return new RequestRow(
             request,
             String.format("YC-2026-%03d", request.getId()),
             createdAt,
-            requestDAO.countItemTypes(request.getId()) + " loại",
+            requestService.countItemTypes(request.getId()) + " loại",
             deadline,
             request.getStatus() == null ? "N/A" : request.getStatus()
         );

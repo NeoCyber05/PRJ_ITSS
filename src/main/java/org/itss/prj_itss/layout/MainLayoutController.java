@@ -9,9 +9,9 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
 
 import org.itss.prj_itss.App;
-import org.itss.prj_itss.dao.DAOFactory;
+import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.order.OrderDetailView;
-import org.itss.prj_itss.request.RequestProcessingView;
+import org.itss.prj_itss.request.processing.RequestProcessingView;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -23,7 +23,7 @@ public class MainLayoutController implements Navigator {
 
     private final Map<String, Button> navButtons = new LinkedHashMap<>();
     private final Map<String, LoadedView> cachedViews = new HashMap<>();
-    private final DAOFactory daoFactory = DAOFactory.getInstance();
+    private final ApplicationContext context = ApplicationContext.getInstance();
     private String activeViewId;
 
     @FXML
@@ -94,7 +94,7 @@ public class MainLayoutController implements Navigator {
     private LoadedView resolveView(String viewId) {
         if (viewId.startsWith("order-detail:")) {
             String orderId = viewId.substring("order-detail:".length());
-            return new LoadedView(new OrderDetailView(this, daoFactory, orderId).getView(), null);
+            return new LoadedView(new OrderDetailView(this, context, orderId).getView(), null);
         }
 
         if (viewId.startsWith("request-processing:")) {
@@ -113,7 +113,7 @@ public class MainLayoutController implements Navigator {
     }
 
     private LoadedView loadRequestProcessingView(int requestId) {
-        return new LoadedView(new RequestProcessingView(this, daoFactory, requestId).getView(), null);
+        return new LoadedView(new RequestProcessingView(this, context, requestId).getView(), null);
     }
 
     private LoadedView getOrLoadCachedView(String cacheKey, String resourcePath) {
@@ -126,7 +126,7 @@ public class MainLayoutController implements Navigator {
             Node view = loader.load();
             Object controller = loader.getController();
             if (controller instanceof ViewController viewController) {
-                viewController.init(this, daoFactory);
+                viewController.init(this, context);
             }
             if (controllerConfigurer != null) {
                 controllerConfigurer.accept(controller);

@@ -10,14 +10,14 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.dao.DAOFactory;
-import org.itss.prj_itss.dao.IOrderDAO;
-import org.itss.prj_itss.dao.IRequestDAO;
-import org.itss.prj_itss.dao.ISiteDAO;
+import org.itss.prj_itss.common.config.ApplicationContext;
+import org.itss.prj_itss.dto.DashboardData;
 import org.itss.prj_itss.entity.Order;
 import org.itss.prj_itss.entity.Request;
 import org.itss.prj_itss.layout.Navigator;
 import org.itss.prj_itss.layout.ViewController;
+import org.itss.prj_itss.service.DashboardService;
+import org.itss.prj_itss.service.RequestService;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -30,9 +30,8 @@ public class HomeController implements ViewController {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private Navigator navigator;
-    private IRequestDAO requestDAO;
-    private ISiteDAO siteDAO;
-    private IOrderDAO orderDAO;
+    private DashboardService dashboardService;
+    private RequestService requestService;
 
     @FXML
     private Label pendingSummaryLabel;
@@ -53,11 +52,10 @@ public class HomeController implements ViewController {
     private VBox activityRowsContainer;
 
     @Override
-    public void init(Navigator navigator, DAOFactory daoFactory) {
+    public void init(Navigator navigator, ApplicationContext context) {
         this.navigator = navigator;
-        this.requestDAO = daoFactory.getRequestDAO();
-        this.siteDAO = daoFactory.getSiteDAO();
-        this.orderDAO = daoFactory.getOrderDAO();
+        this.dashboardService = context.dashboardService();
+        this.requestService = context.requestService();
         reload();
     }
 
@@ -76,15 +74,16 @@ public class HomeController implements ViewController {
     }
 
     private void reload() {
-        List<Request> requests = requestDAO.findAll();
-        List<Order> orders = orderDAO.findAll();
+        DashboardData dashboardData = dashboardService.loadDashboardData();
+        List<Request> requests = dashboardData.requests();
+        List<Order> orders = dashboardData.orders();
 
         long pendingCount = requests.stream()
             .filter(request -> "Chờ xử lý".equals(request.getStatus()))
             .count();
 
         pendingSummaryLabel.setText(String.format("%02d", pendingCount));
-        siteSummaryLabel.setText(String.format("%02d", siteDAO.countAll()));
+        siteSummaryLabel.setText(String.format("%02d", dashboardData.siteCount()));
         orderSummaryLabel.setText(String.format("%02d", orders.size()));
 
         rebuildQuickCards();
@@ -191,7 +190,7 @@ public class HomeController implements ViewController {
         title.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #0F172A;");
 
         String deadline = resolveDeadline(request) == null ? "N/A" : resolveDeadline(request).format(DATE_FORMAT);
-        int itemCount = requestDAO.countItemTypes(request.getId());
+        int itemCount = requestService.countItemTypes(request.getId());
         Label meta = new Label("Hạn nhận: " + deadline + "  •  " + itemCount + " mặt hàng");
         meta.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748B;");
 
@@ -241,7 +240,7 @@ public class HomeController implements ViewController {
     }
 
     private LocalDate resolveDeadline(Request request) {
-        return requestDAO.getEarliestDeliveryDate(request.getId());
+        return requestService.getEarliestDeliveryDate(request.getId());
     }
 
     private String formatActivityTime(LocalDateTime createdAt) {

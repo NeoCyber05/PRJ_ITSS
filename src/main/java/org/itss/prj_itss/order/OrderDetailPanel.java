@@ -14,14 +14,14 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 
-import org.itss.prj_itss.dao.DAOFactory;
-import org.itss.prj_itss.dao.IMerchandiseDAO;
-import org.itss.prj_itss.dao.IOrderDAO;
-import org.itss.prj_itss.dao.ISiteDAO;
+import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.entity.Merchandise;
 import org.itss.prj_itss.entity.Order;
 import org.itss.prj_itss.entity.OrderMerchandise;
 import org.itss.prj_itss.entity.Site;
+import org.itss.prj_itss.service.MerchandiseService;
+import org.itss.prj_itss.service.OrderService;
+import org.itss.prj_itss.service.SiteService;
 import org.itss.prj_itss.ui.StatusNodes;
 
 import java.time.format.DateTimeFormatter;
@@ -33,23 +33,23 @@ public class OrderDetailPanel {
 
     private final int orderId;
     private final Runnable onBack;
-    private final IOrderDAO orderDAO;
-    private final ISiteDAO siteDAO;
-    private final IMerchandiseDAO merchandiseDAO;
+    private final OrderService orderService;
+    private final SiteService siteService;
+    private final MerchandiseService merchandiseService;
     private final double panelWidth;
     private final boolean wideLayout;
 
     private final BorderPane root;
 
-    public OrderDetailPanel(String orderIdRaw, Runnable onBack, DAOFactory daoFactory) {
-        this(orderIdRaw, onBack, daoFactory, 540);
+    public OrderDetailPanel(String orderIdRaw, Runnable onBack, ApplicationContext context) {
+        this(orderIdRaw, onBack, context, 540);
     }
 
-    public OrderDetailPanel(String orderIdRaw, Runnable onBack, DAOFactory daoFactory, double preferredWidth) {
+    public OrderDetailPanel(String orderIdRaw, Runnable onBack, ApplicationContext context, double preferredWidth) {
         this.onBack = onBack;
-        this.orderDAO = daoFactory.getOrderDAO();
-        this.siteDAO = daoFactory.getSiteDAO();
-        this.merchandiseDAO = daoFactory.getMerchandiseDAO();
+        this.orderService = context.orderService();
+        this.siteService = context.siteService();
+        this.merchandiseService = context.merchandiseService();
         this.orderId = parseOrderId(orderIdRaw);
         this.panelWidth = Math.max(540, preferredWidth);
         this.wideLayout = this.panelWidth >= 720;
@@ -63,7 +63,7 @@ public class OrderDetailPanel {
     }
 
     private void buildContent() {
-        Order order = orderDAO.findById(orderId);
+        Order order = orderService.findById(orderId);
         if (order == null) {
             Label errorLabel = new Label("Không tìm thấy đơn hàng.");
             errorLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #DC2626; -fx-padding: 40;");
@@ -71,8 +71,8 @@ public class OrderDetailPanel {
             return;
         }
 
-        Site site = siteDAO.findById(order.getSiteId());
-        List<OrderMerchandise> items = orderDAO.findItemsByOrderId(orderId);
+        Site site = siteService.findById(order.getSiteId());
+        List<OrderMerchandise> items = orderService.findItemsByOrderId(orderId);
 
         VBox header = new VBox(18);
         header.setPadding(new Insets(28, 28, 22, 28));
@@ -211,7 +211,7 @@ public class OrderDetailPanel {
         } else {
             int index = 1;
             for (OrderMerchandise item : items) {
-                Merchandise merchandise = merchandiseDAO.findById(item.getMerchandiseId());
+                Merchandise merchandise = merchandiseService.findById(item.getMerchandiseId());
                 HBox row = new HBox();
                 row.setAlignment(Pos.CENTER_LEFT);
                 row.setPadding(new Insets(16, 18, 16, 18));

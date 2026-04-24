@@ -12,13 +12,12 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 
-import org.itss.prj_itss.dao.DAOFactory;
-import org.itss.prj_itss.dao.IInventoryDAO;
-import org.itss.prj_itss.dao.IMerchandiseDAO;
-import org.itss.prj_itss.dao.ISiteDAO;
+import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.entity.Site;
 import org.itss.prj_itss.layout.Navigator;
 import org.itss.prj_itss.layout.ViewController;
+import org.itss.prj_itss.service.MerchandiseService;
+import org.itss.prj_itss.service.SiteService;
 
 import java.util.List;
 import java.util.Locale;
@@ -28,9 +27,8 @@ public class SiteManagementController implements ViewController {
     private final ObservableList<SiteRow> siteRows = FXCollections.observableArrayList();
     private final FilteredList<SiteRow> filteredRows = new FilteredList<>(siteRows, row -> true);
 
-    private ISiteDAO siteDAO;
-    private IInventoryDAO inventoryDAO;
-    private IMerchandiseDAO merchandiseDAO;
+    private SiteService siteService;
+    private MerchandiseService merchandiseService;
 
     @FXML
     private Label totalSitesLabel;
@@ -87,26 +85,25 @@ public class SiteManagementController implements ViewController {
     }
 
     @Override
-    public void init(Navigator navigator, DAOFactory daoFactory) {
-        this.siteDAO = daoFactory.getSiteDAO();
-        this.inventoryDAO = daoFactory.getInventoryDAO();
-        this.merchandiseDAO = daoFactory.getMerchandiseDAO();
+    public void init(Navigator navigator, ApplicationContext context) {
+        this.siteService = context.siteService();
+        this.merchandiseService = context.merchandiseService();
         reload();
     }
 
     private void reload() {
-        List<Site> sites = siteDAO.findAll();
+        List<Site> sites = siteService.findAll();
         siteRows.setAll(sites.stream().map(this::toRow).toList());
 
         totalSitesLabel.setText(String.valueOf(sites.size()));
         activeSitesLabel.setText(String.valueOf(sites.size()));
-        merchandiseCountLabel.setText(String.valueOf(merchandiseDAO.countAll()));
+        merchandiseCountLabel.setText(String.valueOf(merchandiseService.countAll()));
 
         applyFilter();
     }
 
     private SiteRow toRow(Site site) {
-        int itemCount = inventoryDAO.countMerchandiseAtSite(site.getId());
+        int itemCount = siteService.countMerchandiseAtSite(site.getId());
         return new SiteRow(
             site.getSiteCode(),
             site.getName(),

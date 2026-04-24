@@ -16,11 +16,16 @@ module org.itss.prj_itss {
     opens org.itss.prj_itss.home to javafx.fxml;
     opens org.itss.prj_itss.site to javafx.fxml;
     opens org.itss.prj_itss.request to javafx.fxml;
+    opens org.itss.prj_itss.request.processing to javafx.fxml;
     opens org.itss.prj_itss.order to javafx.fxml;
     exports org.itss.prj_itss;
     exports org.itss.prj_itss.entity;
     exports org.itss.prj_itss.db;
-    exports org.itss.prj_itss.dao;
+    exports org.itss.prj_itss.repository;
+    exports org.itss.prj_itss.service;
+    exports org.itss.prj_itss.dto;
+    exports org.itss.prj_itss.model;
+    exports org.itss.prj_itss.common.config;
     exports org.itss.prj_itss.request;
     exports org.itss.prj_itss.order;
     exports org.itss.prj_itss.home;
