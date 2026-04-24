@@ -1,17 +1,18 @@
-package org.itss.prj_itss.request.processing;
+package org.itss.prj_itss.request.processing.preview;
 
 import org.itss.prj_itss.dto.Allocation;
 import org.itss.prj_itss.dto.ItemRequirement;
 import org.itss.prj_itss.dto.SiteStockOption;
+import org.itss.prj_itss.request.processing.allocation.RequestProcessingAllocationSupport;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-final class RequestProcessingPreviewBuilder {
+public final class RequestProcessingPreviewBuilder {
 
-    List<PreviewOrder> build(
+    public List<PreviewOrder> build(
         List<ItemRequirement> items,
         List<SiteStockOption> allSites,
         Map<Integer, Map<Integer, Allocation>> allocations,
@@ -51,10 +52,10 @@ final class RequestProcessingPreviewBuilder {
         return previewOrders;
     }
 
-    record PreviewOrder(SiteStockOption site, List<PreviewLine> lines) {
+    public record PreviewOrder(SiteStockOption site, List<PreviewLine> lines) {
     }
 
-    record PreviewLine(
+    public record PreviewLine(
         ItemRequirement item,
         int quantity,
         String transport,

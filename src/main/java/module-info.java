@@ -15,8 +15,11 @@ module org.itss.prj_itss {
     opens org.itss.prj_itss.layout to javafx.fxml;
     opens org.itss.prj_itss.home to javafx.fxml;
     opens org.itss.prj_itss.site to javafx.fxml;
-    opens org.itss.prj_itss.request to javafx.fxml;
+    opens org.itss.prj_itss.request.received to javafx.fxml;
+    opens org.itss.prj_itss.request.detail to javafx.fxml;
     opens org.itss.prj_itss.request.processing to javafx.fxml;
+    opens org.itss.prj_itss.request.processing.preview to javafx.fxml;
+    opens org.itss.prj_itss.request.processing.site to javafx.fxml;
     opens org.itss.prj_itss.order to javafx.fxml;
     exports org.itss.prj_itss;
     exports org.itss.prj_itss.entity;
@@ -26,7 +29,7 @@ module org.itss.prj_itss {
     exports org.itss.prj_itss.dto;
     exports org.itss.prj_itss.model;
     exports org.itss.prj_itss.common.config;
-    exports org.itss.prj_itss.request;
+    exports org.itss.prj_itss.request.detail;
     exports org.itss.prj_itss.order;
     exports org.itss.prj_itss.home;
     exports org.itss.prj_itss.site;

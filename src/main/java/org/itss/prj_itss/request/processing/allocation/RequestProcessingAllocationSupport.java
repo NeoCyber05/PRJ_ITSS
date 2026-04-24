@@ -1,4 +1,4 @@
-package org.itss.prj_itss.request.processing;
+package org.itss.prj_itss.request.processing.allocation;
 
 import org.itss.prj_itss.dto.Allocation;
 import org.itss.prj_itss.dto.ItemRequirement;
@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-final class RequestProcessingAllocationSupport {
+public final class RequestProcessingAllocationSupport {
 
     private RequestProcessingAllocationSupport() {
     }
 
-    static int getAllocated(Map<Integer, Map<Integer, Allocation>> allocations, int merchandiseId) {
+    public static int getAllocated(Map<Integer, Map<Integer, Allocation>> allocations, int merchandiseId) {
         return allocations.getOrDefault(merchandiseId, Map.of())
             .values()
             .stream()
@@ -23,7 +23,7 @@ final class RequestProcessingAllocationSupport {
             .sum();
     }
 
-    static void pruneExcludedAllocations(
+    public static void pruneExcludedAllocations(
         Map<Integer, Map<Integer, Allocation>> allocations,
         Set<Integer> excludedSiteIds
     ) {
@@ -32,7 +32,7 @@ final class RequestProcessingAllocationSupport {
         }
     }
 
-    static Map<Integer, List<Allocation>> groupAllocationsBySite(
+    public static Map<Integer, List<Allocation>> groupAllocationsBySite(
         Map<Integer, Map<Integer, Allocation>> allocations
     ) {
         Map<Integer, List<Allocation>> groupedAllocations = new LinkedHashMap<>();
@@ -49,7 +49,7 @@ final class RequestProcessingAllocationSupport {
         return groupedAllocations;
     }
 
-    static SiteStockOption findSiteInfo(List<SiteStockOption> allSites, int siteId) {
+    public static SiteStockOption findSiteInfo(List<SiteStockOption> allSites, int siteId) {
         for (SiteStockOption site : allSites) {
             if (site.id == siteId) {
                 return site;
@@ -58,7 +58,7 @@ final class RequestProcessingAllocationSupport {
         return null;
     }
 
-    static ItemRequirement findItem(List<ItemRequirement> items, int merchandiseId) {
+    public static ItemRequirement findItem(List<ItemRequirement> items, int merchandiseId) {
         for (ItemRequirement item : items) {
             if (item.merchandiseId == merchandiseId) {
                 return item;
@@ -67,11 +67,11 @@ final class RequestProcessingAllocationSupport {
         return null;
     }
 
-    static int getDeliveryDays(SiteStockOption site, String transport) {
+    public static int getDeliveryDays(SiteStockOption site, String transport) {
         return isAirTransport(transport) ? site.airDays : site.shipDays;
     }
 
-    static boolean isAirTransport(String transport) {
+    public static boolean isAirTransport(String transport) {
         if (transport == null) {
             return false;
         }
@@ -83,7 +83,7 @@ final class RequestProcessingAllocationSupport {
             || normalized.contains("may");
     }
 
-    static String toDisplayDeliveryMethod(String transport) {
+    public static String toDisplayDeliveryMethod(String transport) {
         return isAirTransport(transport) ? "Hàng không" : "Đường biển";
     }
 }

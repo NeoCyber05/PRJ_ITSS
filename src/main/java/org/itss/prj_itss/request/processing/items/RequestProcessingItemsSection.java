@@ -1,4 +1,4 @@
-package org.itss.prj_itss.request.processing;
+package org.itss.prj_itss.request.processing.items;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -11,6 +11,7 @@ import javafx.scene.layout.VBox;
 
 import org.itss.prj_itss.dto.ItemRequirement;
 import org.itss.prj_itss.dto.SiteStockOption;
+import org.itss.prj_itss.request.processing.allocation.AllocationSection;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -18,7 +19,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.IntConsumer;
 
-final class RequestProcessingItemsSection {
+public final class RequestProcessingItemsSection {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
@@ -35,7 +36,7 @@ final class RequestProcessingItemsSection {
     private Label[] allocationStatusLabels = new Label[0];
     private Label[] allocationFractionLabels = new Label[0];
 
-    RequestProcessingItemsSection(
+    public RequestProcessingItemsSection(
         List<ItemRequirement> items,
         List<SiteStockOption> allSites,
         Set<Integer> excludedSiteIds,
@@ -57,7 +58,7 @@ final class RequestProcessingItemsSection {
         this.onToggleExpandedItem = onToggleExpandedItem;
     }
 
-    VBox build() {
+    public VBox build() {
         allocationStatusLabels = new Label[items.size()];
         allocationFractionLabels = new Label[items.size()];
 
@@ -92,11 +93,11 @@ final class RequestProcessingItemsSection {
         return card;
     }
 
-    Label[] getAllocationFractionLabels() {
+    public Label[] getAllocationFractionLabels() {
         return allocationFractionLabels;
     }
 
-    void refreshAllocationLabels() {
+    public void refreshAllocationLabels() {
         for (int index = 0; index < items.size(); index++) {
             updateAllocationLabels(items.get(index), index);
         }

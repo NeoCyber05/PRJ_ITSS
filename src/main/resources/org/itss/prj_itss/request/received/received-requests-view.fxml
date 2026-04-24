@@ -13,7 +13,7 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.itss.prj_itss.request.ReceivedRequestsController"
+            fx:controller="org.itss.prj_itss.request.received.ReceivedRequestsController"
             styleClass="content-area">
     <top>
         <VBox spacing="6" style="-fx-background-color: #EDFAF2; -fx-padding: 28 32 24 32; -fx-border-color: transparent transparent #D4EDE0 transparent; -fx-border-width: 0 0 1 0;">

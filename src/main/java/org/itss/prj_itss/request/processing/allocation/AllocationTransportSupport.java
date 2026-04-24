@@ -1,4 +1,4 @@
-package org.itss.prj_itss.request.processing;
+package org.itss.prj_itss.request.processing.allocation;
 
 import org.itss.prj_itss.dto.SiteStockOption;
 import org.itss.prj_itss.service.AllocationPlanningService;

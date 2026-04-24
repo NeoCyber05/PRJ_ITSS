@@ -1,4 +1,4 @@
-package org.itss.prj_itss.request;
+package org.itss.prj_itss.request.received;
 
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleStringProperty;
@@ -19,6 +19,7 @@ import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.entity.Request;
 import org.itss.prj_itss.layout.Navigator;
 import org.itss.prj_itss.layout.ViewController;
+import org.itss.prj_itss.request.detail.RequestDetailPopup;
 import org.itss.prj_itss.service.RequestService;
 import org.itss.prj_itss.ui.StatusNodes;
 

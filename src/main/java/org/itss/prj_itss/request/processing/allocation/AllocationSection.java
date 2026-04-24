@@ -1,4 +1,4 @@
-package org.itss.prj_itss.request.processing;
+package org.itss.prj_itss.request.processing.allocation;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -18,9 +18,10 @@ import javafx.stage.Stage;
 import org.itss.prj_itss.dto.Allocation;
 import org.itss.prj_itss.dto.ItemRequirement;
 import org.itss.prj_itss.dto.SiteStockOption;
-import org.itss.prj_itss.request.processing.AllocationPlanner.OrderLineSuggestion;
-import org.itss.prj_itss.request.processing.AllocationPlanner.SiteOrderSuggestion;
-import org.itss.prj_itss.request.processing.AllocationPlanner.SuggestedPlan;
+import org.itss.prj_itss.request.processing.RequestProcessingUiSupport;
+import org.itss.prj_itss.request.processing.allocation.AllocationPlanner.OrderLineSuggestion;
+import org.itss.prj_itss.request.processing.allocation.AllocationPlanner.SiteOrderSuggestion;
+import org.itss.prj_itss.request.processing.allocation.AllocationPlanner.SuggestedPlan;
 import org.itss.prj_itss.service.AllocationPlanningService;
 import org.itss.prj_itss.ui.Notifications;
 

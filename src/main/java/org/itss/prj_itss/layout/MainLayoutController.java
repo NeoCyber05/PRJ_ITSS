@@ -105,7 +105,7 @@ public class MainLayoutController implements Navigator {
         return switch (viewId) {
             case "home" -> getOrLoadCachedView("home", "/org/itss/prj_itss/home/home-view.fxml");
             case "site-management" -> getOrLoadCachedView("site-management", "/org/itss/prj_itss/site/site-management-view.fxml");
-            case "received-requests" -> getOrLoadCachedView("received-requests", "/org/itss/prj_itss/request/received-requests-view.fxml");
+            case "received-requests" -> getOrLoadCachedView("received-requests", "/org/itss/prj_itss/request/received/received-requests-view.fxml");
             case "orders" -> getOrLoadCachedView("orders", "/org/itss/prj_itss/order/order-management-view.fxml");
             case "request-processing" -> loadRequestProcessingView(1);
             default -> getOrLoadCachedView("home", "/org/itss/prj_itss/home/home-view.fxml");

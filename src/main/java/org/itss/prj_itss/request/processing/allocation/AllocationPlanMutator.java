@@ -1,9 +1,9 @@
-package org.itss.prj_itss.request.processing;
+package org.itss.prj_itss.request.processing.allocation;
 
 import org.itss.prj_itss.dto.Allocation;
 import org.itss.prj_itss.dto.ItemRequirement;
-import org.itss.prj_itss.request.processing.AllocationPlanner.AllocationDraft;
-import org.itss.prj_itss.request.processing.AllocationPlanner.SuggestedPlan;
+import org.itss.prj_itss.request.processing.allocation.AllocationPlanner.AllocationDraft;
+import org.itss.prj_itss.request.processing.allocation.AllocationPlanner.SuggestedPlan;
 
 import java.util.LinkedHashMap;
 import java.util.List;
