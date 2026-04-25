@@ -16,8 +16,8 @@ import org.itss.prj_itss.auth.workspace.RoleWorkspaceContent;
 import org.itss.prj_itss.auth.workspace.RoleWorkspaceContentFactory;
 import org.itss.prj_itss.auth.workspace.RoleWorkspaceController;
 import org.itss.prj_itss.common.config.ApplicationContext;
-import org.itss.prj_itss.order.OrderDetailView;
-import org.itss.prj_itss.request.processing.RequestProcessingController;
+import org.itss.prj_itss.ordering.order.OrderDetailView;
+import org.itss.prj_itss.ordering.request.process.RequestProcessingController;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -160,9 +160,13 @@ public class MainLayoutController implements INavigator {
 
         return switch (viewId) {
             case "home" -> getOrLoadCachedView("home", "/org/itss/prj_itss/home/home-view.fxml");
-            case "site-management" -> getOrLoadCachedView("site-management", "/org/itss/prj_itss/site/site-management-view.fxml");
-            case "received-requests" -> getOrLoadCachedView("received-requests", "/org/itss/prj_itss/request/received/received-requests-view.fxml");
-            case "orders" -> getOrLoadCachedView("orders", "/org/itss/prj_itss/order/order-management-view.fxml");
+            case "site-management" -> getOrLoadCachedView("site-management", "/org/itss/prj_itss/ordering/site/site-management-view.fxml");
+            case "received-requests" -> getOrLoadCachedView("received-requests", "/org/itss/prj_itss/ordering/request/received/received-requests-view.fxml");
+            case "orders" -> getOrLoadCachedView("orders", "/org/itss/prj_itss/ordering/order/order-management-view.fxml");
+            case "sales-request-create" -> getOrLoadCachedView("sales-request-create", "/org/itss/prj_itss/sales/request/create/create-order-request-view.fxml");
+            case "sales-request-update" -> getOrLoadCachedView("sales-request-update", "/org/itss/prj_itss/sales/request/update/update-order-request-view.fxml");
+            case "warehouse-order-confirm-arrival" -> getOrLoadCachedView("warehouse-order-confirm-arrival", "/org/itss/prj_itss/warehouse/order/confirm_arrival/confirm-order-arrival-view.fxml");
+            case "ordering-order-handle-cancellation" -> getOrLoadCachedView("ordering-order-handle-cancellation", "/org/itss/prj_itss/ordering/order/handle_cancellation/handle-order-cancellation-view.fxml");
             case "role-workspace" -> getOrLoadCachedView("role-workspace", "/org/itss/prj_itss/auth/workspace/role-workspace-view.fxml");
             case "request-processing" -> loadRequestProcessingView(1);
             default -> fallbackToDefaultView(viewId);
@@ -179,7 +183,7 @@ public class MainLayoutController implements INavigator {
 
     private LoadedView loadRequestProcessingView(int requestId) {
         return loadView(
-            "/org/itss/prj_itss/request/processing/request-processing-view.fxml",
+            "/org/itss/prj_itss/ordering/request/process/request-processing-view.fxml",
             controller -> {
                 if (controller instanceof RequestProcessingController requestProcessingController) {
                     requestProcessingController.setRequestId(requestId);

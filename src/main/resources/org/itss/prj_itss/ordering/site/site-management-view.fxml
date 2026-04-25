@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.geometry.Pos?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.itss.prj_itss.ordering.site.SiteManagementController"
+            styleClass="content-area">
+    <top>
+        <VBox spacing="4" styleClass="page-header">
+            <children>
+                <Label text="Quản lý Site" styleClass="page-title"/>
+                <Label text="Quản lý danh sách và thông tin các đối tác / nhà cung cấp nước ngoài"
+                       styleClass="page-description"/>
+            </children>
+        </VBox>
+    </top>
+
+    <center>
+        <ScrollPane fitToWidth="true" style="-fx-background-color: transparent;">
+            <content>
+                <VBox spacing="20" styleClass="page-content">
+                    <children>
+                        <HBox alignment="CENTER_LEFT" spacing="16">
+                            <children>
+                                <VBox alignment="CENTER_LEFT" prefWidth="200" spacing="4" styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label fx:id="totalSitesLabel" styleClass="stat-value"/>
+                                        <Label text="Tổng số Site" styleClass="stat-label"/>
+                                    </children>
+                                </VBox>
+                                <VBox alignment="CENTER_LEFT" prefWidth="200" spacing="4" styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label fx:id="activeSitesLabel" styleClass="stat-value"/>
+                                        <Label text="Site đang hoạt động" styleClass="stat-label"/>
+                                    </children>
+                                </VBox>
+                                <VBox alignment="CENTER_LEFT" prefWidth="200" spacing="4" styleClass="stat-card" HBox.hgrow="ALWAYS">
+                                    <children>
+                                        <Label fx:id="merchandiseCountLabel" styleClass="stat-value"/>
+                                        <Label text="Mặt hàng kinh doanh" styleClass="stat-label"/>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+
+                        <HBox alignment="CENTER_LEFT" spacing="12">
+                            <children>
+                                <TextField fx:id="searchField"
+                                           promptText="Tìm kiếm site theo tên, mã, quốc gia..."
+                                           prefWidth="400"
+                                           styleClass="search-field"
+                                           HBox.hgrow="ALWAYS"/>
+                                <Button fx:id="addSiteButton" text="+ Thêm Site mới" styleClass="btn-primary"/>
+                            </children>
+                        </HBox>
+
+                        <VBox spacing="0" styleClass="card">
+                            <children>
+                                <HBox alignment="CENTER_LEFT" styleClass="card-header">
+                                    <children>
+                                        <Label text="Danh sách Site đối tác" styleClass="card-title"/>
+                                        <Region HBox.hgrow="ALWAYS"/>
+                                        <Label fx:id="siteCountLabel" styleClass="page-description"/>
+                                    </children>
+                                </HBox>
+                                <TableView fx:id="siteTable">
+                                    <columns>
+                                        <TableColumn fx:id="siteCodeColumn" text="MÃ SITE" prefWidth="120"/>
+                                        <TableColumn fx:id="siteNameColumn" text="TÊN SITE" prefWidth="220"/>
+                                        <TableColumn fx:id="descriptionColumn" text="MÔ TẢ" prefWidth="220"/>
+                                        <TableColumn fx:id="shipDaysColumn" text="VẬN CHUYỂN BIỂN" prefWidth="150"/>
+                                        <TableColumn fx:id="airDaysColumn" text="VẬN CHUYỂN HÀNG KHÔNG" prefWidth="180"/>
+                                        <TableColumn fx:id="itemCountColumn" text="SỐ MẶT HÀNG" prefWidth="130"/>
+                                    </columns>
+                                </TableView>
+                            </children>
+                        </VBox>
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </center>
+</BorderPane>

@@ -16,7 +16,9 @@ public final class RoleAccessPolicy {
         if (roleType.isOrderingRole()) {
             return switch (normalizedViewId) {
                 case "home", "site-management", "received-requests", "orders",
-                    "request-processing", "order-detail" -> true;
+                    "request-processing", "order-detail",
+                    "sales-request-create", "sales-request-update",
+                    "warehouse-order-confirm-arrival", "ordering-order-handle-cancellation" -> true;
                 default -> false;
             };
         }

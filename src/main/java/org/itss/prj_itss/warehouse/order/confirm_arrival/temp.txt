@@ -1,0 +1,3 @@
+TODO:
+- Bo sung logic Java cho UC xac nhan don hang giao toi.
+- Co the thay file nay bang handler cap nhat trang thai va doi chieu du lieu kho.
