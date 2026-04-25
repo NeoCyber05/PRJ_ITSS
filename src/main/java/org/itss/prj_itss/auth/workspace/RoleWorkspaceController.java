@@ -8,15 +8,14 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.auth.session.SessionAwareController;
-import org.itss.prj_itss.auth.session.UserSession;
+import org.itss.prj_itss.auth.AuthenticatedUser;
 import org.itss.prj_itss.common.config.ApplicationContext;
-import org.itss.prj_itss.layout.Navigator;
-import org.itss.prj_itss.layout.ViewController;
+import org.itss.prj_itss.layout.INavigator;
+import org.itss.prj_itss.layout.IViewController;
 
-public class RoleWorkspaceController implements ViewController, SessionAwareController {
+public class RoleWorkspaceController implements IViewController {
 
-    private UserSession userSession;
+    private AuthenticatedUser user;
 
     @FXML
     private Label workspaceTitleLabel;
@@ -37,24 +36,23 @@ public class RoleWorkspaceController implements ViewController, SessionAwareCont
     private VBox capabilityListContainer;
 
     @Override
-    public void init(Navigator navigator, ApplicationContext context) {
+    public void init(INavigator navigator, ApplicationContext context) {
         refresh();
     }
 
-    @Override
-    public void setUserSession(UserSession userSession) {
-        this.userSession = userSession;
+    public void setUser(AuthenticatedUser user) {
+        this.user = user;
         refresh();
     }
 
     private void refresh() {
-        if (userSession == null || workspaceTitleLabel == null) {
+        if (user == null || workspaceTitleLabel == null) {
             return;
         }
 
-        RoleWorkspaceContent content = RoleWorkspaceContentFactory.create(userSession);
+        RoleWorkspaceContent content = RoleWorkspaceContentFactory.create(user);
         workspaceTitleLabel.setText(content.title());
-        workspaceSubtitleLabel.setText("Quyền hiện tại: " + userSession.roleName());
+        workspaceSubtitleLabel.setText("Quyền hiện tại: " + user.roleName());
         workspaceSummaryLabel.setText(content.summary());
         accessNoteLabel.setText(content.accessNote());
         statusBadgeLabel.setText(content.statusLabel());

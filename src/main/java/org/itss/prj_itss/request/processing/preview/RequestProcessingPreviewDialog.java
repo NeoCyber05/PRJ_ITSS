@@ -9,9 +9,9 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 
 import org.itss.prj_itss.dto.Allocation;
-import org.itss.prj_itss.layout.Navigator;
-import org.itss.prj_itss.request.processing.RequestProcessingUiSupport;
+import org.itss.prj_itss.layout.INavigator;
 import org.itss.prj_itss.service.RequestProcessingService;
+import org.itss.prj_itss.ui.RequestProcessingUiSupport;
 
 import java.io.IOException;
 import java.util.List;
@@ -23,13 +23,13 @@ public final class RequestProcessingPreviewDialog {
     private static final String VIEW_RESOURCE =
         "/org/itss/prj_itss/request/processing/preview/request-processing-preview-dialog.fxml";
 
-    private final Navigator navigator;
+    private final INavigator navigator;
     private final RequestProcessingService requestProcessingService;
     private final int requestId;
     private final Map<Integer, Map<Integer, Allocation>> allocations;
 
     public RequestProcessingPreviewDialog(
-        Navigator navigator,
+        INavigator navigator,
         RequestProcessingService requestProcessingService,
         int requestId,
         Map<Integer, Map<Integer, Allocation>> allocations

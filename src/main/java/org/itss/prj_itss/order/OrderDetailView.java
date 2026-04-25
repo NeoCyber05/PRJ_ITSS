@@ -12,14 +12,14 @@ import javafx.scene.layout.StackPane;
 
 import org.itss.prj_itss.App;
 import org.itss.prj_itss.common.config.ApplicationContext;
-import org.itss.prj_itss.layout.Navigator;
-import org.itss.prj_itss.layout.ViewController;
+import org.itss.prj_itss.layout.INavigator;
+import org.itss.prj_itss.layout.IViewController;
 
 public class OrderDetailView {
 
     private final StackPane view;
 
-    public OrderDetailView(Navigator navigator, ApplicationContext context, String orderId) {
+    public OrderDetailView(INavigator navigator, ApplicationContext context, String orderId) {
         view = new StackPane();
         view.setStyle("-fx-background-color: #F3F7FB;");
 
@@ -42,12 +42,12 @@ public class OrderDetailView {
         view.getChildren().addAll(background, backdrop, drawerLayer);
     }
 
-    private Node loadOrdersBackground(Navigator navigator, ApplicationContext context) {
+    private Node loadOrdersBackground(INavigator navigator, ApplicationContext context) {
         try {
             FXMLLoader loader = new FXMLLoader(App.class.getResource("/org/itss/prj_itss/order/order-management-view.fxml"));
             Node background = loader.load();
             Object controller = loader.getController();
-            if (controller instanceof ViewController viewController) {
+            if (controller instanceof IViewController viewController) {
                 viewController.init(navigator, context);
             }
             return background;

@@ -1,9 +1,9 @@
 package org.itss.prj_itss.service;
 
 import org.itss.prj_itss.auth.login.LoginResult;
-import org.itss.prj_itss.auth.session.UserSession;
+import org.itss.prj_itss.auth.AuthenticatedUser;
 import org.itss.prj_itss.entity.Account;
-import org.itss.prj_itss.repository.AccountRepository;
+import org.itss.prj_itss.repository.IAccountRepository;
 
 import java.text.Normalizer;
 import java.util.Locale;
@@ -11,9 +11,9 @@ import java.util.Optional;
 
 public class AuthenticationService {
 
-    private final AccountRepository accountRepository;
+    private final IAccountRepository accountRepository;
 
-    public AuthenticationService(AccountRepository accountRepository) {
+    public AuthenticationService(IAccountRepository accountRepository) {
         this.accountRepository = accountRepository;
     }
 
@@ -25,16 +25,16 @@ public class AuthenticationService {
             return LoginResult.failure("Vui lòng nhập tên đăng nhập và mật khẩu.");
         }
 
-        Optional<UserSession> session = accountRepository.findByCredentials(normalizedUsername, normalizedPassword);
-        if (session.isEmpty()) {
+        Optional<AuthenticatedUser> user = accountRepository.findByCredentials(normalizedUsername, normalizedPassword);
+        if (user.isEmpty()) {
             return LoginResult.failure("Tên đăng nhập hoặc mật khẩu không đúng.");
         }
 
-        if (!isAccountActive(session.get().account())) {
+        if (!isAccountActive(user.get().account())) {
             return LoginResult.failure("Tài khoản đã bị khóa hoặc chưa sẵn sàng sử dụng.");
         }
 
-        return LoginResult.success(session.get());
+        return LoginResult.success(user.get());
     }
 
     private boolean isAccountActive(Account account) {

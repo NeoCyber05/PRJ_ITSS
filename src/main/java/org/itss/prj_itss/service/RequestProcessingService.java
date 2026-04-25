@@ -1,6 +1,6 @@
 package org.itss.prj_itss.service;
 
-import org.itss.prj_itss.common.config.TransactionRunner;
+import org.itss.prj_itss.common.config.ITransactionRunner;
 import org.itss.prj_itss.dto.Allocation;
 import org.itss.prj_itss.dto.ItemRequirement;
 import org.itss.prj_itss.dto.RequestProcessingData;
@@ -10,11 +10,11 @@ import org.itss.prj_itss.entity.Order;
 import org.itss.prj_itss.entity.OrderMerchandise;
 import org.itss.prj_itss.entity.RequestMerchandise;
 import org.itss.prj_itss.entity.Site;
-import org.itss.prj_itss.repository.InventoryRepository;
-import org.itss.prj_itss.repository.MerchandiseRepository;
-import org.itss.prj_itss.repository.OrderRepository;
-import org.itss.prj_itss.repository.RequestRepository;
-import org.itss.prj_itss.repository.SiteRepository;
+import org.itss.prj_itss.repository.IInventoryRepository;
+import org.itss.prj_itss.repository.IMerchandiseRepository;
+import org.itss.prj_itss.repository.IOrderRepository;
+import org.itss.prj_itss.repository.IRequestRepository;
+import org.itss.prj_itss.repository.ISiteRepository;
 
 import java.math.BigDecimal;
 import java.sql.SQLException;
@@ -27,20 +27,20 @@ import java.util.Map;
 
 public final class RequestProcessingService {
 
-    private final RequestRepository requestRepository;
-    private final OrderRepository orderRepository;
-    private final SiteRepository siteRepository;
-    private final InventoryRepository inventoryRepository;
-    private final MerchandiseRepository merchandiseRepository;
-    private final TransactionRunner transactionRunner;
+    private final IRequestRepository requestRepository;
+    private final IOrderRepository orderRepository;
+    private final ISiteRepository siteRepository;
+    private final IInventoryRepository inventoryRepository;
+    private final IMerchandiseRepository merchandiseRepository;
+    private final ITransactionRunner transactionRunner;
 
     public RequestProcessingService(
-        RequestRepository requestRepository,
-        OrderRepository orderRepository,
-        SiteRepository siteRepository,
-        InventoryRepository inventoryRepository,
-        MerchandiseRepository merchandiseRepository,
-        TransactionRunner transactionRunner
+        IRequestRepository requestRepository,
+        IOrderRepository orderRepository,
+        ISiteRepository siteRepository,
+        IInventoryRepository inventoryRepository,
+        IMerchandiseRepository merchandiseRepository,
+        ITransactionRunner transactionRunner
     ) {
         this.requestRepository = requestRepository;
         this.orderRepository = orderRepository;

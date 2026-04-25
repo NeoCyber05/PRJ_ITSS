@@ -8,8 +8,8 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
+import org.itss.prj_itss.auth.AuthenticatedUser;
 import org.itss.prj_itss.auth.login.LoginController;
-import org.itss.prj_itss.auth.session.UserSession;
 import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.layout.MainLayoutController;
 
@@ -77,7 +77,7 @@ public class App extends Application {
         warmUpThread.start();
     }
 
-    private void showMainLayout(UserSession userSession) {
+    private void showMainLayout(AuthenticatedUser user) {
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
                 getClass().getResource("/org/itss/prj_itss/layout/main-layout.fxml"),
@@ -85,7 +85,7 @@ public class App extends Application {
             ));
             Parent root = loader.load();
             MainLayoutController controller = loader.getController();
-            controller.setUserSession(userSession);
+            controller.setUser(user);
             controller.setLogoutHandler(this::showLogin);
             setScene(root);
         } catch (IOException exception) {

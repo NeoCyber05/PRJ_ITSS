@@ -1,15 +1,15 @@
 package org.itss.prj_itss.service;
 
 import org.itss.prj_itss.entity.Merchandise;
-import org.itss.prj_itss.repository.MerchandiseRepository;
+import org.itss.prj_itss.repository.IMerchandiseRepository;
 
 import java.util.List;
 
 public final class MerchandiseService {
 
-    private final MerchandiseRepository merchandiseRepository;
+    private final IMerchandiseRepository merchandiseRepository;
 
-    public MerchandiseService(MerchandiseRepository merchandiseRepository) {
+    public MerchandiseService(IMerchandiseRepository merchandiseRepository) {
         this.merchandiseRepository = merchandiseRepository;
     }
 

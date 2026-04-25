@@ -1,4 +1,4 @@
-package org.itss.prj_itss.auth.session;
+package org.itss.prj_itss.auth;
 
 import org.itss.prj_itss.entity.Account;
 import org.itss.prj_itss.entity.Role;
@@ -6,9 +6,9 @@ import org.itss.prj_itss.entity.Role;
 import java.util.Locale;
 import java.util.Objects;
 
-public record UserSession(Account account, Role role) {
+public record AuthenticatedUser(Account account, Role role) {
 
-    public UserSession {
+    public AuthenticatedUser {
         Objects.requireNonNull(account, "account must not be null");
         Objects.requireNonNull(role, "role must not be null");
     }

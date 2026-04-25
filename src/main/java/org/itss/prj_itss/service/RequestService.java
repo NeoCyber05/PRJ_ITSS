@@ -2,16 +2,16 @@ package org.itss.prj_itss.service;
 
 import org.itss.prj_itss.entity.Request;
 import org.itss.prj_itss.entity.RequestMerchandise;
-import org.itss.prj_itss.repository.RequestRepository;
+import org.itss.prj_itss.repository.IRequestRepository;
 
 import java.time.LocalDate;
 import java.util.List;
 
 public final class RequestService {
 
-    private final RequestRepository requestRepository;
+    private final IRequestRepository requestRepository;
 
-    public RequestService(RequestRepository requestRepository) {
+    public RequestService(IRequestRepository requestRepository) {
         this.requestRepository = requestRepository;
     }
 

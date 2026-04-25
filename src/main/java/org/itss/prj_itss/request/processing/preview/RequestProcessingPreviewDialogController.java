@@ -13,11 +13,11 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
 import org.itss.prj_itss.dto.Allocation;
-import org.itss.prj_itss.layout.Navigator;
-import org.itss.prj_itss.request.processing.RequestProcessingUiSupport;
+import org.itss.prj_itss.layout.INavigator;
 import org.itss.prj_itss.request.processing.allocation.RequestProcessingAllocationSupport;
 import org.itss.prj_itss.service.RequestProcessingService;
 import org.itss.prj_itss.ui.Notifications;
+import org.itss.prj_itss.ui.RequestProcessingUiSupport;
 import org.itss.prj_itss.ui.StatusNodes;
 
 import java.sql.SQLException;
@@ -42,14 +42,14 @@ public final class RequestProcessingPreviewDialogController {
     private Button sendButton;
 
     private Stage dialog;
-    private Navigator navigator;
+    private INavigator navigator;
     private RequestProcessingService requestProcessingService;
     private int requestId;
     private Map<Integer, Map<Integer, Allocation>> allocations;
 
     void init(
         Stage dialog,
-        Navigator navigator,
+        INavigator navigator,
         RequestProcessingService requestProcessingService,
         int requestId,
         Map<Integer, Map<Integer, Allocation>> allocations,

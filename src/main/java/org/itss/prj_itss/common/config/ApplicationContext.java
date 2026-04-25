@@ -1,16 +1,16 @@
 package org.itss.prj_itss.common.config;
 
+import org.itss.prj_itss.repository.IAccountRepository;
+import org.itss.prj_itss.repository.IInventoryRepository;
 import org.itss.prj_itss.repository.AccountRepository;
-import org.itss.prj_itss.repository.InventoryRepository;
-import org.itss.prj_itss.repository.JdbcAccountRepository;
-import org.itss.prj_itss.repository.JdbcMerchandiseRepository;
-import org.itss.prj_itss.repository.JdbcOrderRepository;
-import org.itss.prj_itss.repository.JdbcRequestRepository;
-import org.itss.prj_itss.repository.JdbcSiteRepository;
 import org.itss.prj_itss.repository.MerchandiseRepository;
 import org.itss.prj_itss.repository.OrderRepository;
 import org.itss.prj_itss.repository.RequestRepository;
 import org.itss.prj_itss.repository.SiteRepository;
+import org.itss.prj_itss.repository.IMerchandiseRepository;
+import org.itss.prj_itss.repository.IOrderRepository;
+import org.itss.prj_itss.repository.IRequestRepository;
+import org.itss.prj_itss.repository.ISiteRepository;
 import org.itss.prj_itss.service.AllocationPlanningService;
 import org.itss.prj_itss.service.AuthenticationService;
 import org.itss.prj_itss.service.DashboardService;
@@ -25,15 +25,15 @@ public final class ApplicationContext {
     private static final ApplicationContext INSTANCE = new ApplicationContext();
 
     private final TransactionManager transactionManager = new TransactionManager();
-    private final ConnectionProvider connectionProvider = new DatabaseConnectionProvider(transactionManager);
+    private final IConnectionProvider connectionProvider = new DatabaseConnectionProvider(transactionManager);
 
-    private final AccountRepository accountRepository = new JdbcAccountRepository(connectionProvider);
-    private final JdbcSiteRepository siteRepository = new JdbcSiteRepository(connectionProvider);
-    private final RequestRepository requestRepository = new JdbcRequestRepository(connectionProvider);
-    private final OrderRepository orderRepository = new JdbcOrderRepository(connectionProvider);
-    private final MerchandiseRepository merchandiseRepository = new JdbcMerchandiseRepository(connectionProvider);
-    private final SiteRepository siteReadRepository = siteRepository;
-    private final InventoryRepository inventoryRepository = siteRepository;
+    private final IAccountRepository accountRepository = new AccountRepository(connectionProvider);
+    private final SiteRepository siteRepository = new SiteRepository(connectionProvider);
+    private final IRequestRepository requestRepository = new RequestRepository(connectionProvider);
+    private final IOrderRepository orderRepository = new OrderRepository(connectionProvider);
+    private final IMerchandiseRepository merchandiseRepository = new MerchandiseRepository(connectionProvider);
+    private final ISiteRepository siteReadRepository = siteRepository;
+    private final IInventoryRepository inventoryRepository = siteRepository;
 
     private final AuthenticationService authenticationService = new AuthenticationService(accountRepository);
     private final RequestService requestService = new RequestService(requestRepository);

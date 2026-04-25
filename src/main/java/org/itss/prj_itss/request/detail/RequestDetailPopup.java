@@ -13,7 +13,7 @@ import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.entity.Order;
 import org.itss.prj_itss.entity.Request;
 import org.itss.prj_itss.entity.RequestMerchandise;
-import org.itss.prj_itss.layout.Navigator;
+import org.itss.prj_itss.layout.INavigator;
 import org.itss.prj_itss.service.OrderService;
 import org.itss.prj_itss.service.RequestService;
 
@@ -35,7 +35,7 @@ public final class RequestDetailPopup {
         show(owner, requestCode, context, null);
     }
 
-    public static void show(Window owner, String requestCode, ApplicationContext context, Navigator navigator) {
+    public static void show(Window owner, String requestCode, ApplicationContext context, INavigator navigator) {
         int requestId = parseRequestId(requestCode);
 
         RequestService requestService = context.requestService();

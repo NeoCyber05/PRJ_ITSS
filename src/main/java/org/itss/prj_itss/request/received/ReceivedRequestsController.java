@@ -17,8 +17,8 @@ import javafx.scene.layout.HBox;
 
 import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.entity.Request;
-import org.itss.prj_itss.layout.Navigator;
-import org.itss.prj_itss.layout.ViewController;
+import org.itss.prj_itss.layout.INavigator;
+import org.itss.prj_itss.layout.IViewController;
 import org.itss.prj_itss.request.detail.RequestDetailPopup;
 import org.itss.prj_itss.service.RequestService;
 import org.itss.prj_itss.ui.StatusNodes;
@@ -28,14 +28,14 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
-public class ReceivedRequestsController implements ViewController {
+public class ReceivedRequestsController implements IViewController {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final ObservableList<RequestRow> rows = FXCollections.observableArrayList();
     private final FilteredList<RequestRow> filteredRows = new FilteredList<>(rows, row -> true);
 
-    private Navigator navigator;
+    private INavigator navigator;
     private ApplicationContext context;
     private RequestService requestService;
 
@@ -143,7 +143,7 @@ public class ReceivedRequestsController implements ViewController {
     }
 
     @Override
-    public void init(Navigator navigator, ApplicationContext context) {
+    public void init(INavigator navigator, ApplicationContext context) {
         this.navigator = navigator;
         this.context = context;
         this.requestService = context.requestService();

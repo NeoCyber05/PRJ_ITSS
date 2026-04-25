@@ -5,7 +5,7 @@ import org.itss.prj_itss.db.DatabaseConnection;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public final class DatabaseConnectionProvider implements ConnectionProvider {
+public final class DatabaseConnectionProvider implements IConnectionProvider {
 
     private final TransactionManager transactionManager;
 

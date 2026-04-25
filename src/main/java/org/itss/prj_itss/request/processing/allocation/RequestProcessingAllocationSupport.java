@@ -3,6 +3,7 @@ package org.itss.prj_itss.request.processing.allocation;
 import org.itss.prj_itss.dto.Allocation;
 import org.itss.prj_itss.dto.ItemRequirement;
 import org.itss.prj_itss.dto.SiteStockOption;
+import org.itss.prj_itss.service.AllocationPlanningService;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -71,6 +72,32 @@ public final class RequestProcessingAllocationSupport {
         return isAirTransport(transport) ? site.airDays : site.shipDays;
     }
 
+    public static String pickDefaultTransport(SiteStockOption site, int deadlineDays) {
+        if (site.shipDays <= deadlineDays && site.shipDays < 999) {
+            return AllocationPlanningService.TRANSPORT_SHIP;
+        }
+        if (site.airDays < 999) {
+            return AllocationPlanningService.TRANSPORT_AIR;
+        }
+        return AllocationPlanningService.TRANSPORT_SHIP;
+    }
+
+    public static String normalizeTransport(String rawTransport, SiteStockOption site, int deadlineDays) {
+        if (rawTransport == null || rawTransport.isBlank()) {
+            return pickDefaultTransport(site, deadlineDays);
+        }
+
+        String normalized = rawTransport.trim().toLowerCase();
+        if (normalized.contains("air") || normalized.contains("máy") || normalized.contains("may") || normalized.contains("hang khong") || normalized.contains("hàng không")) {
+            return AllocationPlanningService.TRANSPORT_AIR;
+        }
+        if (normalized.contains("ship") || normalized.contains("tàu") || normalized.contains("tau") || normalized.contains("duong bien") || normalized.contains("đường biển")) {
+            return AllocationPlanningService.TRANSPORT_SHIP;
+        }
+
+        return pickDefaultTransport(site, deadlineDays);
+    }
+
     public static boolean isAirTransport(String transport) {
         if (transport == null) {
             return false;
@@ -85,5 +112,9 @@ public final class RequestProcessingAllocationSupport {
 
     public static String toDisplayDeliveryMethod(String transport) {
         return isAirTransport(transport) ? "Hàng không" : "Đường biển";
+    }
+
+    public static String transportLabel(String transport) {
+        return toDisplayDeliveryMethod(transport);
     }
 }

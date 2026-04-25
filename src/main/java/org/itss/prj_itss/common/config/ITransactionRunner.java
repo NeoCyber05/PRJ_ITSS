@@ -2,11 +2,11 @@ package org.itss.prj_itss.common.config;
 
 import java.sql.SQLException;
 
-public interface TransactionRunner {
-    void execute(TransactionCallback callback) throws SQLException;
+public interface ITransactionRunner {
+    void execute(ITransactionCallback callback) throws SQLException;
 
     @FunctionalInterface
-    interface TransactionCallback {
+    interface ITransactionCallback {
         void execute() throws SQLException;
     }
 }

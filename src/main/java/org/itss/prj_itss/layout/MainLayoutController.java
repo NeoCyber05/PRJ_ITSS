@@ -1,6 +1,5 @@
 package org.itss.prj_itss.layout;
 
-import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
@@ -10,28 +9,30 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import org.itss.prj_itss.App;
+import org.itss.prj_itss.auth.AuthenticatedUser;
 import org.itss.prj_itss.auth.role.RoleAccessPolicy;
 import org.itss.prj_itss.auth.role.RoleType;
-import org.itss.prj_itss.auth.session.SessionAwareController;
-import org.itss.prj_itss.auth.session.UserSession;
 import org.itss.prj_itss.auth.workspace.RoleWorkspaceContent;
 import org.itss.prj_itss.auth.workspace.RoleWorkspaceContentFactory;
+import org.itss.prj_itss.auth.workspace.RoleWorkspaceController;
 import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.order.OrderDetailView;
-import org.itss.prj_itss.request.processing.RequestProcessingView;
+import org.itss.prj_itss.request.processing.RequestProcessingController;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 
-public class MainLayoutController implements Navigator {
+public class MainLayoutController implements INavigator {
+
+    private static final String ORDER_DETAIL_PREFIX = "order-detail:";
+    private static final String REQUEST_PROCESSING_PREFIX = "request-processing:";
 
     private final Map<String, Button> navButtons = new LinkedHashMap<>();
     private final Map<String, LoadedView> cachedViews = new HashMap<>();
     private final ApplicationContext context = ApplicationContext.getInstance();
-    private UserSession userSession;
+    private AuthenticatedUser currentUser;
     private Runnable logoutHandler;
     private String activeViewId;
 
@@ -73,11 +74,10 @@ public class MainLayoutController implements Navigator {
         registerNavButton("orders", ordersButton);
     }
 
-    public void setUserSession(UserSession userSession) {
-        this.userSession = userSession;
-        configureShellForSession();
-        showView(RoleAccessPolicy.defaultViewId(userSession));
-        warmSidebarCacheAsync();
+    public void setUser(AuthenticatedUser user) {
+        this.currentUser = user;
+        updateUIForUser();
+        showView(RoleAccessPolicy.defaultViewId(currentUser));
     }
 
     public void setLogoutHandler(Runnable logoutHandler) {
@@ -86,25 +86,21 @@ public class MainLayoutController implements Navigator {
 
     @Override
     public void showView(String viewId) {
-        if (userSession == null) {
+        if (currentUser == null) {
             return;
         }
 
-        String targetViewId = RoleAccessPolicy.canAccess(userSession, viewId)
-            ? viewId
-            : RoleAccessPolicy.defaultViewId(userSession);
-
-        if (targetViewId != null && targetViewId.equals(activeViewId)) {
+        ResolvedNavigation resolvedNavigation = resolveNavigation(viewId);
+        if (resolvedNavigation.viewId().equals(activeViewId)) {
             return;
         }
 
-        LoadedView loadedView = resolveView(targetViewId);
-        contentArea.getChildren().setAll(loadedView.node());
-        if (loadedView.controller() instanceof ViewController viewController) {
-            viewController.onViewShown(targetViewId);
+        contentArea.getChildren().setAll(resolvedNavigation.view().node());
+        if (resolvedNavigation.view().controller() instanceof IViewController viewController) {
+            viewController.onViewShown(resolvedNavigation.viewId());
         }
-        setActiveNav(resolveNavTarget(targetViewId));
-        activeViewId = targetViewId;
+        setActiveNav(resolvedNavigation.navTarget());
+        activeViewId = resolvedNavigation.viewId();
     }
 
     private void registerNavButton(String viewId, Button button) {
@@ -122,8 +118,24 @@ public class MainLayoutController implements Navigator {
         }
     }
 
+    private ResolvedNavigation resolveNavigation(String requestedViewId) {
+        String targetViewId = resolveAccessibleViewId(requestedViewId);
+        LoadedView loadedView = resolveView(targetViewId);
+        return new ResolvedNavigation(targetViewId, resolveNavTarget(targetViewId), loadedView);
+    }
+
+    private String resolveAccessibleViewId(String requestedViewId) {
+        String defaultViewId = RoleAccessPolicy.defaultViewId(currentUser);
+        if (requestedViewId == null || requestedViewId.isBlank()) {
+            return defaultViewId;
+        }
+        return RoleAccessPolicy.canAccess(currentUser, requestedViewId)
+            ? requestedViewId
+            : defaultViewId;
+    }
+
     private String resolveNavTarget(String viewId) {
-        if (viewId.startsWith("order-detail:")) {
+        if (viewId.startsWith(ORDER_DETAIL_PREFIX)) {
             return "orders";
         }
         if (viewId.startsWith("request-processing")) {
@@ -136,13 +148,13 @@ public class MainLayoutController implements Navigator {
     }
 
     private LoadedView resolveView(String viewId) {
-        if (viewId.startsWith("order-detail:")) {
-            String orderId = viewId.substring("order-detail:".length());
+        if (viewId.startsWith(ORDER_DETAIL_PREFIX)) {
+            String orderId = viewId.substring(ORDER_DETAIL_PREFIX.length());
             return new LoadedView(new OrderDetailView(this, context, orderId).getView(), null);
         }
 
-        if (viewId.startsWith("request-processing:")) {
-            int requestId = parsePositiveInt(viewId.substring("request-processing:".length()), 1);
+        if (viewId.startsWith(REQUEST_PROCESSING_PREFIX)) {
+            int requestId = parsePositiveInt(viewId.substring(REQUEST_PROCESSING_PREFIX.length()), 1);
             return loadRequestProcessingView(requestId);
         }
 
@@ -153,12 +165,27 @@ public class MainLayoutController implements Navigator {
             case "orders" -> getOrLoadCachedView("orders", "/org/itss/prj_itss/order/order-management-view.fxml");
             case "role-workspace" -> getOrLoadCachedView("role-workspace", "/org/itss/prj_itss/auth/workspace/role-workspace-view.fxml");
             case "request-processing" -> loadRequestProcessingView(1);
-            default -> getOrLoadCachedView(RoleAccessPolicy.defaultViewId(userSession), resolveDefaultResourcePath());
+            default -> fallbackToDefaultView(viewId);
         };
     }
 
+    private LoadedView fallbackToDefaultView(String viewId) {
+        String defaultViewId = RoleAccessPolicy.defaultViewId(currentUser);
+        if (defaultViewId == null || defaultViewId.equals(viewId)) {
+            return buildErrorView("Khong the xac dinh man hinh: " + viewId);
+        }
+        return resolveView(defaultViewId);
+    }
+
     private LoadedView loadRequestProcessingView(int requestId) {
-        return new LoadedView(new RequestProcessingView(this, context, requestId).getView(), null);
+        return loadView(
+            "/org/itss/prj_itss/request/processing/request-processing-view.fxml",
+            controller -> {
+                if (controller instanceof RequestProcessingController requestProcessingController) {
+                    requestProcessingController.setRequestId(requestId);
+                }
+            }
+        );
     }
 
     private LoadedView getOrLoadCachedView(String cacheKey, String resourcePath) {
@@ -170,12 +197,7 @@ public class MainLayoutController implements Navigator {
             FXMLLoader loader = new FXMLLoader(App.class.getResource(resourcePath));
             Node view = loader.load();
             Object controller = loader.getController();
-            if (controller instanceof ViewController viewController) {
-                viewController.init(this, context);
-            }
-            if (controller instanceof SessionAwareController sessionAwareController) {
-                sessionAwareController.setUserSession(userSession);
-            }
+            initializeController(controller);
             if (controllerConfigurer != null) {
                 controllerConfigurer.accept(controller);
             }
@@ -186,18 +208,25 @@ public class MainLayoutController implements Navigator {
             if (message == null || message.isBlank()) {
                 message = exception.getClass().getSimpleName();
             }
-            Label errorLabel = new Label("Khong the tai man hinh: " + resourcePath + "\n" + message);
-            errorLabel.setWrapText(true);
-            StackPane errorPane = new StackPane(errorLabel);
-            errorPane.getStyleClass().add("content-area");
-            return new LoadedView(errorPane, null);
+            return buildErrorView("Khong the tai man hinh: " + resourcePath + "\n" + message);
         }
     }
 
-    private String resolveDefaultResourcePath() {
-        return RoleType.from(userSession).isOrderingRole()
-            ? "/org/itss/prj_itss/home/home-view.fxml"
-            : "/org/itss/prj_itss/auth/workspace/role-workspace-view.fxml";
+    private void initializeController(Object controller) {
+        if (controller instanceof IViewController viewController) {
+            viewController.init(this, context);
+        }
+        if (controller instanceof RoleWorkspaceController roleWorkspaceController) {
+            roleWorkspaceController.setUser(currentUser);
+        }
+    }
+
+    private LoadedView buildErrorView(String message) {
+        Label errorLabel = new Label(message);
+        errorLabel.setWrapText(true);
+        StackPane errorPane = new StackPane(errorLabel);
+        errorPane.getStyleClass().add("content-area");
+        return new LoadedView(errorPane, null);
     }
 
     private int parsePositiveInt(String rawValue, int fallback) {
@@ -209,39 +238,17 @@ public class MainLayoutController implements Navigator {
         }
     }
 
-    private void warmSidebarCacheAsync() {
-        if (!RoleType.from(userSession).isOrderingRole()) {
-            return;
-        }
-        preloadCachedViewsSequentially(List.of("site-management", "received-requests", "orders"), 0);
-    }
-
-    private void preloadCachedViewsSequentially(List<String> viewIds, int index) {
-        if (index >= viewIds.size()) {
-            return;
-        }
-
-        Platform.runLater(() -> {
-            resolveView(viewIds.get(index));
-            preloadCachedViewsSequentially(viewIds, index + 1);
-        });
-    }
-
-    private void configureShellForSession() {
-        RoleWorkspaceContent content = RoleWorkspaceContentFactory.create(userSession);
+    private void updateUIForUser() {
+        RoleWorkspaceContent content = RoleWorkspaceContentFactory.create(currentUser);
         brandSubtitleLabel.setText(content.sidebarSubtitle());
         homeButton.setText(content.homeLabel());
-        userInitialsLabel.setText(userSession.initials());
-        userNameLabel.setText(userSession.displayName());
-        userRoleLabel.setText(userSession.roleName());
+        userInitialsLabel.setText(currentUser.initials());
+        userNameLabel.setText(currentUser.displayName());
+        userRoleLabel.setText(currentUser.roleName());
 
-        boolean orderingRole = RoleType.from(userSession).isOrderingRole();
-        setManagedVisibility(ordersNavContainer, orderingRole);
-    }
-
-    private void setManagedVisibility(Node node, boolean visible) {
-        node.setVisible(visible);
-        node.setManaged(visible);
+        boolean orderingRole = RoleType.from(currentUser).isOrderingRole();
+        ordersNavContainer.setVisible(orderingRole);
+        ordersNavContainer.setManaged(orderingRole);
     }
 
     @FXML
@@ -251,6 +258,9 @@ public class MainLayoutController implements Navigator {
         if (logoutHandler != null) {
             logoutHandler.run();
         }
+    }
+
+    private record ResolvedNavigation(String viewId, String navTarget, LoadedView view) {
     }
 
     private record LoadedView(Node node, Object controller) {

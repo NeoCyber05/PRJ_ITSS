@@ -10,7 +10,7 @@ import javafx.scene.control.PasswordField;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.control.TextField;
 
-import org.itss.prj_itss.auth.session.UserSession;
+import org.itss.prj_itss.auth.AuthenticatedUser;
 import org.itss.prj_itss.service.AuthenticationService;
 
 import java.util.function.Consumer;
@@ -18,7 +18,7 @@ import java.util.function.Consumer;
 public class LoginController {
 
     private AuthenticationService authenticationService;
-    private Consumer<UserSession> loginHandler;
+    private Consumer<AuthenticatedUser> loginHandler;
     private final ProgressIndicator loadingIndicator = createLoadingIndicator();
     private boolean loading;
     private boolean startupConnecting;
@@ -53,7 +53,7 @@ public class LoginController {
         Platform.runLater(usernameField::requestFocus);
     }
 
-    public void configure(AuthenticationService authenticationService, Consumer<UserSession> loginHandler) {
+    public void configure(AuthenticationService authenticationService, Consumer<AuthenticatedUser> loginHandler) {
         this.authenticationService = authenticationService;
         this.loginHandler = loginHandler;
     }
@@ -107,7 +107,7 @@ public class LoginController {
                     showMessage(result.message(), false);
                     return;
                 }
-                loginHandler.accept(result.session());
+                loginHandler.accept(result.user());
             } finally {
                 setLoading(false);
             }

@@ -1,6 +1,6 @@
 package org.itss.prj_itss.service;
 
-import org.itss.prj_itss.common.config.TransactionRunner;
+import org.itss.prj_itss.common.config.ITransactionRunner;
 import org.itss.prj_itss.dto.Allocation;
 import org.itss.prj_itss.dto.ItemRequirement;
 import org.itss.prj_itss.dto.SiteStockOption;
@@ -10,11 +10,11 @@ import org.itss.prj_itss.entity.OrderMerchandise;
 import org.itss.prj_itss.entity.Request;
 import org.itss.prj_itss.entity.RequestMerchandise;
 import org.itss.prj_itss.entity.Site;
-import org.itss.prj_itss.repository.InventoryRepository;
-import org.itss.prj_itss.repository.MerchandiseRepository;
-import org.itss.prj_itss.repository.OrderRepository;
-import org.itss.prj_itss.repository.RequestRepository;
-import org.itss.prj_itss.repository.SiteRepository;
+import org.itss.prj_itss.repository.IInventoryRepository;
+import org.itss.prj_itss.repository.IMerchandiseRepository;
+import org.itss.prj_itss.repository.IOrderRepository;
+import org.itss.prj_itss.repository.IRequestRepository;
+import org.itss.prj_itss.repository.ISiteRepository;
 import org.junit.jupiter.api.Test;
 
 import java.sql.SQLException;
@@ -135,12 +135,12 @@ class RequestProcessingServiceTest {
         return new Allocation(siteId, merchandiseId, quantity, AllocationPlanningService.TRANSPORT_SHIP);
     }
 
-    private static final class RecordingTransactionRunner implements TransactionRunner {
+    private static final class RecordingTransactionRunner implements ITransactionRunner {
         private int commits;
         private int rollbacks;
 
         @Override
-        public void execute(TransactionCallback callback) throws SQLException {
+        public void execute(ITransactionCallback callback) throws SQLException {
             try {
                 callback.execute();
                 commits++;
@@ -151,7 +151,7 @@ class RequestProcessingServiceTest {
         }
     }
 
-    private static final class FakeOrderRepository implements OrderRepository {
+    private static final class FakeOrderRepository implements IOrderRepository {
         private final List<Order> createdOrders = new ArrayList<>();
         private final List<OrderMerchandise> createdItems = new ArrayList<>();
         private boolean failAddItem;
@@ -194,7 +194,7 @@ class RequestProcessingServiceTest {
         }
     }
 
-    private static final class EmptyRequestRepository implements RequestRepository {
+    private static final class EmptyRequestRepository implements IRequestRepository {
         @Override
         public List<Request> findAll() {
             return List.of();
@@ -226,7 +226,7 @@ class RequestProcessingServiceTest {
         }
     }
 
-    private static final class EmptySiteRepository implements SiteRepository {
+    private static final class EmptySiteRepository implements ISiteRepository {
         @Override
         public List<Site> findAll() {
             return List.of();
@@ -248,7 +248,7 @@ class RequestProcessingServiceTest {
         }
     }
 
-    private static final class EmptyInventoryRepository implements InventoryRepository {
+    private static final class EmptyInventoryRepository implements IInventoryRepository {
         @Override
         public Map<Integer, Integer> getInventoryBySiteId(int siteId) {
             return Map.of();
@@ -270,7 +270,7 @@ class RequestProcessingServiceTest {
         }
     }
 
-    private static final class EmptyMerchandiseRepository implements MerchandiseRepository {
+    private static final class EmptyMerchandiseRepository implements IMerchandiseRepository {
         @Override
         public List<Merchandise> findAll() {
             return List.of();

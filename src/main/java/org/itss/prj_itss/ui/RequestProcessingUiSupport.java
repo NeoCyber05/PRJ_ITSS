@@ -1,4 +1,4 @@
-package org.itss.prj_itss.request.processing;
+package org.itss.prj_itss.ui;
 
 import javafx.scene.Node;
 import javafx.scene.Scene;

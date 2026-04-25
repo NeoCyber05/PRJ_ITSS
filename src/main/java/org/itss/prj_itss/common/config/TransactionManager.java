@@ -5,7 +5,7 @@ import org.itss.prj_itss.db.DatabaseConnection;
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public final class TransactionManager implements TransactionRunner {
+public final class TransactionManager implements ITransactionRunner {
 
     private final ThreadLocal<Connection> activeConnection = new ThreadLocal<>();
 
@@ -14,7 +14,7 @@ public final class TransactionManager implements TransactionRunner {
     }
 
     @Override
-    public void execute(TransactionCallback callback) throws SQLException {
+    public void execute(ITransactionCallback callback) throws SQLException {
         Connection existing = activeConnection.get();
         if (existing != null) {
             callback.execute();

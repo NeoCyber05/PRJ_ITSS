@@ -14,8 +14,8 @@ import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.dto.DashboardData;
 import org.itss.prj_itss.entity.Order;
 import org.itss.prj_itss.entity.Request;
-import org.itss.prj_itss.layout.Navigator;
-import org.itss.prj_itss.layout.ViewController;
+import org.itss.prj_itss.layout.INavigator;
+import org.itss.prj_itss.layout.IViewController;
 import org.itss.prj_itss.service.DashboardService;
 import org.itss.prj_itss.service.RequestService;
 
@@ -25,11 +25,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.List;
 
-public class HomeController implements ViewController {
+public class HomeController implements IViewController {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    private Navigator navigator;
+    private INavigator navigator;
     private DashboardService dashboardService;
     private RequestService requestService;
 
@@ -45,7 +45,7 @@ public class HomeController implements ViewController {
     private VBox activityRowsContainer;
 
     @Override
-    public void init(Navigator navigator, ApplicationContext context) {
+    public void init(INavigator navigator, ApplicationContext context) {
         this.navigator = navigator;
         this.dashboardService = context.dashboardService();
         this.requestService = context.requestService();

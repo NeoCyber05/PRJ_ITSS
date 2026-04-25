@@ -20,8 +20,8 @@ import org.itss.prj_itss.entity.Merchandise;
 import org.itss.prj_itss.entity.Order;
 import org.itss.prj_itss.entity.OrderMerchandise;
 import org.itss.prj_itss.entity.Site;
-import org.itss.prj_itss.layout.Navigator;
-import org.itss.prj_itss.layout.ViewController;
+import org.itss.prj_itss.layout.INavigator;
+import org.itss.prj_itss.layout.IViewController;
 import org.itss.prj_itss.service.MerchandiseService;
 import org.itss.prj_itss.service.OrderService;
 import org.itss.prj_itss.service.SiteService;
@@ -32,14 +32,14 @@ import java.util.List;
 import java.util.Locale;
 import java.util.stream.Collectors;
 
-public class OrderManagementController implements ViewController {
+public class OrderManagementController implements IViewController {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final ObservableList<OrderRow> rows = FXCollections.observableArrayList();
     private final FilteredList<OrderRow> filteredRows = new FilteredList<>(rows, row -> true);
 
-    private Navigator navigator;
+    private INavigator navigator;
     private OrderService orderService;
     private SiteService siteService;
     private MerchandiseService merchandiseService;
@@ -135,7 +135,7 @@ public class OrderManagementController implements ViewController {
     }
 
     @Override
-    public void init(Navigator navigator, ApplicationContext context) {
+    public void init(INavigator navigator, ApplicationContext context) {
         this.navigator = navigator;
         this.orderService = context.orderService();
         this.siteService = context.siteService();

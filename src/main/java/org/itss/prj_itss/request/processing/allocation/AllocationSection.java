@@ -18,12 +18,12 @@ import javafx.stage.Stage;
 import org.itss.prj_itss.dto.Allocation;
 import org.itss.prj_itss.dto.ItemRequirement;
 import org.itss.prj_itss.dto.SiteStockOption;
-import org.itss.prj_itss.request.processing.RequestProcessingUiSupport;
 import org.itss.prj_itss.request.processing.allocation.AllocationPlanner.OrderLineSuggestion;
 import org.itss.prj_itss.request.processing.allocation.AllocationPlanner.SiteOrderSuggestion;
 import org.itss.prj_itss.request.processing.allocation.AllocationPlanner.SuggestedPlan;
 import org.itss.prj_itss.service.AllocationPlanningService;
 import org.itss.prj_itss.ui.Notifications;
+import org.itss.prj_itss.ui.RequestProcessingUiSupport;
 
 import java.util.Collections;
 import java.util.List;
@@ -352,7 +352,7 @@ public class AllocationSection {
         RequestProcessingUiSupport.addStyleClass(stockLabel, "allocation-stock-label");
 
         Allocation existing = allocations.getOrDefault(item.merchandiseId, Collections.emptyMap()).get(site.id);
-        String selectedTransport = AllocationTransportSupport.normalizeTransport(
+        String selectedTransport = RequestProcessingAllocationSupport.normalizeTransport(
             existing == null ? null : existing.transport,
             site,
             deadlineDays
@@ -372,16 +372,16 @@ public class AllocationSection {
 
         ComboBox<String> transportBox = new ComboBox<>();
         if (site.shipDays < 999) {
-            transportBox.getItems().add(AllocationTransportSupport.transportLabel(AllocationPlanningService.TRANSPORT_SHIP));
+            transportBox.getItems().add(RequestProcessingAllocationSupport.transportLabel(AllocationPlanningService.TRANSPORT_SHIP));
         }
         if (site.airDays < 999) {
-            transportBox.getItems().add(AllocationTransportSupport.transportLabel(AllocationPlanningService.TRANSPORT_AIR));
+            transportBox.getItems().add(RequestProcessingAllocationSupport.transportLabel(AllocationPlanningService.TRANSPORT_AIR));
         }
         if (transportBox.getItems().isEmpty()) {
             transportBox.getItems().add("Không khả dụng");
             transportBox.setDisable(true);
         } else {
-            transportBox.setValue(AllocationTransportSupport.transportLabel(selectedTransport));
+            transportBox.setValue(RequestProcessingAllocationSupport.transportLabel(selectedTransport));
         }
         transportBox.setPrefWidth(180);
         transportBox.setMinWidth(180);
@@ -532,7 +532,7 @@ public class AllocationSection {
         Label codeLabel = buildValueCell(line.item().code, 130, true);
         Label nameLabel = buildValueCell(line.item().name, 280, false);
         Label qtyLabel = buildValueCell(line.quantity() + " chiếc", 120, true);
-        Label transportLabel = buildValueCell(AllocationTransportSupport.transportLabel(line.transport()), 150, false);
+        Label transportLabel = buildValueCell(RequestProcessingAllocationSupport.transportLabel(line.transport()), 150, false);
 
         row.getChildren().addAll(codeLabel, nameLabel, qtyLabel, transportLabel);
         return row;
@@ -588,7 +588,7 @@ public class AllocationSection {
 
         hideWarning(warningLabel);
 
-        String transport = AllocationTransportSupport.normalizeTransport(transportBox.getValue(), site, deadlineDays);
+        String transport = RequestProcessingAllocationSupport.normalizeTransport(transportBox.getValue(), site, deadlineDays);
         updateEtaBadge(etaBadge, site, transport);
 
         if (quantity > 0) {
@@ -650,7 +650,7 @@ public class AllocationSection {
     }
 
     private void updateEtaBadge(Label badge, SiteStockOption site, String transport) {
-        int deliveryDays = AllocationTransportSupport.getDeliveryDays(site, transport);
+        int deliveryDays = RequestProcessingAllocationSupport.getDeliveryDays(site, transport);
         if (deliveryDays >= 999) {
             badge.setText("Không khả dụng");
             RequestProcessingUiSupport.setStateClass(badge, ETA_STATE_CLASSES, "allocation-eta-unavailable");

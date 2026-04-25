@@ -1,15 +1,15 @@
 package org.itss.prj_itss.repository;
 
-import org.itss.prj_itss.common.config.ConnectionProvider;
+import org.itss.prj_itss.common.config.IConnectionProvider;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 
-abstract class JdbcRepositorySupport {
+abstract class RepositorySupport {
 
-    private final ConnectionProvider connectionProvider;
+    private final IConnectionProvider connectionProvider;
 
-    JdbcRepositorySupport(ConnectionProvider connectionProvider) {
+    RepositorySupport(IConnectionProvider connectionProvider) {
         this.connectionProvider = connectionProvider;
     }
 

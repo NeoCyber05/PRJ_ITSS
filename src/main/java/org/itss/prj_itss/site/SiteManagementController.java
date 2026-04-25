@@ -14,15 +14,15 @@ import javafx.scene.control.TextField;
 
 import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.entity.Site;
-import org.itss.prj_itss.layout.Navigator;
-import org.itss.prj_itss.layout.ViewController;
+import org.itss.prj_itss.layout.INavigator;
+import org.itss.prj_itss.layout.IViewController;
 import org.itss.prj_itss.service.MerchandiseService;
 import org.itss.prj_itss.service.SiteService;
 
 import java.util.List;
 import java.util.Locale;
 
-public class SiteManagementController implements ViewController {
+public class SiteManagementController implements IViewController {
 
     private final ObservableList<SiteRow> siteRows = FXCollections.observableArrayList();
     private final FilteredList<SiteRow> filteredRows = new FilteredList<>(siteRows, row -> true);
@@ -85,7 +85,7 @@ public class SiteManagementController implements ViewController {
     }
 
     @Override
-    public void init(Navigator navigator, ApplicationContext context) {
+    public void init(INavigator navigator, ApplicationContext context) {
         this.siteService = context.siteService();
         this.merchandiseService = context.merchandiseService();
         reload();

@@ -1,6 +1,5 @@
 package org.itss.prj_itss.layout;
 
-
-public interface Navigator {
+public interface INavigator {
     void showView(String viewId);
 }

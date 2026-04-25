@@ -42,7 +42,7 @@ else if(type.equals("EXPRESS")) { ... }
 ✅ Đúng:
 
 ```java
-public interface ShippingStrategy {
+public interface IShippingStrategy {
     double calculate(Order order);
 }
 ```
@@ -71,7 +71,7 @@ public interface ShippingStrategy {
 ❌ Sai:
 
 ```java
-interface AppService {
+interface IAppService {
     void create();
     void update();
     void export();
@@ -98,7 +98,7 @@ new MySQLRepository()
 ✅ Đúng:
 
 ```java
-interface Repository {}
+interface IRepository {}
 ```
 
 → Inject dependency qua constructor
@@ -217,13 +217,13 @@ com.app
 ## Repository
 
 ```java
-public interface OrderRepository {
+public interface IOrderRepository {
     void save(Order order);
 }
 ```
 
 ```java
-public class JdbcOrderRepository implements OrderRepository {
+public class OrderRepository implements IOrderRepository {
     public void save(Order order) {
         // JDBC
     }
@@ -250,10 +250,10 @@ public class OrderValidator {
 
 ```java
 public class OrderService {
-    private final OrderRepository repository;
+    private final IOrderRepository repository;
     private final OrderValidator validator;
 
-    public OrderService(OrderRepository repository, OrderValidator validator) {
+    public OrderService(IOrderRepository repository, OrderValidator validator) {
         this.repository = repository;
         this.validator = validator;
     }

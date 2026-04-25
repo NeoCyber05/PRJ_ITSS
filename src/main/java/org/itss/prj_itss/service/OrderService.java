@@ -2,15 +2,15 @@ package org.itss.prj_itss.service;
 
 import org.itss.prj_itss.entity.Order;
 import org.itss.prj_itss.entity.OrderMerchandise;
-import org.itss.prj_itss.repository.OrderRepository;
+import org.itss.prj_itss.repository.IOrderRepository;
 
 import java.util.List;
 
 public final class OrderService {
 
-    private final OrderRepository orderRepository;
+    private final IOrderRepository orderRepository;
 
-    public OrderService(OrderRepository orderRepository) {
+    public OrderService(IOrderRepository orderRepository) {
         this.orderRepository = orderRepository;
     }
 

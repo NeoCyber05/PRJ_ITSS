@@ -1,14 +1,14 @@
 package org.itss.prj_itss.auth.role;
 
-import org.itss.prj_itss.auth.session.UserSession;
+import org.itss.prj_itss.auth.AuthenticatedUser;
 
 public final class RoleAccessPolicy {
 
     private RoleAccessPolicy() {
     }
 
-    public static boolean canAccess(UserSession session, String viewId) {
-        return canAccess(RoleType.from(session), viewId);
+    public static boolean canAccess(AuthenticatedUser user, String viewId) {
+        return canAccess(RoleType.from(user), viewId);
     }
 
     public static boolean canAccess(RoleType roleType, String viewId) {
@@ -23,8 +23,8 @@ public final class RoleAccessPolicy {
         return "role-workspace".equals(normalizedViewId);
     }
 
-    public static String defaultViewId(UserSession session) {
-        return defaultViewId(RoleType.from(session));
+    public static String defaultViewId(AuthenticatedUser user) {
+        return defaultViewId(RoleType.from(user));
     }
 
     public static String defaultViewId(RoleType roleType) {

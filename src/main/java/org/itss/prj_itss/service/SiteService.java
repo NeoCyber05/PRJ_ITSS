@@ -1,18 +1,18 @@
 package org.itss.prj_itss.service;
 
 import org.itss.prj_itss.entity.Site;
-import org.itss.prj_itss.repository.InventoryRepository;
-import org.itss.prj_itss.repository.SiteRepository;
+import org.itss.prj_itss.repository.IInventoryRepository;
+import org.itss.prj_itss.repository.ISiteRepository;
 
 import java.util.List;
 import java.util.Map;
 
 public final class SiteService {
 
-    private final SiteRepository siteRepository;
-    private final InventoryRepository inventoryRepository;
+    private final ISiteRepository siteRepository;
+    private final IInventoryRepository inventoryRepository;
 
-    public SiteService(SiteRepository siteRepository, InventoryRepository inventoryRepository) {
+    public SiteService(ISiteRepository siteRepository, IInventoryRepository inventoryRepository) {
         this.siteRepository = siteRepository;
         this.inventoryRepository = inventoryRepository;
     }

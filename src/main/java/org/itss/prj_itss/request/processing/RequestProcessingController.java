@@ -1,6 +1,7 @@
 package org.itss.prj_itss.request.processing;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
@@ -10,26 +11,30 @@ import org.itss.prj_itss.dto.Allocation;
 import org.itss.prj_itss.dto.ItemRequirement;
 import org.itss.prj_itss.dto.RequestProcessingData;
 import org.itss.prj_itss.dto.SiteStockOption;
-import org.itss.prj_itss.layout.Navigator;
-import org.itss.prj_itss.layout.ViewController;
+import org.itss.prj_itss.layout.INavigator;
+import org.itss.prj_itss.layout.IViewController;
 import org.itss.prj_itss.request.processing.allocation.AllocationSection;
 import org.itss.prj_itss.request.processing.allocation.RequestProcessingAllocationSupport;
 import org.itss.prj_itss.request.processing.items.RequestProcessingItemsSection;
 import org.itss.prj_itss.request.processing.preview.RequestProcessingPreviewBuilder;
 import org.itss.prj_itss.request.processing.preview.RequestProcessingPreviewDialog;
-import org.itss.prj_itss.request.processing.site.SiteFilterSection;
+import org.itss.prj_itss.request.processing.site.SiteFilterSectionController;
 import org.itss.prj_itss.service.RequestProcessingService;
 import org.itss.prj_itss.ui.Notifications;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
-public class RequestProcessingController implements ViewController {
+public class RequestProcessingController implements IViewController {
 
+    private static final String SITE_FILTER_RESOURCE =
+        "/org/itss/prj_itss/request/processing/site/site-filter-section.fxml";
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final RequestProcessingPreviewBuilder previewBuilder = new RequestProcessingPreviewBuilder();
@@ -38,10 +43,10 @@ public class RequestProcessingController implements ViewController {
     private final Map<Integer, Map<Integer, Allocation>> allocations = new LinkedHashMap<>();
     private final Map<Integer, LocalDate> desiredDeliveryDates = new LinkedHashMap<>();
 
-    private Navigator navigator;
+    private INavigator navigator;
     private int requestId = -1;
     private RequestProcessingService requestProcessingService;
-    private SiteFilterSection siteFilter;
+    private SiteFilterSectionController siteFilter;
     private AllocationSection allocationSection;
     private RequestProcessingItemsSection itemsSection;
     private int deadlineDays = 14;
@@ -67,15 +72,17 @@ public class RequestProcessingController implements ViewController {
     private VBox allocationContainer;
 
     @Override
-    public void init(Navigator navigator, ApplicationContext context) {
+    public void init(INavigator navigator, ApplicationContext context) {
         this.navigator = navigator;
         this.requestProcessingService = context.requestProcessingService();
-        loadIfReady();
     }
 
     public void setRequestId(int requestId) {
+        if (requestId <= 0) return;
         this.requestId = requestId;
-        loadIfReady();
+        resetState();
+        loadDataFromDatabase();
+        render();
     }
 
     @FXML
@@ -103,15 +110,7 @@ public class RequestProcessingController implements ViewController {
             .show(itemsTableContainer, previewBuilder.build(items, allSites, allocations, desiredDeliveryDates));
     }
 
-    private void loadIfReady() {
-        if (navigator == null || requestProcessingService == null || requestId <= 0) {
-            return;
-        }
 
-        resetState();
-        loadDataFromDatabase();
-        render();
-    }
 
     private void resetState() {
         items.clear();
@@ -139,9 +138,7 @@ public class RequestProcessingController implements ViewController {
     private void render() {
         updateHeader();
 
-        siteFilter = new SiteFilterSection(allSites);
-        siteFilter.setOnFiltersChanged(this::handleSiteFilterChanged);
-        siteFilterContainer.getChildren().setAll(siteFilter.build());
+        loadSiteFilterSection();
 
         if (allocationContainer != null) {
             allocationContainer.getChildren().clear();
@@ -162,6 +159,21 @@ public class RequestProcessingController implements ViewController {
                 + "  •  " + totalQuantity + " chiếc"
         );
         requestStatusLabel.setText("Chờ xử lý");
+    }
+
+    private void loadSiteFilterSection() {
+        try {
+            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
+                RequestProcessingController.class.getResource(SITE_FILTER_RESOURCE),
+                "Missing site filter section FXML"
+            ));
+            VBox root = loader.load();
+            siteFilter = loader.getController();
+            siteFilter.init(allSites, this::handleSiteFilterChanged);
+            siteFilterContainer.getChildren().setAll(root);
+        } catch (IOException exception) {
+            throw new IllegalStateException("Cannot load site filter section", exception);
+        }
     }
 
     private void rebuildAllocationSection() {

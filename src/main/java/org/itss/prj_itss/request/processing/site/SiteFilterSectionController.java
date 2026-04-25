@@ -14,7 +14,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import org.itss.prj_itss.dto.SiteStockOption;
-import org.itss.prj_itss.request.processing.RequestProcessingUiSupport;
+import org.itss.prj_itss.ui.RequestProcessingUiSupport;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -87,7 +87,7 @@ public final class SiteFilterSectionController {
         searchBox.textProperty().addListener((observable, oldValue, newValue) -> refreshVisibleSites());
     }
 
-    void init(List<SiteStockOption> allSites, Runnable onFiltersChanged) {
+    public void init(List<SiteStockOption> allSites, Runnable onFiltersChanged) {
         this.allSites = allSites;
         this.onFiltersChanged = onFiltersChanged;
         visibleSites.setAll(allSites);
@@ -98,16 +98,12 @@ public final class SiteFilterSectionController {
         setExpanded(false);
     }
 
-    Set<Integer> getPrioritySiteIds() {
+    public Set<Integer> getPrioritySiteIds() {
         return prioritySiteIds;
     }
 
-    Set<Integer> getExcludedSiteIds() {
+    public Set<Integer> getExcludedSiteIds() {
         return excludedSiteIds;
-    }
-
-    void setOnFiltersChanged(Runnable onFiltersChanged) {
-        this.onFiltersChanged = onFiltersChanged;
     }
 
     private void clearAllFilters() {

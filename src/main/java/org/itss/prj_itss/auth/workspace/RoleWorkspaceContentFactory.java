@@ -1,7 +1,7 @@
 package org.itss.prj_itss.auth.workspace;
 
+import org.itss.prj_itss.auth.AuthenticatedUser;
 import org.itss.prj_itss.auth.role.RoleType;
-import org.itss.prj_itss.auth.session.UserSession;
 
 import java.util.List;
 import java.util.Locale;
@@ -11,8 +11,8 @@ public final class RoleWorkspaceContentFactory {
     private RoleWorkspaceContentFactory() {
     }
 
-    public static RoleWorkspaceContent create(UserSession userSession) {
-        RoleType roleType = RoleType.from(userSession);
+    public static RoleWorkspaceContent create(AuthenticatedUser user) {
+        RoleType roleType = RoleType.from(user);
         return switch (roleType) {
             case ADMIN -> new RoleWorkspaceContent(
                 "Tổng quan quyền",
@@ -81,8 +81,8 @@ public final class RoleWorkspaceContentFactory {
             );
             case UNKNOWN -> new RoleWorkspaceContent(
                 "Tổng quan quyền",
-                "Không gian làm việc theo phân quyền của " + userSession.roleName().toLowerCase(Locale.ROOT),
-                userSession.roleName(),
+                "Không gian làm việc theo phân quyền của " + user.roleName().toLowerCase(Locale.ROOT),
+                user.roleName(),
                 "Tài khoản đã đăng nhập nhưng role chưa được map rõ trong ứng dụng hiện tại.",
                 "Quyền được quyết định theo cấu hình role của tài khoản.",
                 "Chưa triển khai",

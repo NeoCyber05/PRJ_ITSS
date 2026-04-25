@@ -1,6 +1,6 @@
 package org.itss.prj_itss.auth.role;
 
-import org.itss.prj_itss.auth.session.UserSession;
+import org.itss.prj_itss.auth.AuthenticatedUser;
 
 import java.text.Normalizer;
 import java.util.Locale;
@@ -19,15 +19,15 @@ public enum RoleType {
         this.id = id;
     }
 
-    public static RoleType from(UserSession session) {
-        int roleId = session.account().getRoleId();
+    public static RoleType from(AuthenticatedUser user) {
+        int roleId = user.account().getRoleId();
         for (RoleType roleType : values()) {
             if (roleType.id == roleId) {
                 return roleType;
             }
         }
 
-        String normalizedRoleName = normalizeText(session.roleName());
+        String normalizedRoleName = normalizeText(user.roleName());
         if (normalizedRoleName.contains("quan tri")) {
             return ADMIN;
         }
