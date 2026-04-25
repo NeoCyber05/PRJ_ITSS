@@ -11,7 +11,6 @@ import javafx.stage.Window;
 import org.itss.prj_itss.dto.Allocation;
 import org.itss.prj_itss.layout.INavigator;
 import org.itss.prj_itss.service.RequestProcessingService;
-import org.itss.prj_itss.ui.RequestProcessingUiSupport;
 
 import java.io.IOException;
 import java.util.List;
@@ -22,6 +21,7 @@ public final class RequestProcessingPreviewDialog {
 
     private static final String VIEW_RESOURCE =
         "/org/itss/prj_itss/request/processing/preview/request-processing-preview-dialog.fxml";
+    private static final String MAIN_STYLESHEET = "/org/itss/prj_itss/styles/main-style.css";
 
     private final INavigator navigator;
     private final RequestProcessingService requestProcessingService;
@@ -54,7 +54,7 @@ public final class RequestProcessingPreviewDialog {
 
         Parent root = loadRoot(dialog, previewOrders);
         Scene scene = new Scene(root);
-        RequestProcessingUiSupport.applyMainStylesheet(scene);
+        applyMainStylesheet(scene);
         dialog.setScene(scene);
         dialog.showAndWait();
     }
@@ -86,5 +86,12 @@ public final class RequestProcessingPreviewDialog {
             return null;
         }
         return ownerNode.getScene().getWindow();
+    }
+
+    private void applyMainStylesheet(Scene scene) {
+        var stylesheet = RequestProcessingPreviewDialog.class.getResource(MAIN_STYLESHEET);
+        if (stylesheet != null && !scene.getStylesheets().contains(stylesheet.toExternalForm())) {
+            scene.getStylesheets().add(stylesheet.toExternalForm());
+        }
     }
 }

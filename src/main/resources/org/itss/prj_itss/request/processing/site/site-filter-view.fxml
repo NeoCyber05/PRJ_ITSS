@@ -10,7 +10,7 @@
 
 <VBox xmlns="http://javafx.com/javafx/17"
       xmlns:fx="http://javafx.com/fxml/1"
-      fx:controller="org.itss.prj_itss.request.processing.site.SiteFilterSectionController"
+      fx:controller="org.itss.prj_itss.request.processing.site.SiteFilterController"
       spacing="14"
       styleClass="forest-card">
     <padding>
@@ -18,7 +18,8 @@
     </padding>
     <children>
         <Button fx:id="toggleButton"
-                alignment="CENTER_LEFT">
+                alignment="CENTER_LEFT"
+                styleClass="site-filter-toggle-button">
             <graphic>
                 <HBox fx:id="toggleGraphic" spacing="12" alignment="CENTER_LEFT">
                     <children>

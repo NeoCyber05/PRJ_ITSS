@@ -1,7 +1,10 @@
 package org.itss.prj_itss.request.processing.allocation;
 
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
@@ -11,9 +14,11 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 
 import org.itss.prj_itss.dto.Allocation;
 import org.itss.prj_itss.dto.ItemRequirement;
@@ -22,8 +27,6 @@ import org.itss.prj_itss.request.processing.allocation.AllocationPlanner.OrderLi
 import org.itss.prj_itss.request.processing.allocation.AllocationPlanner.SiteOrderSuggestion;
 import org.itss.prj_itss.request.processing.allocation.AllocationPlanner.SuggestedPlan;
 import org.itss.prj_itss.service.AllocationPlanningService;
-import org.itss.prj_itss.ui.Notifications;
-import org.itss.prj_itss.ui.RequestProcessingUiSupport;
 
 import java.util.Collections;
 import java.util.List;
@@ -34,6 +37,7 @@ public class AllocationSection {
 
     private static final int MAX_SUGGESTED_PLANS = 10;
     private static final int MAX_ITEM_VARIANTS = 12;
+    private static final String MAIN_STYLESHEET = "/org/itss/prj_itss/styles/main-style.css";
     private static final List<String> FRACTION_STATE_CLASSES = List.of(
         "allocation-fraction-muted",
         "allocation-fraction-over",
@@ -112,20 +116,20 @@ public class AllocationSection {
     public VBox buildInlineEditor(ItemRequirement item, int itemIndex) {
         VBox section = new VBox(16);
         section.setPadding(new Insets(22, 20, 18, 20));
-        RequestProcessingUiSupport.addStyleClass(section, "allocation-inline-editor");
+        addStyleClass(section, "allocation-inline-editor");
 
         HBox header = new HBox(12);
         header.setAlignment(Pos.CENTER_LEFT);
 
         VBox textBox = new VBox(4);
         Label sectionLabel = new Label("TỒN KHO VÀ PHÂN BỔ THEO SITE");
-        RequestProcessingUiSupport.addStyleClass(sectionLabel, "allocation-eyebrow-muted");
+        addStyleClass(sectionLabel, "allocation-eyebrow-muted");
 
         Label titleLabel = new Label(item.code + " - " + item.name);
-        RequestProcessingUiSupport.addStyleClass(titleLabel, "allocation-title");
+        addStyleClass(titleLabel, "allocation-title");
 
         Label subtitleLabel = new Label("Có mặt hàng tại " + countAvailableSites(item) + " site");
-        RequestProcessingUiSupport.addStyleClass(subtitleLabel, "allocation-subtitle");
+        addStyleClass(subtitleLabel, "allocation-subtitle");
         textBox.getChildren().addAll(sectionLabel, titleLabel, subtitleLabel);
 
         Region spacer = new Region();
@@ -139,7 +143,7 @@ public class AllocationSection {
         header.getChildren().addAll(textBox, spacer, allocatedBadge, remainingBadge);
 
         VBox table = new VBox(0);
-        RequestProcessingUiSupport.addStyleClass(table, "allocation-table");
+        addStyleClass(table, "allocation-table");
         table.getChildren().add(buildInlineTableHeader());
 
         boolean hasRows = false;
@@ -156,7 +160,7 @@ public class AllocationSection {
 
         if (!hasRows) {
             Label emptyLabel = new Label("Không có site khả dụng cho mặt hàng này.");
-            RequestProcessingUiSupport.addStyleClass(emptyLabel, "allocation-empty-label");
+            addStyleClass(emptyLabel, "allocation-empty-label");
             table.getChildren().add(emptyLabel);
         }
 
@@ -191,30 +195,30 @@ public class AllocationSection {
         root.setPadding(new Insets(24));
         root.setPrefWidth(960);
         root.setPrefHeight(720);
-        RequestProcessingUiSupport.addStyleClass(root, "allocation-dialog-root");
+        addStyleClass(root, "allocation-dialog-root");
 
         Label titleLabel = new Label("Các phương án phân bổ thỏa mãn");
-        RequestProcessingUiSupport.addStyleClass(titleLabel, "allocation-dialog-title");
+        addStyleClass(titleLabel, "allocation-dialog-title");
 
         String subtitleText = suggestedPlans.isEmpty()
             ? "Không tìm được phương án đáp ứng đủ số lượng và thời hạn hiện tại."
             : "Hiển thị " + suggestedPlans.size() + " phương án khác nhau theo từng đơn hàng gửi tới site.";
         Label subtitleLabel = new Label(subtitleText);
         subtitleLabel.setWrapText(true);
-        RequestProcessingUiSupport.addStyleClass(subtitleLabel, "allocation-subtitle");
+        addStyleClass(subtitleLabel, "allocation-subtitle");
 
         VBox plansBox = new VBox(14);
         if (suggestedPlans.isEmpty()) {
             VBox emptyCard = new VBox(8);
             emptyCard.setPadding(new Insets(18));
-            RequestProcessingUiSupport.addStyleClass(emptyCard, "allocation-table");
+            addStyleClass(emptyCard, "allocation-table");
 
             Label emptyTitle = new Label("Chưa có phương án thỏa mãn");
-            RequestProcessingUiSupport.addStyleClass(emptyTitle, "allocation-card-title");
+            addStyleClass(emptyTitle, "allocation-card-title");
 
             Label emptyText = new Label("Kiểm tra lại site bị loại bỏ, số lượng tồn kho hoặc ngày giao yêu cầu.");
             emptyText.setWrapText(true);
-            RequestProcessingUiSupport.addStyleClass(emptyText, "allocation-subtitle");
+            addStyleClass(emptyText, "allocation-subtitle");
 
             emptyCard.getChildren().addAll(emptyTitle, emptyText);
             plansBox.getChildren().add(emptyCard);
@@ -227,7 +231,7 @@ public class AllocationSection {
         ScrollPane scrollPane = new ScrollPane(plansBox);
         scrollPane.setFitToWidth(true);
         scrollPane.setPrefHeight(600);
-        RequestProcessingUiSupport.addStyleClass(scrollPane, "transparent-scroll-pane");
+        addStyleClass(scrollPane, "transparent-scroll-pane");
 
         Button closeButton = new Button("Đóng");
         closeButton.getStyleClass().add("forest-secondary-button");
@@ -239,7 +243,7 @@ public class AllocationSection {
         root.getChildren().addAll(titleLabel, subtitleLabel, scrollPane, footer);
 
         Scene scene = new Scene(root);
-        RequestProcessingUiSupport.applyMainStylesheet(scene);
+        applyMainStylesheet(scene);
         dialog.setScene(scene);
         dialog.showAndWait();
     }
@@ -260,8 +264,8 @@ public class AllocationSection {
         }
 
         allocFractionLabels[index].setText(allocated + "/" + item.required);
-        RequestProcessingUiSupport.addStyleClass(allocFractionLabels[index], "allocation-fraction-label");
-        RequestProcessingUiSupport.setStateClass(allocFractionLabels[index], FRACTION_STATE_CLASSES, stateClass);
+        addStyleClass(allocFractionLabels[index], "allocation-fraction-label");
+        setStateClass(allocFractionLabels[index], FRACTION_STATE_CLASSES, stateClass);
     }
 
     private AllocationPlanner createPlanner() {
@@ -278,9 +282,9 @@ public class AllocationSection {
 
         VBox headerText = new VBox(3);
         Label sectionLabel = new Label("PHÂN BỔ ĐƠN HÀNG");
-        RequestProcessingUiSupport.addStyleClass(sectionLabel, "allocation-eyebrow");
+        addStyleClass(sectionLabel, "allocation-eyebrow");
         Label titleLabel = new Label("Phân bổ số lượng cho từng site");
-        RequestProcessingUiSupport.addStyleClass(titleLabel, "allocation-title");
+        addStyleClass(titleLabel, "allocation-title");
         headerText.getChildren().addAll(sectionLabel, titleLabel);
 
         Region spacer = new Region();
@@ -309,7 +313,7 @@ public class AllocationSection {
         HBox header = new HBox(16);
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(12, 16, 12, 16));
-        RequestProcessingUiSupport.addStyleClass(header, "allocation-table-header");
+        addStyleClass(header, "allocation-table-header");
         header.getChildren().addAll(
             buildColumnHeader("SITE", 380),
             buildColumnHeader("TỒN KHO", 100),
@@ -323,7 +327,7 @@ public class AllocationSection {
     private VBox buildSiteAllocationRow(ItemRequirement item, int itemIndex, SiteStockOption site, Runnable refreshSummary) {
         VBox rowBox = new VBox(4);
         rowBox.setPadding(new Insets(0, 0, 0, 0));
-        RequestProcessingUiSupport.addStyleClass(rowBox, "allocation-table-row");
+        addStyleClass(rowBox, "allocation-table-row");
 
         HBox row = new HBox(16);
         row.setAlignment(Pos.CENTER_LEFT);
@@ -334,14 +338,14 @@ public class AllocationSection {
         siteBox.setPrefWidth(380);
 
         Label siteNameLabel = new Label(site.name);
-        RequestProcessingUiSupport.addStyleClass(siteNameLabel, "allocation-site-name");
+        addStyleClass(siteNameLabel, "allocation-site-name");
 
         String detailText = site.siteCode;
         if (site.description != null && !site.description.isBlank()) {
             detailText += " - " + site.description;
         }
         Label siteDetailLabel = new Label(detailText);
-        RequestProcessingUiSupport.addStyleClass(siteDetailLabel, "allocation-site-detail");
+        addStyleClass(siteDetailLabel, "allocation-site-detail");
         siteBox.getChildren().addAll(siteNameLabel, siteDetailLabel);
 
         int stock = site.stock.getOrDefault(item.merchandiseId, 0);
@@ -349,7 +353,7 @@ public class AllocationSection {
         Label stockLabel = new Label(String.valueOf(stock));
         stockLabel.setMinWidth(100);
         stockLabel.setPrefWidth(100);
-        RequestProcessingUiSupport.addStyleClass(stockLabel, "allocation-stock-label");
+        addStyleClass(stockLabel, "allocation-stock-label");
 
         Allocation existing = allocations.getOrDefault(item.merchandiseId, Collections.emptyMap()).get(site.id);
         String selectedTransport = RequestProcessingAllocationSupport.normalizeTransport(
@@ -361,10 +365,10 @@ public class AllocationSection {
         TextField quantityField = new TextField();
         quantityField.setPrefWidth(110);
         quantityField.setText(existing == null || existing.getQuantity() == 0 ? "0" : String.valueOf(existing.getQuantity()));
-        RequestProcessingUiSupport.addStyleClass(quantityField, "allocation-quantity-field");
+        addStyleClass(quantityField, "allocation-quantity-field");
 
         Label unitLabel = new Label("chiếc");
-        RequestProcessingUiSupport.addStyleClass(unitLabel, "allocation-unit-label");
+        addStyleClass(unitLabel, "allocation-unit-label");
         HBox quantityBox = new HBox(8, quantityField, unitLabel);
         quantityBox.setAlignment(Pos.CENTER_LEFT);
         quantityBox.setMinWidth(170);
@@ -385,17 +389,17 @@ public class AllocationSection {
         }
         transportBox.setPrefWidth(180);
         transportBox.setMinWidth(180);
-        RequestProcessingUiSupport.addStyleClass(transportBox, "allocation-transport-box");
+        addStyleClass(transportBox, "allocation-transport-box");
 
         Label etaBadge = new Label();
         etaBadge.setMinWidth(120);
-        RequestProcessingUiSupport.addStyleClass(etaBadge, "allocation-eta-badge");
+        addStyleClass(etaBadge, "allocation-eta-badge");
         updateEtaBadge(etaBadge, site, selectedTransport);
 
         Label warningLabel = new Label();
         warningLabel.setVisible(false);
         warningLabel.setManaged(false);
-        RequestProcessingUiSupport.addStyleClass(warningLabel, "allocation-warning-label");
+        addStyleClass(warningLabel, "allocation-warning-label");
 
         Runnable syncSummary = () -> {
             updateItemFractionLabel(item, itemIndex);
@@ -418,21 +422,21 @@ public class AllocationSection {
     private VBox buildSuggestedPlanCard(SuggestedPlan plan, int number, Stage dialog) {
         VBox card = new VBox(14);
         card.setPadding(new Insets(16));
-        RequestProcessingUiSupport.addStyleClass(card, "allocation-plan-card");
+        addStyleClass(card, "allocation-plan-card");
 
         HBox header = new HBox(12);
         header.setAlignment(Pos.TOP_LEFT);
 
         VBox titleBox = new VBox(6);
         Label titleLabel = new Label("Phương án " + String.format("%02d", number));
-        RequestProcessingUiSupport.addStyleClass(titleLabel, "allocation-title");
+        addStyleClass(titleLabel, "allocation-title");
 
         Label summaryLabel = new Label(
             plan.siteOrders().size() + " site"
                 + " • " + plan.totalLineCount() + " dòng đặt hàng"
                 + " • " + plan.totalQuantity() + " chiếc"
         );
-        RequestProcessingUiSupport.addStyleClass(summaryLabel, "allocation-subtitle");
+        addStyleClass(summaryLabel, "allocation-subtitle");
         titleBox.getChildren().addAll(titleLabel, summaryLabel);
 
         Region spacer = new Region();
@@ -446,11 +450,11 @@ public class AllocationSection {
         );
 
         Button applyButton = new Button("Áp dụng phương án này");
-        RequestProcessingUiSupport.addStyleClass(applyButton, "allocation-apply-plan-button");
+        addStyleClass(applyButton, "allocation-apply-plan-button");
         applyButton.setOnAction(event -> {
             applySuggestedPlan(plan);
             dialog.close();
-            Notifications.showToast("Đã áp dụng phương án " + number + ".");
+            showToast("Đã áp dụng phương án " + number + ".");
         });
 
         VBox headerRight = new VBox(10, tagRow, applyButton);
@@ -469,21 +473,21 @@ public class AllocationSection {
     private VBox buildSiteOrderCard(SiteOrderSuggestion siteOrder) {
         VBox card = new VBox(10);
         card.setPadding(new Insets(14));
-        RequestProcessingUiSupport.addStyleClass(card, "allocation-site-order-card");
+        addStyleClass(card, "allocation-site-order-card");
 
         HBox header = new HBox(12);
         header.setAlignment(Pos.CENTER_LEFT);
 
         VBox siteBox = new VBox(4);
         Label siteNameLabel = new Label(siteOrder.site().name);
-        RequestProcessingUiSupport.addStyleClass(siteNameLabel, "allocation-card-title");
+        addStyleClass(siteNameLabel, "allocation-card-title");
 
         Label siteMetaLabel = new Label(
             siteOrder.site().siteCode
                 + " • " + siteOrder.lines().size() + " mặt hàng"
                 + " • " + siteOrder.totalQuantity() + " chiếc"
         );
-        RequestProcessingUiSupport.addStyleClass(siteMetaLabel, "allocation-subtitle");
+        addStyleClass(siteMetaLabel, "allocation-subtitle");
         siteBox.getChildren().addAll(siteNameLabel, siteMetaLabel);
 
         Region spacer = new Region();
@@ -499,7 +503,7 @@ public class AllocationSection {
         header.getChildren().addAll(siteBox, spacer, tagRow);
 
         VBox table = new VBox(0);
-        RequestProcessingUiSupport.addStyleClass(table, "allocation-suggested-table");
+        addStyleClass(table, "allocation-suggested-table");
         table.getChildren().add(buildSuggestedOrderHeader());
         for (OrderLineSuggestion line : siteOrder.lines()) {
             table.getChildren().add(buildSuggestedOrderRow(line));
@@ -513,7 +517,7 @@ public class AllocationSection {
         HBox header = new HBox();
         header.setAlignment(Pos.CENTER_LEFT);
         header.setPadding(new Insets(10, 14, 10, 14));
-        RequestProcessingUiSupport.addStyleClass(header, "allocation-suggested-table-header");
+        addStyleClass(header, "allocation-suggested-table-header");
         header.getChildren().addAll(
             buildColumnHeader("MÃ HÀNG", 130),
             buildColumnHeader("TÊN MẶT HÀNG", 280),
@@ -527,7 +531,7 @@ public class AllocationSection {
         HBox row = new HBox();
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(12, 14, 12, 14));
-        RequestProcessingUiSupport.addStyleClass(row, "allocation-table-row");
+        addStyleClass(row, "allocation-table-row");
 
         Label codeLabel = buildValueCell(line.item().code, 130, true);
         Label nameLabel = buildValueCell(line.item().name, 280, false);
@@ -540,7 +544,7 @@ public class AllocationSection {
 
     private Label buildMetricTag(String text, String modifierClass) {
         Label label = new Label(text);
-        RequestProcessingUiSupport.addStyleClass(label, "allocation-metric-tag", modifierClass);
+        addStyleClass(label, "allocation-metric-tag", modifierClass);
         return label;
     }
 
@@ -549,9 +553,9 @@ public class AllocationSection {
         label.setMinWidth(width);
         label.setPrefWidth(width);
         label.setWrapText(true);
-        RequestProcessingUiSupport.addStyleClass(label, "allocation-value-cell");
+        addStyleClass(label, "allocation-value-cell");
         if (emphasize) {
-            RequestProcessingUiSupport.addStyleClass(label, "allocation-value-cell-emphasis");
+            addStyleClass(label, "allocation-value-cell-emphasis");
         }
         return label;
     }
@@ -612,20 +616,20 @@ public class AllocationSection {
         int remaining = item.required - allocated;
 
         allocatedBadge.setText("Đã phân bổ " + allocated + "/" + item.required);
-        RequestProcessingUiSupport.addStyleClass(allocatedBadge, "allocation-summary-badge", "allocation-summary-allocated");
+        addStyleClass(allocatedBadge, "allocation-summary-badge", "allocation-summary-allocated");
 
         if (remaining > 0) {
             remainingBadge.setText("Còn thiếu " + remaining);
-            RequestProcessingUiSupport.addStyleClass(remainingBadge, "allocation-summary-badge");
-            RequestProcessingUiSupport.setStateClass(remainingBadge, SUMMARY_STATE_CLASSES, "allocation-summary-short");
+            addStyleClass(remainingBadge, "allocation-summary-badge");
+            setStateClass(remainingBadge, SUMMARY_STATE_CLASSES, "allocation-summary-short");
         } else if (remaining < 0) {
             remainingBadge.setText("Vượt " + Math.abs(remaining));
-            RequestProcessingUiSupport.addStyleClass(remainingBadge, "allocation-summary-badge");
-            RequestProcessingUiSupport.setStateClass(remainingBadge, SUMMARY_STATE_CLASSES, "allocation-summary-over");
+            addStyleClass(remainingBadge, "allocation-summary-badge");
+            setStateClass(remainingBadge, SUMMARY_STATE_CLASSES, "allocation-summary-over");
         } else {
             remainingBadge.setText("Đã đủ");
-            RequestProcessingUiSupport.addStyleClass(remainingBadge, "allocation-summary-badge");
-            RequestProcessingUiSupport.setStateClass(remainingBadge, SUMMARY_STATE_CLASSES, "allocation-summary-complete");
+            addStyleClass(remainingBadge, "allocation-summary-badge");
+            setStateClass(remainingBadge, SUMMARY_STATE_CLASSES, "allocation-summary-complete");
         }
     }
 
@@ -645,7 +649,7 @@ public class AllocationSection {
         Label label = new Label(text);
         label.setMinWidth(width);
         label.setPrefWidth(width);
-        RequestProcessingUiSupport.addStyleClass(label, "allocation-column-header");
+        addStyleClass(label, "allocation-column-header");
         return label;
     }
 
@@ -653,20 +657,20 @@ public class AllocationSection {
         int deliveryDays = RequestProcessingAllocationSupport.getDeliveryDays(site, transport);
         if (deliveryDays >= 999) {
             badge.setText("Không khả dụng");
-            RequestProcessingUiSupport.setStateClass(badge, ETA_STATE_CLASSES, "allocation-eta-unavailable");
+            setStateClass(badge, ETA_STATE_CLASSES, "allocation-eta-unavailable");
             return;
         }
 
         int delta = deadlineDays - deliveryDays;
         if (delta > 0) {
             badge.setText("Sớm " + delta + " ngày");
-            RequestProcessingUiSupport.setStateClass(badge, ETA_STATE_CLASSES, "allocation-eta-early");
+            setStateClass(badge, ETA_STATE_CLASSES, "allocation-eta-early");
         } else if (delta == 0) {
             badge.setText("Kịp hạn");
-            RequestProcessingUiSupport.setStateClass(badge, ETA_STATE_CLASSES, "allocation-eta-on-time");
+            setStateClass(badge, ETA_STATE_CLASSES, "allocation-eta-on-time");
         } else {
             badge.setText("Trễ " + Math.abs(delta) + " ngày");
-            RequestProcessingUiSupport.setStateClass(badge, ETA_STATE_CLASSES, "allocation-eta-late");
+            setStateClass(badge, ETA_STATE_CLASSES, "allocation-eta-late");
         }
     }
 
@@ -699,5 +703,50 @@ public class AllocationSection {
         if (notifyPlanApplied && onPlanApplied != null) {
             onPlanApplied.run();
         }
+    }
+
+    private void addStyleClass(Node node, String... styleClasses) {
+        for (String styleClass : styleClasses) {
+            if (!node.getStyleClass().contains(styleClass)) {
+                node.getStyleClass().add(styleClass);
+            }
+        }
+    }
+
+    private void setStateClass(Node node, List<String> stateClasses, String selectedClass) {
+        node.getStyleClass().removeAll(stateClasses);
+        if (!node.getStyleClass().contains(selectedClass)) {
+            node.getStyleClass().add(selectedClass);
+        }
+    }
+
+    private void applyMainStylesheet(Scene scene) {
+        var stylesheet = AllocationSection.class.getResource(MAIN_STYLESHEET);
+        if (stylesheet != null && !scene.getStylesheets().contains(stylesheet.toExternalForm())) {
+            scene.getStylesheets().add(stylesheet.toExternalForm());
+        }
+    }
+
+    private void showToast(String message) {
+        Stage toast = new Stage();
+        toast.setAlwaysOnTop(true);
+        toast.initModality(Modality.NONE);
+
+        Label label = new Label(message);
+        label.setStyle(
+            "-fx-background-color: #253D2C; -fx-text-fill: white;" +
+            "-fx-padding: 14 24; -fx-background-radius: 10;" +
+            "-fx-font-size: 14px; -fx-font-weight: bold;"
+        );
+
+        Scene scene = new Scene(new StackPane(label));
+        scene.setFill(null);
+        toast.setScene(scene);
+        toast.show();
+
+        Timeline timeline = new Timeline(
+            new KeyFrame(Duration.seconds(2.5), event -> toast.close())
+        );
+        timeline.play();
     }
 }

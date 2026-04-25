@@ -75,8 +75,12 @@ public final class RequestProcessingService {
             }
         }
 
+        List<Integer> requestedMerchandiseIds = items.stream()
+            .map(item -> item.merchandiseId)
+            .distinct()
+            .toList();
         List<SiteStockOption> sites = new ArrayList<>();
-        for (Site site : siteRepository.findAll()) {
+        for (Site site : siteRepository.findAvailableForMerchandiseIds(requestedMerchandiseIds)) {
             sites.add(new SiteStockOption(
                 site.getId(),
                 site.getSiteCode(),

@@ -24,7 +24,6 @@ import org.itss.prj_itss.order.OrderDetailPanel;
 import org.itss.prj_itss.service.MerchandiseService;
 import org.itss.prj_itss.service.OrderService;
 import org.itss.prj_itss.service.SiteService;
-import org.itss.prj_itss.ui.StatusNodes;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -109,7 +108,7 @@ public final class RequestDetailPopupController {
                 : "N/A"
         );
         earliestDeadlineValueLabel.setText(earliestDeadline != null ? earliestDeadline.format(DATE_FORMAT) : "N/A");
-        statusContainer.getChildren().setAll(StatusNodes.buildStatusBadge(displayStatus(request != null ? request.getStatus() : null)));
+        statusContainer.getChildren().setAll(buildStatusBadge(displayStatus(request != null ? request.getStatus() : null)));
 
         renderRequestItems(requestItems, context.merchandiseService());
         renderAllocatedOrders(allocatedOrders, context.orderService(), context.siteService());
@@ -186,7 +185,7 @@ public final class RequestDetailPopupController {
         row.getChildren().add(fixedCell(String.format("DH-2026-%03d", order.getId()), widths.get(0), true));
         row.getChildren().add(fixedCell(site != null ? site.getName() : "N/A", widths.get(1), false));
 
-        HBox transportBox = new HBox(StatusNodes.buildTransportBadgeCompact(displayTransportMethod(deliveryMethod)));
+        HBox transportBox = new HBox(buildTransportBadgeCompact(displayTransportMethod(deliveryMethod)));
         transportBox.setAlignment(Pos.CENTER_LEFT);
         transportBox.setMinWidth(widths.get(2));
         transportBox.setPrefWidth(widths.get(2));
@@ -198,7 +197,7 @@ public final class RequestDetailPopupController {
             false
         ));
 
-        HBox statusBox = new HBox(StatusNodes.buildStatusBadge(displayStatus(order.getStatus())));
+        HBox statusBox = new HBox(buildStatusBadge(displayStatus(order.getStatus())));
         statusBox.setAlignment(Pos.CENTER_LEFT);
         statusBox.setMinWidth(widths.get(4));
         statusBox.setPrefWidth(widths.get(4));
@@ -325,6 +324,64 @@ public final class RequestDetailPopupController {
             case "Tau", "Tàu" -> "Tàu";
             case "Duong bien", "Đường biển" -> "Đường biển";
             default -> deliveryMethod;
+        };
+    }
+
+    private Label buildStatusBadge(String status) {
+        String[] colors = resolveStatusBadgeColors(status);
+
+        Label badge = new Label("\u25cf " + status);
+        badge.setStyle(
+            "-fx-background-color: " + colors[0] + ";" +
+            "-fx-text-fill: " + colors[1] + ";" +
+            "-fx-background-radius: 999;" +
+            "-fx-padding: 7 12;" +
+            "-fx-font-size: 11px;" +
+            "-fx-font-weight: bold;"
+        );
+        return badge;
+    }
+
+    private Label buildTransportBadgeCompact(String transport) {
+        boolean seaTransport = isSeaTransport(transport);
+        String icon = seaTransport ? "\uD83D\uDEA2 " : "\u2708 ";
+        String background = seaTransport ? "#E8F1FF" : "#FFF4E5";
+        String foreground = seaTransport ? "#2563EB" : "#D97706";
+
+        Label badge = new Label(icon + transport);
+        badge.setStyle(
+            "-fx-background-color: " + background + ";" +
+            "-fx-text-fill: " + foreground + ";" +
+            "-fx-background-radius: 999;" +
+            "-fx-padding: 5 10;" +
+            "-fx-font-size: 11px;" +
+            "-fx-font-weight: bold;"
+        );
+        return badge;
+    }
+
+    private String[] resolveStatusBadgeColors(String status) {
+        if (status == null) {
+            return new String[]{"#F3F4F6", "#6B7280"};
+        }
+        return switch (status.trim()) {
+            case "Cho xu ly", "Cho xac nhan",
+                "\u0043h\u1edd x\u1eed l\u00fd", "\u0043h\u1edd x\u00e1c nh\u1eadn" -> new String[]{"#FFF4E5", "#D97706"};
+            case "Dang xu ly", "\u0110ang x\u1eed l\u00fd" -> new String[]{"#E8F1FF", "#2563EB"};
+            case "Dang giao", "\u0110ang giao" -> new String[]{"#F2EAFF", "#7C3AED"};
+            case "Da hoan thanh", "Hoan thanh",
+                "\u0110\u00e3 ho\u00e0n th\u00e0nh", "Ho\u00e0n th\u00e0nh" -> new String[]{"#EAF8EF", "#15803D"};
+            default -> new String[]{"#F3F4F6", "#6B7280"};
+        };
+    }
+
+    private boolean isSeaTransport(String transport) {
+        if (transport == null) {
+            return false;
+        }
+        return switch (transport.trim()) {
+            case "Duong bien", "Tau", "\u0110\u01b0\u1eddng bi\u1ec3n", "T\u00e0u" -> true;
+            default -> false;
         };
     }
 

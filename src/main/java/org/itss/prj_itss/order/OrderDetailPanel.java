@@ -22,7 +22,6 @@ import org.itss.prj_itss.entity.Site;
 import org.itss.prj_itss.service.MerchandiseService;
 import org.itss.prj_itss.service.OrderService;
 import org.itss.prj_itss.service.SiteService;
-import org.itss.prj_itss.ui.StatusNodes;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -279,7 +278,7 @@ public class OrderDetailPanel {
         Label labelNode = new Label(label);
         labelNode.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #7B8DA6;");
 
-        cell.getChildren().addAll(labelNode, StatusNodes.buildStatusBadge(displayStatus(status)));
+        cell.getChildren().addAll(labelNode, buildStatusBadge(displayStatus(status)));
         return cell;
     }
 
@@ -338,11 +337,64 @@ public class OrderDetailPanel {
     }
 
     private HBox buildTransportCell(String deliveryMethod, double width) {
-        HBox box = new HBox(StatusNodes.buildTransportBadgeCompact(deliveryMethod));
+        HBox box = new HBox(buildTransportBadgeCompact(deliveryMethod));
         box.setAlignment(Pos.CENTER_LEFT);
         box.setMinWidth(width);
         box.setPrefWidth(width);
         return box;
+    }
+
+    private Label buildStatusBadge(String status) {
+        String[] colors = resolveStatusBadgeColors(status);
+
+        Label badge = new Label("\u25cf " + status);
+        badge.setStyle(
+            "-fx-background-color: " + colors[0] + ";" +
+            "-fx-text-fill: " + colors[1] + ";" +
+            "-fx-background-radius: 999;" +
+            "-fx-padding: 7 12;" +
+            "-fx-font-size: 11px;" +
+            "-fx-font-weight: bold;"
+        );
+        return badge;
+    }
+
+    private Label buildTransportBadgeCompact(String transport) {
+        boolean seaTransport = isSeaTransport(transport);
+        String icon = seaTransport ? "\uD83D\uDEA2 " : "\u2708 ";
+        String background = seaTransport ? "#E8F1FF" : "#FFF4E5";
+        String foreground = seaTransport ? "#2563EB" : "#D97706";
+
+        Label badge = new Label(icon + transport);
+        badge.setStyle(
+            "-fx-background-color: " + background + ";" +
+            "-fx-text-fill: " + foreground + ";" +
+            "-fx-background-radius: 999;" +
+            "-fx-padding: 5 10;" +
+            "-fx-font-size: 11px;" +
+            "-fx-font-weight: bold;"
+        );
+        return badge;
+    }
+
+    private String[] resolveStatusBadgeColors(String status) {
+        return switch (normalizeStatusKey(status)) {
+            case "confirmed" -> new String[]{"#FFF4E5", "#D97706"};
+            case "processing" -> new String[]{"#E8F1FF", "#2563EB"};
+            case "shipping" -> new String[]{"#F2EAFF", "#7C3AED"};
+            case "completed" -> new String[]{"#EAF8EF", "#15803D"};
+            default -> new String[]{"#F3F4F6", "#6B7280"};
+        };
+    }
+
+    private boolean isSeaTransport(String transport) {
+        if (transport == null) {
+            return false;
+        }
+        return switch (transport.trim()) {
+            case "Duong bien", "Tau", "\u0110\u01b0\u1eddng bi\u1ec3n", "T\u00e0u" -> true;
+            default -> false;
+        };
     }
 
     private Label buildTopStatusBadge(String status) {
@@ -413,6 +465,7 @@ public class OrderDetailPanel {
         }
         return switch (status.trim()) {
             case "Cho xac nhan", "Chờ xác nhận" -> "confirmed";
+            case "Dang xu ly", "Đang xử lý" -> "processing";
             case "Dang giao", "Đang giao" -> "shipping";
             case "Da hoan thanh", "Hoan thanh", "Đã hoàn thành", "Hoàn thành" -> "completed";
             default -> "other";

@@ -3,6 +3,7 @@ package org.itss.prj_itss.request.processing;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
@@ -18,9 +19,8 @@ import org.itss.prj_itss.request.processing.allocation.RequestProcessingAllocati
 import org.itss.prj_itss.request.processing.items.RequestProcessingItemsSection;
 import org.itss.prj_itss.request.processing.preview.RequestProcessingPreviewBuilder;
 import org.itss.prj_itss.request.processing.preview.RequestProcessingPreviewDialog;
-import org.itss.prj_itss.request.processing.site.SiteFilterSectionController;
+import org.itss.prj_itss.request.processing.site.SiteFilterController;
 import org.itss.prj_itss.service.RequestProcessingService;
-import org.itss.prj_itss.ui.Notifications;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -34,7 +34,7 @@ import java.util.Objects;
 public class RequestProcessingController implements IViewController {
 
     private static final String SITE_FILTER_RESOURCE =
-        "/org/itss/prj_itss/request/processing/site/site-filter-section.fxml";
+        "/org/itss/prj_itss/request/processing/site/site-filter-view.fxml";
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private final RequestProcessingPreviewBuilder previewBuilder = new RequestProcessingPreviewBuilder();
@@ -46,7 +46,7 @@ public class RequestProcessingController implements IViewController {
     private INavigator navigator;
     private int requestId = -1;
     private RequestProcessingService requestProcessingService;
-    private SiteFilterSectionController siteFilter;
+    private SiteFilterController siteFilter;
     private AllocationSection allocationSection;
     private RequestProcessingItemsSection itemsSection;
     private int deadlineDays = 14;
@@ -82,7 +82,7 @@ public class RequestProcessingController implements IViewController {
         this.requestId = requestId;
         resetState();
         loadDataFromDatabase();
-        render();
+        updateUI();
     }
 
     @FXML
@@ -135,33 +135,8 @@ public class RequestProcessingController implements IViewController {
         }
     }
 
-    private void render() {
-        updateHeader();
-
-        loadSiteFilterSection();
-
-        if (allocationContainer != null) {
-            allocationContainer.getChildren().clear();
-            allocationContainer.setManaged(false);
-            allocationContainer.setVisible(false);
-        }
-
-        rebuildAllocationSection();
-        rebuildItemsSection();
-    }
-
-    private void updateHeader() {
-        int totalQuantity = items.stream().mapToInt(item -> item.required).sum();
-        requestCodeLabel.setText("Yêu cầu " + String.format("YC-2026-%03d", requestId));
-        requestSummaryLabel.setText(
-            "Ngày cần giao: " + (earliestDeliveryDate == null ? "N/A" : earliestDeliveryDate.format(DATE_FORMAT))
-                + "  •  " + items.size() + " mặt hàng"
-                + "  •  " + totalQuantity + " chiếc"
-        );
-        requestStatusLabel.setText("Chờ xử lý");
-    }
-
-    private void loadSiteFilterSection() {
+    private void updateUI() {
+        //load phần bộ lọc site 
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
                 RequestProcessingController.class.getResource(SITE_FILTER_RESOURCE),
@@ -174,6 +149,25 @@ public class RequestProcessingController implements IViewController {
         } catch (IOException exception) {
             throw new IllegalStateException("Cannot load site filter section", exception);
         }
+        
+        //load các mặt hàng
+        int totalQuantity = items.stream().mapToInt(item -> item.required).sum();
+        requestCodeLabel.setText("Yêu cầu " + String.format("YC-2026-%03d", requestId));
+        requestSummaryLabel.setText(
+            "Ngày cần giao: " + (earliestDeliveryDate == null ? "N/A" : earliestDeliveryDate.format(DATE_FORMAT))
+                + "  •  " + items.size() + " mặt hàng"
+                + "  •  " + totalQuantity + " chiếc"
+        );
+        requestStatusLabel.setText("Chờ xử lý");
+
+        if (allocationContainer != null) {
+            allocationContainer.getChildren().clear();
+            allocationContainer.setManaged(false);
+            allocationContainer.setVisible(false);
+        }
+
+        rebuildAllocationSection();
+        rebuildItemsSection();
     }
 
     private void rebuildAllocationSection() {
@@ -234,7 +228,12 @@ public class RequestProcessingController implements IViewController {
         alert.setTitle("Không hợp lệ");
         alert.setHeaderText(null);
         alert.setContentText(message);
-        Notifications.styleDialog(alert);
+        styleDialog(alert);
         alert.showAndWait();
+    }
+
+    private void styleDialog(Alert alert) {
+        DialogPane dialogPane = alert.getDialogPane();
+        dialogPane.setStyle("-fx-background-color: white; -fx-font-size: 13px;");
     }
 }

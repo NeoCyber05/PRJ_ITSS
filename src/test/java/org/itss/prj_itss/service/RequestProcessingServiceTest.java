@@ -3,6 +3,7 @@ package org.itss.prj_itss.service;
 import org.itss.prj_itss.common.config.ITransactionRunner;
 import org.itss.prj_itss.dto.Allocation;
 import org.itss.prj_itss.dto.ItemRequirement;
+import org.itss.prj_itss.dto.RequestProcessingData;
 import org.itss.prj_itss.dto.SiteStockOption;
 import org.itss.prj_itss.entity.Merchandise;
 import org.itss.prj_itss.entity.Order;
@@ -17,6 +18,7 @@ import org.itss.prj_itss.repository.IRequestRepository;
 import org.itss.prj_itss.repository.ISiteRepository;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -111,6 +113,45 @@ class RequestProcessingServiceTest {
         assertNull(validationMessage);
     }
 
+    @Test
+    void loadProcessingDataOnlyQueriesSitesAvailableForRequestedMerchandise() {
+        RecordingSiteRepository siteRepository = new RecordingSiteRepository(List.of(
+            new Site(1, "S1", "Site 1", "", 2, 1)
+        ));
+        RequestProcessingService service = new RequestProcessingService(
+            new EmptyRequestRepository() {
+                @Override
+                public List<RequestMerchandise> findItemsByRequestId(int requestId) {
+                    return List.of(
+                        new RequestMerchandise(requestId, 10, BigDecimal.valueOf(2), LocalDate.now().plusDays(7)),
+                        new RequestMerchandise(requestId, 11, BigDecimal.valueOf(3), LocalDate.now().plusDays(8))
+                    );
+                }
+            },
+            new FakeOrderRepository(),
+            siteRepository,
+            new EmptyInventoryRepository() {
+                @Override
+                public Map<Integer, Integer> getInventoryBySiteId(int siteId) {
+                    return Map.of(10, 5);
+                }
+            },
+            new EmptyMerchandiseRepository() {
+                @Override
+                public Merchandise findById(int id) {
+                    return new Merchandise(id, "M" + id, "Item " + id, "pcs");
+                }
+            },
+            new RecordingTransactionRunner()
+        );
+
+        RequestProcessingData data = service.loadProcessingData(99);
+
+        assertEquals(List.of(10, 11), siteRepository.requestedMerchandiseIds);
+        assertEquals(1, data.sites().size());
+        assertEquals(1, data.sites().get(0).id);
+    }
+
     private RequestProcessingService serviceWith(
         FakeOrderRepository orderRepository,
         RecordingTransactionRunner transactionRunner
@@ -148,6 +189,26 @@ class RequestProcessingServiceTest {
                 rollbacks++;
                 throw exception;
             }
+        }
+    }
+
+    private static final class RecordingSiteRepository extends EmptySiteRepository {
+        private final List<Site> result;
+        private List<Integer> requestedMerchandiseIds = List.of();
+
+        private RecordingSiteRepository(List<Site> result) {
+            this.result = result;
+        }
+
+        @Override
+        public List<Site> findAll() {
+            throw new AssertionError("Request processing should not query all sites");
+        }
+
+        @Override
+        public List<Site> findAvailableForMerchandiseIds(List<Integer> merchandiseIds) {
+            requestedMerchandiseIds = merchandiseIds;
+            return result;
         }
     }
 
@@ -194,7 +255,7 @@ class RequestProcessingServiceTest {
         }
     }
 
-    private static final class EmptyRequestRepository implements IRequestRepository {
+    private static class EmptyRequestRepository implements IRequestRepository {
         @Override
         public List<Request> findAll() {
             return List.of();
@@ -226,9 +287,14 @@ class RequestProcessingServiceTest {
         }
     }
 
-    private static final class EmptySiteRepository implements ISiteRepository {
+    private static class EmptySiteRepository implements ISiteRepository {
         @Override
         public List<Site> findAll() {
+            return List.of();
+        }
+
+        @Override
+        public List<Site> findAvailableForMerchandiseIds(List<Integer> merchandiseIds) {
             return List.of();
         }
 
@@ -248,7 +314,7 @@ class RequestProcessingServiceTest {
         }
     }
 
-    private static final class EmptyInventoryRepository implements IInventoryRepository {
+    private static class EmptyInventoryRepository implements IInventoryRepository {
         @Override
         public Map<Integer, Integer> getInventoryBySiteId(int siteId) {
             return Map.of();
@@ -270,7 +336,7 @@ class RequestProcessingServiceTest {
         }
     }
 
-    private static final class EmptyMerchandiseRepository implements IMerchandiseRepository {
+    private static class EmptyMerchandiseRepository implements IMerchandiseRepository {
         @Override
         public List<Merchandise> findAll() {
             return List.of();

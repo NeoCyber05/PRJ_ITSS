@@ -280,9 +280,9 @@
     -fx-background-color: rgba(255, 255, 255, 0.12);
     -fx-background-radius: 28;
     -fx-border-radius: 28;
-    -fx-border-color: rgba(255, 255, 255, 0.14);
-    -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.30), 42, 0, 0, 12);
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.28), 40, 0, 0, 10);
 }
 
 .login-brand-panel {
@@ -357,9 +357,9 @@
     -fx-background-color: rgba(255, 255, 255, 0.96);
     -fx-background-radius: 24;
     -fx-border-radius: 24;
-    -fx-border-color: rgba(220, 229, 241, 0.95);
-    -fx-border-width: 1;
-    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.16), 26, 0, 0, 8);
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-effect: dropshadow(gaussian, rgba(15, 23, 42, 0.14), 24, 0, 0, 8);
 }
 
 .login-form-title {
@@ -1342,6 +1342,7 @@
     -fx-background-radius: 8;
     -fx-border-radius: 8;
     -fx-border-width: 1;
+    -fx-padding: 12 16;
 }
 
 .site-filter-site-card-normal {

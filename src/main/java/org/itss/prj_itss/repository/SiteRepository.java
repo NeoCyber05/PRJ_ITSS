@@ -28,6 +28,35 @@ public class SiteRepository extends RepositorySupport implements ISiteRepository
     }
 
     @Override
+    public List<Site> findAvailableForMerchandiseIds(List<Integer> merchandiseIds) {
+        List<Site> list = new ArrayList<>();
+        if (merchandiseIds == null || merchandiseIds.isEmpty()) {
+            return list;
+        }
+
+        String placeholders = String.join(", ", java.util.Collections.nCopies(merchandiseIds.size(), "?"));
+        String sql = """
+            SELECT DISTINCT s.id, s.site_code, s.name, s.description, s.ship_delivery_days, s.air_delivery_days
+            FROM site s
+            INNER JOIN site_inventory si ON si.site_id = s.id
+            WHERE si.merchandise_id IN (%s)
+              AND si.stock_quantity > 0
+            ORDER BY s.id
+            """.formatted(placeholders);
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            for (int i = 0; i < merchandiseIds.size(); i++) {
+                ps.setInt(i + 1, merchandiseIds.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) list.add(mapSite(rs));
+            }
+        } catch (SQLException e) {
+            System.err.println("SiteRepository.findAvailableForMerchandiseIds: " + e.getMessage());
+        }
+        return list;
+    }
+
+    @Override
     public Site findById(int id) {
         String sql = "SELECT id, site_code, name, description, ship_delivery_days, air_delivery_days FROM site WHERE id = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {

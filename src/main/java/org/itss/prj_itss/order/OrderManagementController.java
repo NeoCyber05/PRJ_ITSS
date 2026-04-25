@@ -6,6 +6,7 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
@@ -14,6 +15,8 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
 
 import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.entity.Merchandise;
@@ -25,7 +28,6 @@ import org.itss.prj_itss.layout.IViewController;
 import org.itss.prj_itss.service.MerchandiseService;
 import org.itss.prj_itss.service.OrderService;
 import org.itss.prj_itss.service.SiteService;
-import org.itss.prj_itss.ui.StatusNodes;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -93,7 +95,7 @@ public class OrderManagementController implements IViewController {
                 if (empty || status == null) {
                     setGraphic(null);
                 } else {
-                    HBox badge = StatusNodes.buildStatusDot(status);
+                    HBox badge = buildStatusDot(status);
                     badge.setMinWidth(150);
                     setGraphic(badge);
                 }
@@ -192,6 +194,48 @@ public class OrderManagementController implements IViewController {
         paginationInfoLabel.setText(size == 0
             ? "Không có đơn hàng phù hợp"
             : "Hiển thị 1 - " + size + " của " + size + " đơn hàng");
+    }
+
+    private HBox buildStatusDot(String status) {
+        HBox box = new HBox(7);
+        box.setAlignment(Pos.CENTER_LEFT);
+
+        String[] colors = resolveStatusDotColors(status);
+        Circle dot = new Circle(5);
+        dot.setFill(Color.web(colors[0]));
+
+        Label label = new Label(status);
+        label.setStyle("-fx-font-size: 13px; -fx-text-fill: " + colors[1] + ";");
+
+        box.getChildren().addAll(dot, label);
+        return box;
+    }
+
+    private String[] resolveStatusDotColors(String status) {
+        return switch (normalizeStatusKey(status)) {
+            case "pending" -> new String[]{"#F59E0B", "#B45309"};
+            case "processing" -> new String[]{"#3B82F6", "#1D4ED8"};
+            case "shipping" -> new String[]{"#A855F7", "#7E22CE"};
+            case "completed" -> new String[]{"#22C55E", "#15803D"};
+            case "cancelled" -> new String[]{"#EF4444", "#B91C1C"};
+            default -> new String[]{"#9CA3AF", "#6B7280"};
+        };
+    }
+
+    private String normalizeStatusKey(String status) {
+        if (status == null) {
+            return "other";
+        }
+        return switch (status.trim()) {
+            case "Cho xu ly", "Cho xac nhan",
+                "\u0043h\u1edd x\u1eed l\u00fd", "\u0043h\u1edd x\u00e1c nh\u1eadn" -> "pending";
+            case "Dang xu ly", "\u0110ang x\u1eed l\u00fd" -> "processing";
+            case "Dang giao", "\u0110ang giao" -> "shipping";
+            case "Da hoan thanh", "Hoan thanh",
+                "\u0110\u00e3 ho\u00e0n th\u00e0nh", "Ho\u00e0n th\u00e0nh" -> "completed";
+            case "Da huy", "\u0110\u00e3 h\u1ee7y" -> "cancelled";
+            default -> "other";
+        };
     }
 
     private record OrderRow(
