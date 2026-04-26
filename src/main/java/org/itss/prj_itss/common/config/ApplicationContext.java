@@ -11,7 +11,6 @@ import org.itss.prj_itss.repository.IMerchandiseRepository;
 import org.itss.prj_itss.repository.IOrderRepository;
 import org.itss.prj_itss.repository.IRequestRepository;
 import org.itss.prj_itss.repository.ISiteRepository;
-import org.itss.prj_itss.service.AllocationPlanningService;
 import org.itss.prj_itss.service.AuthenticationService;
 import org.itss.prj_itss.service.DashboardService;
 import org.itss.prj_itss.service.MerchandiseService;
@@ -41,7 +40,6 @@ public final class ApplicationContext {
     private final SiteService siteService = new SiteService(siteReadRepository, inventoryRepository);
     private final MerchandiseService merchandiseService = new MerchandiseService(merchandiseRepository);
     private final DashboardService dashboardService = new DashboardService(requestService, orderService, siteService);
-    private final AllocationPlanningService allocationPlanningService = new AllocationPlanningService();
     private final RequestProcessingService requestProcessingService = new RequestProcessingService(
         requestRepository,
         orderRepository,
@@ -88,10 +86,6 @@ public final class ApplicationContext {
 
     public DashboardService dashboardService() {
         return dashboardService;
-    }
-
-    public AllocationPlanningService allocationPlanningService() {
-        return allocationPlanningService;
     }
 
     public RequestProcessingService requestProcessingService() {

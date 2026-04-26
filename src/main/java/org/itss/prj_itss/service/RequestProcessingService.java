@@ -10,6 +10,7 @@ import org.itss.prj_itss.entity.Order;
 import org.itss.prj_itss.entity.OrderMerchandise;
 import org.itss.prj_itss.entity.RequestMerchandise;
 import org.itss.prj_itss.entity.Site;
+import org.itss.prj_itss.ordering.request.process.allocation.AllocationSupport;
 import org.itss.prj_itss.repository.IInventoryRepository;
 import org.itss.prj_itss.repository.IMerchandiseRepository;
 import org.itss.prj_itss.repository.IOrderRepository;
@@ -101,7 +102,7 @@ public final class RequestProcessingService {
     ) {
         List<String> errors = new ArrayList<>();
         for (ItemRequirement item : items) {
-            int allocated = allocatedQuantity(allocations, item.merchandiseId);
+            int allocated = AllocationSupport.getAllocated(allocations, item.merchandiseId);
             if (allocated < item.required) {
                 errors.add("- " + item.code + " chỉ phân bổ " + allocated + "/" + item.required);
             }
@@ -120,7 +121,7 @@ public final class RequestProcessingService {
         int deadlineDays
     ) {
         for (ItemRequirement item : items) {
-            int allocated = allocatedQuantity(allocations, item.merchandiseId);
+            int allocated = AllocationSupport.getAllocated(allocations, item.merchandiseId);
             if (allocated < item.required) {
                 return "Chưa đủ số lượng hàng cần";
             }
@@ -137,12 +138,12 @@ public final class RequestProcessingService {
 
             Map<Integer, Allocation> itemAllocations = allocations.getOrDefault(item.merchandiseId, Map.of());
             for (Allocation allocation : itemAllocations.values()) {
-                SiteStockOption site = findSite(allSites, allocation.siteId);
+                SiteStockOption site = AllocationSupport.findSiteInfo(allSites, allocation.siteId);
                 if (site == null) {
                     return "Không đáp ứng ngày nhận mong muốn";
                 }
 
-                int deliveryDays = deliveryDays(site, allocation.transport);
+                int deliveryDays = AllocationSupport.getDeliveryDays(site, allocation.transport);
                 if (deliveryDays >= 999 || deliveryDays > itemDeadlineDays) {
                     return "Không đáp ứng ngày nhận mong muốn";
                 }
@@ -157,7 +158,7 @@ public final class RequestProcessingService {
         Map<Integer, Map<Integer, Allocation>> allocations
     ) throws SQLException {
         transactionRunner.execute(() -> {
-            for (Map.Entry<Integer, List<Allocation>> siteEntry : groupAllocationsBySite(allocations).entrySet()) {
+            for (Map.Entry<Integer, List<Allocation>> siteEntry : AllocationSupport.groupAllocationsBySite(allocations).entrySet()) {
                 Order order = new Order();
                 order.setRequestId(requestId);
                 order.setSiteId(siteEntry.getKey());
@@ -187,58 +188,7 @@ public final class RequestProcessingService {
         });
     }
 
-    private int allocatedQuantity(Map<Integer, Map<Integer, Allocation>> allocations, int merchandiseId) {
-        return allocations.getOrDefault(merchandiseId, Map.of())
-            .values()
-            .stream()
-            .mapToInt(Allocation::getQuantity)
-            .sum();
-    }
-
-    private SiteStockOption findSite(List<SiteStockOption> allSites, int siteId) {
-        for (SiteStockOption site : allSites) {
-            if (site.id == siteId) {
-                return site;
-            }
-        }
-        return null;
-    }
-
-    private int deliveryDays(SiteStockOption site, String transport) {
-        return isAirTransport(transport) ? site.airDays : site.shipDays;
-    }
-
-    private boolean isAirTransport(String transport) {
-        if (transport == null) {
-            return false;
-        }
-
-        String normalized = transport.trim().toLowerCase();
-        return normalized.contains("air")
-            || normalized.contains("hàng không")
-            || normalized.contains("hang khong")
-            || normalized.contains("máy")
-            || normalized.contains("may");
-    }
-
-    private Map<Integer, List<Allocation>> groupAllocationsBySite(
-        Map<Integer, Map<Integer, Allocation>> allocations
-    ) {
-        Map<Integer, List<Allocation>> groupedAllocations = new LinkedHashMap<>();
-        for (Map<Integer, Allocation> itemAllocations : allocations.values()) {
-            for (Allocation allocation : itemAllocations.values()) {
-                if (allocation.getQuantity() <= 0) {
-                    continue;
-                }
-                groupedAllocations
-                    .computeIfAbsent(allocation.siteId, key -> new ArrayList<>())
-                    .add(allocation);
-            }
-        }
-        return groupedAllocations;
-    }
-
     private String toStoredDeliveryMethod(String transport) {
-        return AllocationPlanningService.TRANSPORT_AIR.equals(transport) ? "air" : "ship";
+        return AllocationSupport.isAirTransport(transport) ? "air" : "ship";
     }
 }

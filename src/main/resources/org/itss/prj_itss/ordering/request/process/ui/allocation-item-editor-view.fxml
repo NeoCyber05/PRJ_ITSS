@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.itss.prj_itss.ordering.request.process.ui.AllocationItemEditorView"
+      spacing="16"
+      styleClass="allocation-inline-editor">
+    <padding>
+        <Insets top="22" right="20" bottom="18" left="20"/>
+    </padding>
+
+    <HBox spacing="12">
+        <children>
+            <VBox spacing="4">
+                <children>
+                    <Label text="TỒN KHO VÀ PHÂN BỔ THEO SITE" styleClass="allocation-eyebrow-muted"/>
+                    <Label fx:id="titleLabel" styleClass="allocation-title"/>
+                    <Label fx:id="subtitleLabel" styleClass="allocation-subtitle"/>
+                </children>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="allocatedBadgeLabel"/>
+            <Label fx:id="remainingBadgeLabel"/>
+        </children>
+    </HBox>
+
+    <VBox fx:id="siteTableBox" spacing="0" styleClass="allocation-table"/>
+</VBox>

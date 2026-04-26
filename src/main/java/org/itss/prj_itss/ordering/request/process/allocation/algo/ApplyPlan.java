@@ -1,36 +1,35 @@
-package org.itss.prj_itss.ordering.request.process.allocation;
+package org.itss.prj_itss.ordering.request.process.allocation.algo;
 
 import org.itss.prj_itss.dto.Allocation;
 import org.itss.prj_itss.dto.ItemRequirement;
-import org.itss.prj_itss.ordering.request.process.allocation.AllocationPlanner.AllocationDraft;
-import org.itss.prj_itss.ordering.request.process.allocation.AllocationPlanner.SuggestedPlan;
+import org.itss.prj_itss.ordering.request.process.allocation.algo.AllSuggestAlgo.AllocationDraft;
+import org.itss.prj_itss.ordering.request.process.allocation.algo.AllSuggestAlgo.SuggestedPlan;
 
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-final class AllocationPlanMutator {
+public final class ApplyPlan {
 
     private final List<ItemRequirement> items;
     private final Map<Integer, Map<Integer, Allocation>> allocations;
 
-    AllocationPlanMutator(List<ItemRequirement> items, Map<Integer, Map<Integer, Allocation>> allocations) {
+    public ApplyPlan(List<ItemRequirement> items, Map<Integer, Map<Integer, Allocation>> allocations) {
         this.items = items;
         this.allocations = allocations;
     }
 
-    void applyOptimalAllocation(AllocationPlanner planner) {
+    public void applyOptimal(OptimalSuggestAlgo optimalAlgo) {
         clearCurrentAllocations();
 
         for (ItemRequirement item : items) {
             int remaining = item.required;
-
-            for (var site : planner.buildCandidateSites(item)) {
+            for (var site : optimalAlgo.buildCandidateSites(item)) {
                 if (remaining <= 0) {
                     break;
                 }
 
-                String transport = planner.pickSuggestedTransport(site);
+                String transport = optimalAlgo.pickSuggestedTransport(site);
                 if (transport == null) {
                     continue;
                 }
@@ -48,7 +47,7 @@ final class AllocationPlanMutator {
         }
     }
 
-    void applySuggestedPlan(SuggestedPlan plan) {
+    public void applyAllSuggest(SuggestedPlan plan) {
         clearCurrentAllocations();
 
         for (Map.Entry<Integer, Map<Integer, AllocationDraft>> itemEntry : plan.allocationsByItem().entrySet()) {
@@ -62,7 +61,7 @@ final class AllocationPlanMutator {
         }
     }
 
-    void clearCurrentAllocations() {
+    public void clearCurrentAllocations() {
         for (ItemRequirement item : items) {
             allocations.computeIfAbsent(item.merchandiseId, key -> new LinkedHashMap<>()).clear();
         }

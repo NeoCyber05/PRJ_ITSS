@@ -3,7 +3,6 @@ package org.itss.prj_itss.ordering.request.process.allocation;
 import org.itss.prj_itss.dto.Allocation;
 import org.itss.prj_itss.dto.ItemRequirement;
 import org.itss.prj_itss.dto.SiteStockOption;
-import org.itss.prj_itss.service.AllocationPlanningService;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -11,9 +10,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public final class RequestProcessingAllocationSupport {
+public final class AllocationSupport {
 
-    private RequestProcessingAllocationSupport() {
+    private AllocationSupport() {
     }
 
     public static int getAllocated(Map<Integer, Map<Integer, Allocation>> allocations, int merchandiseId) {
@@ -74,12 +73,18 @@ public final class RequestProcessingAllocationSupport {
 
     public static String pickDefaultTransport(SiteStockOption site, int deadlineDays) {
         if (site.shipDays <= deadlineDays && site.shipDays < 999) {
-            return AllocationPlanningService.TRANSPORT_SHIP;
+            return AllocationTransport.SHIP;
+        }
+        if (site.airDays <= deadlineDays && site.airDays < 999) {
+            return AllocationTransport.AIR;
+        }
+        if (site.shipDays < 999) {
+            return AllocationTransport.SHIP;
         }
         if (site.airDays < 999) {
-            return AllocationPlanningService.TRANSPORT_AIR;
+            return AllocationTransport.AIR;
         }
-        return AllocationPlanningService.TRANSPORT_SHIP;
+        return AllocationTransport.SHIP;
     }
 
     public static String normalizeTransport(String rawTransport, SiteStockOption site, int deadlineDays) {
@@ -89,10 +94,10 @@ public final class RequestProcessingAllocationSupport {
 
         String normalized = rawTransport.trim().toLowerCase();
         if (normalized.contains("air") || normalized.contains("máy") || normalized.contains("may") || normalized.contains("hang khong") || normalized.contains("hàng không")) {
-            return AllocationPlanningService.TRANSPORT_AIR;
+            return AllocationTransport.AIR;
         }
         if (normalized.contains("ship") || normalized.contains("tàu") || normalized.contains("tau") || normalized.contains("duong bien") || normalized.contains("đường biển")) {
-            return AllocationPlanningService.TRANSPORT_SHIP;
+            return AllocationTransport.SHIP;
         }
 
         return pickDefaultTransport(site, deadlineDays);

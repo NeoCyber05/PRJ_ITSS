@@ -33,37 +33,26 @@ public final class SiteFilterController {
 
     @FXML
     private VBox siteListContainer;
-
     @FXML
     private VBox filterContent;
-
     @FXML
     private HBox toggleGraphic;
-
     @FXML
     private HBox priorityTagsBox;
-
     @FXML
     private HBox excludeTagsBox;
-
     @FXML
     private TextField searchBox;
-
     @FXML
     private Label countLabel;
-
     @FXML
     private Label toggleSummaryLabel;
-
     @FXML
     private Label toggleChevronLabel;
-
     @FXML
     private Button toggleButton;
-
     @FXML
     private Button clearAllButton;
-
     private boolean expanded;
     private Runnable onFiltersChanged;
 
@@ -71,7 +60,10 @@ public final class SiteFilterController {
     private void initialize() {
         toggleButton.setMaxWidth(Double.MAX_VALUE);
         toggleGraphic.setMaxWidth(Double.MAX_VALUE);
-        toggleButton.setOnAction(event -> setExpanded(!expanded));
+        toggleButton.setOnAction(event -> {
+            expanded = !expanded;
+            renderUi();
+        });
         clearAllButton.setOnAction(event -> clearAllFilters());
         searchBox.textProperty().addListener((observable, oldValue, newValue) -> renderUi());
     }
@@ -98,30 +90,33 @@ public final class SiteFilterController {
         }
 
         renderUi();
-        notifyFiltersChanged();
+        if (onFiltersChanged != null) {
+            onFiltersChanged.run();
+        }
     }
 
     private void prioritizeSite(SiteStockOption site) {
         model.prioritize(site);
         renderUi();
-        notifyFiltersChanged();
+        if (onFiltersChanged != null) {
+            onFiltersChanged.run();
+        }
     }
 
     private void unprioritizeSite(SiteStockOption site) {
         model.unprioritize(site);
         renderUi();
-        notifyFiltersChanged();
+        if (onFiltersChanged != null) {
+            onFiltersChanged.run();
+        }
     }
 
     private void excludeSite(SiteStockOption site) {
         model.exclude(site);
         renderUi();
-        notifyFiltersChanged();
-    }
-
-    private void setExpanded(boolean expanded) {
-        this.expanded = expanded;
-        renderUi();
+        if (onFiltersChanged != null) {
+            onFiltersChanged.run();
+        }
     }
 
     private void renderUi() {
@@ -191,7 +186,9 @@ public final class SiteFilterController {
                     tag.setOnMouseClicked(event -> {
                         model.removePriority(site.id);
                         renderUi();
-                        notifyFiltersChanged();
+                        if (onFiltersChanged != null) {
+                            onFiltersChanged.run();
+                        }
                     });
                     priorityTagsBox.getChildren().add(tag);
                 }
@@ -211,7 +208,9 @@ public final class SiteFilterController {
                     tag.setOnMouseClicked(event -> {
                         model.removeExcluded(site.id);
                         renderUi();
-                        notifyFiltersChanged();
+                        if (onFiltersChanged != null) {
+                            onFiltersChanged.run();
+                        }
                     });
                     excludeTagsBox.getChildren().add(tag);
                 }
@@ -254,9 +253,4 @@ public final class SiteFilterController {
         return site.siteCode == null ? "" : site.siteCode;
     }
 
-    private void notifyFiltersChanged() {
-        if (onFiltersChanged != null) {
-            onFiltersChanged.run();
-        }
-    }
 }

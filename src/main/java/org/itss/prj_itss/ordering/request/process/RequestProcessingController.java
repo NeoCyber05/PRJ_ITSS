@@ -15,11 +15,11 @@ import org.itss.prj_itss.dto.SiteStockOption;
 import org.itss.prj_itss.layout.INavigator;
 import org.itss.prj_itss.layout.IViewController;
 import org.itss.prj_itss.ordering.request.process.allocation.AllocationSection;
-import org.itss.prj_itss.ordering.request.process.allocation.RequestProcessingAllocationSupport;
-import org.itss.prj_itss.ordering.request.process.items.RequestProcessingItemsSection;
+import org.itss.prj_itss.ordering.request.process.allocation.AllocationSupport;
 import org.itss.prj_itss.ordering.request.process.preview.RequestProcessingPreviewBuilder;
 import org.itss.prj_itss.ordering.request.process.preview.RequestProcessingPreviewDialog;
 import org.itss.prj_itss.ordering.request.process.site.SiteFilterController;
+import org.itss.prj_itss.ordering.request.process.ui.RequestProcessingItemsView;
 import org.itss.prj_itss.service.RequestProcessingService;
 
 import java.io.IOException;
@@ -48,7 +48,7 @@ public class RequestProcessingController implements IViewController {
     private RequestProcessingService requestProcessingService;
     private SiteFilterController siteFilter;
     private AllocationSection allocationSection;
-    private RequestProcessingItemsSection itemsSection;
+    private RequestProcessingItemsView itemsSection;
     private int deadlineDays = 14;
     private int expandedItemIndex = -1;
     private LocalDate earliestDeliveryDate;
@@ -162,11 +162,6 @@ public class RequestProcessingController implements IViewController {
             allocationContainer.setVisible(false);
         }
 
-        rebuildAllocationSection();
-        rebuildItemsSection();
-    }
-
-    private void rebuildAllocationSection() {
         allocationSection = new AllocationSection(
             items,
             allSites,
@@ -176,11 +171,12 @@ public class RequestProcessingController implements IViewController {
             deadlineDays
         );
         allocationSection.setOnAllocationChanged(this::refreshAllocationLabels);
-        allocationSection.setOnPlanApplied(this::rebuildItemsSection);
+        allocationSection.setOnPlanApplied(this::renderItemsViewSection);
+        renderItemsViewSection();
     }
 
-    private void rebuildItemsSection() {
-        itemsSection = new RequestProcessingItemsSection(
+    private void renderItemsViewSection() {
+        itemsSection = new RequestProcessingItemsView(
             items,
             allSites,
             siteFilter.getExcludedSiteIds(),
@@ -199,18 +195,27 @@ public class RequestProcessingController implements IViewController {
 
     private void handleOptimizeAllocation() {
         allocationSection.applyOptimalAllocation();
-        rebuildItemsSection();
+        renderItemsViewSection();
     }
 
     private void handleSiteFilterChanged() {
-        RequestProcessingAllocationSupport.pruneExcludedAllocations(allocations, siteFilter.getExcludedSiteIds());
-        rebuildAllocationSection();
-        rebuildItemsSection();
+        AllocationSupport.pruneExcludedAllocations(allocations, siteFilter.getExcludedSiteIds());
+        allocationSection = new AllocationSection(
+            items,
+            allSites,
+            siteFilter.getExcludedSiteIds(),
+            siteFilter.getPrioritySiteIds(),
+            allocations,
+            deadlineDays
+        );
+        allocationSection.setOnAllocationChanged(this::refreshAllocationLabels);
+        allocationSection.setOnPlanApplied(this::renderItemsViewSection);
+        renderItemsViewSection();
     }
 
     private void toggleExpandedItem(int index) {
         expandedItemIndex = expandedItemIndex == index ? -1 : index;
-        rebuildItemsSection();
+        renderItemsViewSection();
     }
 
     private void refreshAllocationLabels() {

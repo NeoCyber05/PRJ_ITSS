@@ -22,7 +22,7 @@ import javafx.util.Duration;
 
 import org.itss.prj_itss.dto.Allocation;
 import org.itss.prj_itss.layout.INavigator;
-import org.itss.prj_itss.ordering.request.process.allocation.RequestProcessingAllocationSupport;
+import org.itss.prj_itss.ordering.request.process.allocation.AllocationSupport;
 import org.itss.prj_itss.service.RequestProcessingService;
 
 import java.sql.SQLException;
@@ -165,7 +165,7 @@ public final class RequestProcessingPreviewDialogController {
         row.getChildren().add(previewValueCell(String.valueOf(line.quantity()), 110, true));
 
         HBox transportBox = new HBox(buildTransportBadgeCompact(
-            RequestProcessingAllocationSupport.toDisplayDeliveryMethod(line.transport())
+            AllocationSupport.toDisplayDeliveryMethod(line.transport())
         ));
         transportBox.setAlignment(Pos.CENTER_LEFT);
         transportBox.setMinWidth(150);

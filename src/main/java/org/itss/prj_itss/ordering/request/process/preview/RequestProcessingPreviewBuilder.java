@@ -3,7 +3,7 @@ package org.itss.prj_itss.ordering.request.process.preview;
 import org.itss.prj_itss.dto.Allocation;
 import org.itss.prj_itss.dto.ItemRequirement;
 import org.itss.prj_itss.dto.SiteStockOption;
-import org.itss.prj_itss.ordering.request.process.allocation.RequestProcessingAllocationSupport;
+import org.itss.prj_itss.ordering.request.process.allocation.AllocationSupport;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -20,21 +20,21 @@ public final class RequestProcessingPreviewBuilder {
     ) {
         List<PreviewOrder> previewOrders = new ArrayList<>();
 
-        for (Map.Entry<Integer, List<Allocation>> siteEntry : RequestProcessingAllocationSupport.groupAllocationsBySite(allocations).entrySet()) {
-            SiteStockOption site = RequestProcessingAllocationSupport.findSiteInfo(allSites, siteEntry.getKey());
+        for (Map.Entry<Integer, List<Allocation>> siteEntry : AllocationSupport.groupAllocationsBySite(allocations).entrySet()) {
+            SiteStockOption site = AllocationSupport.findSiteInfo(allSites, siteEntry.getKey());
             if (site == null) {
                 continue;
             }
 
             List<PreviewLine> lines = new ArrayList<>();
             for (Allocation allocation : siteEntry.getValue()) {
-                ItemRequirement item = RequestProcessingAllocationSupport.findItem(items, allocation.merchandiseId);
+                ItemRequirement item = AllocationSupport.findItem(items, allocation.merchandiseId);
                 if (item == null) {
                     continue;
                 }
 
                 LocalDate desiredDate = desiredDeliveryDates.get(item.merchandiseId);
-                int deliveryDays = RequestProcessingAllocationSupport.getDeliveryDays(site, allocation.transport);
+                int deliveryDays = AllocationSupport.getDeliveryDays(site, allocation.transport);
                 LocalDate estimatedDate = LocalDate.now().plusDays(deliveryDays);
                 lines.add(new PreviewLine(
                     item,
