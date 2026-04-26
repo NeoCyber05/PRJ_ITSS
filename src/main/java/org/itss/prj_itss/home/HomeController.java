@@ -196,8 +196,22 @@ public class HomeController implements IViewController {
     }
 
     private HBox buildRequestActivityItem(Request request) {
-        String message = String.format("Yêu cầu YC-2026-%03d hiện ở trạng thái %s.", request.getId(), request.getStatus());
+        String message = String.format("Yêu cầu YC-2026-%03d hiện ở trạng thái %s.", request.getId(), toRequestStatusText(request.getStatus()));
         return buildActivityItem("YC", message, formatActivityTime(request.getCreatedAt()), "#0F766E");
+    }
+
+    private String toRequestStatusText(String status) {
+        if (status == null) {
+            return "N/A";
+        }
+        return switch (status.trim().toLowerCase()) {
+            case "pending" -> "Chờ xử lý";
+            case "processing" -> "Đang xử lý";
+            case "shipping" -> "Đang giao";
+            case "completed" -> "Đã hoàn thành";
+            case "cancelled" -> "Đã hủy";
+            default -> status;
+        };
     }
 
     private HBox buildActivityItem(String token, String message, String time, String accent) {

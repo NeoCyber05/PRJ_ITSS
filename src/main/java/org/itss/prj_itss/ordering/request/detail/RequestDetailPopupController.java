@@ -113,7 +113,7 @@ public final class RequestDetailPopupController {
                 : "N/A"
         );
         earliestDeadlineValueLabel.setText(earliestDeadline != null ? earliestDeadline.format(DATE_FORMAT) : "N/A");
-        statusContainer.getChildren().setAll(buildStatusBadge(statusText(request != null ? request.getStatus() : null)));
+        statusContainer.getChildren().setAll(buildStatusBadge(request != null ? request.getStatus() : null, true));
 
         renderRequestItems(requestItems, context.merchandiseService());
         renderAllocatedOrders(allocatedOrders, context.orderService(), context.siteService());
@@ -206,7 +206,7 @@ public final class RequestDetailPopupController {
             false
         ));
 
-        HBox statusBox = new HBox(buildStatusBadge(statusText(order.getStatus())));
+        HBox statusBox = new HBox(buildStatusBadge(order.getStatus(), false));
         statusBox.setAlignment(Pos.CENTER_LEFT);
         statusBox.setMinWidth(widths.get(4));
         statusBox.setPrefWidth(widths.get(4));
@@ -359,11 +359,33 @@ public final class RequestDetailPopupController {
         panel.setMaxWidth(width);
     }
 
-    private String statusText(String status) {
+    private String requestStatusText(String status) {
+        return switch (normalizeStatusKey(status)) {
+            case "pending" -> "Chờ xử lý";
+            case "processing" -> "Đang xử lý";
+            case "shipping" -> "Đang giao";
+            case "completed" -> "Đã hoàn thành";
+            case "cancelled" -> "Đã hủy";
+            default -> status == null || status.isBlank() ? "N/A" : status.trim();
+        };
+    }
+
+    private String orderStatusText(String status) {
+        return switch (normalizeStatusKey(status)) {
+            case "pending" -> "Chờ xác nhận";
+            case "shipping" -> "Đang giao";
+            case "completed" -> "Đã hoàn thành";
+            case "cancelled" -> "Đã hủy";
+            default -> status == null || status.isBlank() ? "N/A" : status.trim();
+        };
+    }
+
+    private String normalizeStatusKey(String status) {
         if (status == null || status.isBlank()) {
-            return "N/A";
+            return "other";
         }
-        return status.trim();
+        String normalized = status.trim().toLowerCase();
+        return normalized.isBlank() ? "other" : normalized;
     }
 
     private String displayTransportMethod(String deliveryMethod) {
@@ -378,10 +400,11 @@ public final class RequestDetailPopupController {
         };
     }
 
-    private Label buildStatusBadge(String status) {
+    private Label buildStatusBadge(String status, boolean requestStatus) {
         String[] colors = resolveStatusBadgeColors(status);
+        String displayText = requestStatus ? requestStatusText(status) : orderStatusText(status);
 
-        Label badge = new Label("\u25cf " + status);
+        Label badge = new Label("\u25cf " + displayText);
         badge.setStyle(
             "-fx-background-color: " + colors[0] + ";" +
             "-fx-text-fill: " + colors[1] + ";" +
@@ -415,7 +438,7 @@ public final class RequestDetailPopupController {
         if (status == null || status.isBlank()) {
             return new String[]{"#F3F4F6", "#6B7280"};
         }
-        return switch (status.trim().toLowerCase()) {
+        return switch (normalizeStatusKey(status)) {
             case "pending" -> new String[]{"#FFF4E5", "#D97706"};
             case "processing" -> new String[]{"#E8F1FF", "#2563EB"};
             case "shipping" -> new String[]{"#F2EAFF", "#7C3AED"};

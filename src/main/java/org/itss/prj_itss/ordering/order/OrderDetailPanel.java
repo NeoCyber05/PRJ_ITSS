@@ -334,7 +334,7 @@ public class OrderDetailPanel {
         Label labelNode = new Label(label);
         labelNode.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #7B8DA6;");
 
-        cell.getChildren().addAll(labelNode, buildStatusBadge(statusText(status)));
+        cell.getChildren().addAll(labelNode, buildStatusBadge(status));
         return cell;
     }
 
@@ -402,8 +402,9 @@ public class OrderDetailPanel {
 
     private Label buildStatusBadge(String status) {
         String[] colors = resolveStatusBadgeColors(status);
+        String displayText = statusText(status);
 
-        Label badge = new Label("\u25cf " + status);
+        Label badge = new Label("\u25cf " + displayText);
         badge.setStyle(
             "-fx-background-color: " + colors[0] + ";" +
             "-fx-text-fill: " + colors[1] + ";" +
@@ -493,10 +494,13 @@ public class OrderDetailPanel {
     }
 
     private String statusText(String status) {
-        if (status == null || status.isBlank()) {
-            return "N/A";
-        }
-        return status.trim();
+        return switch (normalizeStatusKey(status)) {
+            case "pending" -> "Chờ xác nhận";
+            case "shipping" -> "Đang giao";
+            case "completed" -> "Đã hoàn thành";
+            case "cancelled" -> "Đã hủy";
+            default -> status == null || status.isBlank() ? "N/A" : status.trim();
+        };
     }
 
     private String displayTransportMethod(String deliveryMethod) {

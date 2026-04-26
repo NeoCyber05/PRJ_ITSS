@@ -156,14 +156,14 @@ public class ReceivedRequestsController implements IViewController {
         requestTable.setItems(paginatedRows);
 
         statusFilter.getItems().addAll(
-            "all",
-            "pending",
-            "processing",
-            "shipping",
-            "completed",
-            "cancelled"
+            "Mọi trạng thái",
+            "Chờ xử lý",
+            "Đang xử lý",
+            "Đang giao",
+            "Đã hoàn thành",
+            "Đã hủy"
         );
-        statusFilter.setValue("all");
+        statusFilter.setValue("Mọi trạng thái");
 
         pageSizeComboBox.getItems().addAll(5, 10, 20, 50);
         pageSizeComboBox.setValue(pageSize);
@@ -216,9 +216,10 @@ public class ReceivedRequestsController implements IViewController {
         filteredRows.setPredicate(row -> {
             boolean matchesKeyword = keyword.isBlank()
                 || row.requestCode().toLowerCase(Locale.ROOT).contains(keyword);
+            String selectedStatusKey = toStatusKey(selectedStatus);
             boolean matchesStatus = selectedStatus == null
-                || "all".equalsIgnoreCase(selectedStatus)
-                || selectedStatus.equalsIgnoreCase(normalizeStatusKey(row.status()));
+                || "all".equalsIgnoreCase(selectedStatusKey)
+                || selectedStatusKey.equalsIgnoreCase(normalizeStatusKey(row.status()));
             return matchesKeyword && matchesStatus;
         });
 
@@ -284,7 +285,7 @@ public class ReceivedRequestsController implements IViewController {
         Circle dot = new Circle(5);
         dot.setFill(Color.web(colors[0]));
 
-        Label label = new Label(status);
+        Label label = new Label(statusText(status));
         label.setStyle("-fx-font-size: 13px; -fx-text-fill: " + colors[1] + ";");
 
         box.getChildren().addAll(dot, label);
@@ -311,6 +312,32 @@ public class ReceivedRequestsController implements IViewController {
             return "other";
         }
         return normalized;
+    }
+
+    private String toStatusKey(String selectedStatus) {
+        if (selectedStatus == null) {
+            return "all";
+        }
+        return switch (selectedStatus.trim()) {
+            case "Mọi trạng thái" -> "all";
+            case "Chờ xử lý" -> "pending";
+            case "Đang xử lý" -> "processing";
+            case "Đang giao" -> "shipping";
+            case "Đã hoàn thành" -> "completed";
+            case "Đã hủy" -> "cancelled";
+            default -> selectedStatus.trim().toLowerCase(Locale.ROOT);
+        };
+    }
+
+    private String statusText(String status) {
+        return switch (normalizeStatusKey(status)) {
+            case "pending" -> "Chờ xử lý";
+            case "processing" -> "Đang xử lý";
+            case "shipping" -> "Đang giao";
+            case "completed" -> "Đã hoàn thành";
+            case "cancelled" -> "Đã hủy";
+            default -> status == null || status.isBlank() ? "N/A" : status;
+        };
     }
 
     private record RequestRow(

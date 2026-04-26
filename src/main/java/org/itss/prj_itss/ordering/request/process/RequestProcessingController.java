@@ -154,7 +154,7 @@ public class RequestProcessingController implements IViewController {
                 + "  •  " + items.size() + " mặt hàng"
                 + "  •  " + totalQuantity + " chiếc"
         );
-        requestStatusLabel.setText("pending");
+        requestStatusLabel.setText("Chờ xử lý");
 
         if (allocationContainer != null) {
             allocationContainer.getChildren().clear();

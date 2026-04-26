@@ -124,13 +124,13 @@ public class OrderManagementController implements IViewController {
         orderTable.setItems(filteredRows);
 
         statusFilter.getItems().addAll(
-            "all",
-            "pending",
-            "shipping",
-            "completed",
-            "cancelled"
+            "Mọi trạng thái",
+            "Chờ xác nhận",
+            "Đang giao",
+            "Đã hoàn thành",
+            "Đã hủy"
         );
-        statusFilter.setValue("all");
+        statusFilter.setValue("Mọi trạng thái");
 
         searchField.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         statusFilter.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
@@ -184,9 +184,10 @@ public class OrderManagementController implements IViewController {
                 || row.orderCode().toLowerCase(Locale.ROOT).contains(keyword)
                 || row.requestCode().toLowerCase(Locale.ROOT).contains(keyword)
                 || row.siteName().toLowerCase(Locale.ROOT).contains(keyword);
+            String selectedStatusKey = toStatusKey(selectedStatus);
             boolean matchesStatus = selectedStatus == null
-                || "all".equalsIgnoreCase(selectedStatus)
-                || selectedStatus.equalsIgnoreCase(normalizeStatusKey(row.status()));
+                || "all".equalsIgnoreCase(selectedStatusKey)
+                || selectedStatusKey.equalsIgnoreCase(normalizeStatusKey(row.status()));
             return matchesKeyword && matchesStatus;
         });
 
@@ -204,7 +205,7 @@ public class OrderManagementController implements IViewController {
         Circle dot = new Circle(5);
         dot.setFill(Color.web(colors[0]));
 
-        Label label = new Label(status);
+        Label label = new Label(statusText(status));
         label.setStyle("-fx-font-size: 13px; -fx-text-fill: " + colors[1] + ";");
 
         box.getChildren().addAll(dot, label);
@@ -231,6 +232,30 @@ public class OrderManagementController implements IViewController {
             return "other";
         }
         return normalized;
+    }
+
+    private String toStatusKey(String selectedStatus) {
+        if (selectedStatus == null) {
+            return "all";
+        }
+        return switch (selectedStatus.trim()) {
+            case "Mọi trạng thái" -> "all";
+            case "Chờ xác nhận" -> "pending";
+            case "Đang giao" -> "shipping";
+            case "Đã hoàn thành" -> "completed";
+            case "Đã hủy" -> "cancelled";
+            default -> selectedStatus.trim().toLowerCase(Locale.ROOT);
+        };
+    }
+
+    private String statusText(String status) {
+        return switch (normalizeStatusKey(status)) {
+            case "pending" -> "Chờ xác nhận";
+            case "shipping" -> "Đang giao";
+            case "completed" -> "Đã hoàn thành";
+            case "cancelled" -> "Đã hủy";
+            default -> status == null || status.isBlank() ? "N/A" : status;
+        };
     }
 
     private record OrderRow(
