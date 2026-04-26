@@ -25,6 +25,7 @@ import org.itss.prj_itss.service.SiteService;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
 
 public class OrderDetailPanel {
 
@@ -155,7 +156,7 @@ public class OrderDetailPanel {
         String normalizedStatus = normalizeStatusKey(status);
         boolean delivered = "completed".equals(normalizedStatus);
         boolean shipping = delivered || "shipping".equals(normalizedStatus);
-        boolean confirmed = shipping || "confirmed".equals(normalizedStatus);
+        boolean confirmed = shipping || "pending".equals(normalizedStatus);
 
         HBox progress = new HBox(0);
         progress.setAlignment(Pos.CENTER);
@@ -278,7 +279,7 @@ public class OrderDetailPanel {
         Label labelNode = new Label(label);
         labelNode.setStyle("-fx-font-size: 12px; -fx-font-weight: bold; -fx-text-fill: #7B8DA6;");
 
-        cell.getChildren().addAll(labelNode, buildStatusBadge(displayStatus(status)));
+        cell.getChildren().addAll(labelNode, buildStatusBadge(statusText(status)));
         return cell;
     }
 
@@ -379,10 +380,11 @@ public class OrderDetailPanel {
 
     private String[] resolveStatusBadgeColors(String status) {
         return switch (normalizeStatusKey(status)) {
-            case "confirmed" -> new String[]{"#FFF4E5", "#D97706"};
+            case "pending" -> new String[]{"#FFF4E5", "#D97706"};
             case "processing" -> new String[]{"#E8F1FF", "#2563EB"};
             case "shipping" -> new String[]{"#F2EAFF", "#7C3AED"};
             case "completed" -> new String[]{"#EAF8EF", "#15803D"};
+            case "cancelled" -> new String[]{"#FEE2E2", "#B91C1C"};
             default -> new String[]{"#F3F4F6", "#6B7280"};
         };
     }
@@ -398,17 +400,20 @@ public class OrderDetailPanel {
     }
 
     private Label buildTopStatusBadge(String status) {
-        String effectiveStatus = displayStatus(status);
+        String effectiveStatus = statusText(status);
         String normalizedStatus = normalizeStatusKey(status);
         String background = "#E8F1FF";
         String foreground = "#2563EB";
 
-        if ("confirmed".equals(normalizedStatus)) {
+        if ("pending".equals(normalizedStatus)) {
             background = "#FFF4E5";
             foreground = "#D97706";
         } else if ("completed".equals(normalizedStatus)) {
             background = "#EAF8EF";
             foreground = "#15803D";
+        } else if ("cancelled".equals(normalizedStatus)) {
+            background = "#FEE2E2";
+            foreground = "#B91C1C";
         }
 
         Label label = new Label(effectiveStatus);
@@ -432,19 +437,11 @@ public class OrderDetailPanel {
             + order.getCreatedAt().toLocalDate().format(DATE_FORMAT);
     }
 
-    private String displayStatus(String status) {
+    private String statusText(String status) {
         if (status == null || status.isBlank()) {
             return "N/A";
         }
-        return switch (status.trim()) {
-            case "Cho xu ly", "Chờ xử lý" -> "Chờ xử lý";
-            case "Dang xu ly", "Đang xử lý" -> "Đang xử lý";
-            case "Cho xac nhan", "Chờ xác nhận" -> "Chờ xác nhận";
-            case "Dang giao", "Đang giao" -> "Đang giao";
-            case "Da hoan thanh", "Hoan thanh", "Đã hoàn thành", "Hoàn thành" -> "Đã hoàn thành";
-            case "Da huy", "Đã hủy" -> "Đã hủy";
-            default -> status;
-        };
+        return status.trim();
     }
 
     private String displayTransportMethod(String deliveryMethod) {
@@ -463,13 +460,11 @@ public class OrderDetailPanel {
         if (status == null) {
             return "other";
         }
-        return switch (status.trim()) {
-            case "Cho xac nhan", "Chờ xác nhận" -> "confirmed";
-            case "Dang xu ly", "Đang xử lý" -> "processing";
-            case "Dang giao", "Đang giao" -> "shipping";
-            case "Da hoan thanh", "Hoan thanh", "Đã hoàn thành", "Hoàn thành" -> "completed";
-            default -> "other";
-        };
+        String normalized = status.trim().toLowerCase(Locale.ROOT);
+        if (normalized.isBlank()) {
+            return "other";
+        }
+        return normalized;
     }
 
     private int parseOrderId(String orderIdRaw) {

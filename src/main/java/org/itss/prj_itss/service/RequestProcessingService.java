@@ -162,7 +162,7 @@ public final class RequestProcessingService {
                 Order order = new Order();
                 order.setRequestId(requestId);
                 order.setSiteId(siteEntry.getKey());
-                order.setStatus("Chờ xác nhận");
+                order.setStatus("pending");
 
                 int orderId = orderRepository.create(order);
                 if (orderId <= 0) {
@@ -182,7 +182,7 @@ public final class RequestProcessingService {
                 }
             }
 
-            if (!requestRepository.updateStatus(requestId, "Đang xử lý")) {
+            if (!requestRepository.updateStatus(requestId, "processing")) {
                 throw new SQLException("Cannot update request status " + requestId);
             }
         });

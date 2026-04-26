@@ -22,7 +22,7 @@ import static org.itss.prj_itss.ordering.request.process.ui.AllocationViewSuppor
 import static org.itss.prj_itss.ordering.request.process.ui.AllocationViewSupport.addStyleClass;
 import static org.itss.prj_itss.ordering.request.process.ui.AllocationViewSupport.setStateClass;
 
-public class AllocationSection {
+public class AllocationControl {
 
     private static final int MAX_SUGGESTED_PLANS = 10;
     private static final int MAX_ITEM_VARIANTS = 12;
@@ -39,7 +39,7 @@ public class AllocationSection {
     private Runnable onAllocationChanged;
     private Runnable onPlanApplied;
 
-    public AllocationSection(
+    public AllocationControl(
         List<ItemRequirement> items,
         List<SiteStockOption> allSites,
         Set<Integer> excludedSiteIds,

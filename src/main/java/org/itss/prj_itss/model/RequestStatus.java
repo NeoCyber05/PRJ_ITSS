@@ -1,9 +1,9 @@
 package org.itss.prj_itss.model;
 
 public enum RequestStatus {
-    PENDING("Chờ xử lý"),
-    PROCESSING("Đang xử lý"),
-    COMPLETED("Hoàn thành");
+    PENDING("pending"),
+    PROCESSING("processing"),
+    COMPLETED("completed");
 
     private final String displayValue;
 

@@ -14,7 +14,7 @@ import org.itss.prj_itss.dto.RequestProcessingData;
 import org.itss.prj_itss.dto.SiteStockOption;
 import org.itss.prj_itss.layout.INavigator;
 import org.itss.prj_itss.layout.IViewController;
-import org.itss.prj_itss.ordering.request.process.allocation.AllocationSection;
+import org.itss.prj_itss.ordering.request.process.allocation.AllocationControl;
 import org.itss.prj_itss.ordering.request.process.allocation.AllocationSupport;
 import org.itss.prj_itss.ordering.request.process.preview.RequestProcessingPreviewBuilder;
 import org.itss.prj_itss.ordering.request.process.preview.RequestProcessingPreviewDialog;
@@ -47,7 +47,7 @@ public class RequestProcessingController implements IViewController {
     private int requestId = -1;
     private RequestProcessingService requestProcessingService;
     private SiteFilterController siteFilter;
-    private AllocationSection allocationSection;
+    private AllocationControl allocationSection;
     private RequestProcessingItemsView itemsSection;
     private int deadlineDays = 14;
     private int expandedItemIndex = -1;
@@ -154,7 +154,7 @@ public class RequestProcessingController implements IViewController {
                 + "  •  " + items.size() + " mặt hàng"
                 + "  •  " + totalQuantity + " chiếc"
         );
-        requestStatusLabel.setText("Chờ xử lý");
+        requestStatusLabel.setText("pending");
 
         if (allocationContainer != null) {
             allocationContainer.getChildren().clear();
@@ -162,7 +162,7 @@ public class RequestProcessingController implements IViewController {
             allocationContainer.setVisible(false);
         }
 
-        allocationSection = new AllocationSection(
+        allocationSection = new AllocationControl(
             items,
             allSites,
             siteFilter.getExcludedSiteIds(),
@@ -200,7 +200,7 @@ public class RequestProcessingController implements IViewController {
 
     private void handleSiteFilterChanged() {
         AllocationSupport.pruneExcludedAllocations(allocations, siteFilter.getExcludedSiteIds());
-        allocationSection = new AllocationSection(
+        allocationSection = new AllocationControl(
             items,
             allSites,
             siteFilter.getExcludedSiteIds(),

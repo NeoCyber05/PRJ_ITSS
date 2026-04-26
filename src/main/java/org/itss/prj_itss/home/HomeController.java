@@ -7,7 +7,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
 import org.itss.prj_itss.common.config.ApplicationContext;
@@ -90,7 +89,7 @@ public class HomeController implements IViewController {
         pendingRowsContainer.getChildren().clear();
 
         requests.stream()
-            .filter(request -> "Chờ xử lý".equals(request.getStatus()))
+            .filter(request -> "pending".equalsIgnoreCase(request.getStatus()))
             .sorted(Comparator.comparing(this::resolveDeadline, Comparator.nullsLast(Comparator.naturalOrder())))
             .limit(3)
             .map(this::buildPendingRow)

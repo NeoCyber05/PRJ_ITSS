@@ -124,13 +124,13 @@ public class OrderManagementController implements IViewController {
         orderTable.setItems(filteredRows);
 
         statusFilter.getItems().addAll(
-            "Mọi trạng thái",
-            "Chờ xác nhận",
-            "Đang giao",
-            "Đã hoàn thành",
-            "Đã hủy"
+            "all",
+            "pending",
+            "shipping",
+            "completed",
+            "cancelled"
         );
-        statusFilter.setValue("Mọi trạng thái");
+        statusFilter.setValue("all");
 
         searchField.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         statusFilter.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
@@ -185,8 +185,8 @@ public class OrderManagementController implements IViewController {
                 || row.requestCode().toLowerCase(Locale.ROOT).contains(keyword)
                 || row.siteName().toLowerCase(Locale.ROOT).contains(keyword);
             boolean matchesStatus = selectedStatus == null
-                || "Mọi trạng thái".equals(selectedStatus)
-                || selectedStatus.equals(row.status());
+                || "all".equalsIgnoreCase(selectedStatus)
+                || selectedStatus.equalsIgnoreCase(normalizeStatusKey(row.status()));
             return matchesKeyword && matchesStatus;
         });
 
@@ -226,16 +226,11 @@ public class OrderManagementController implements IViewController {
         if (status == null) {
             return "other";
         }
-        return switch (status.trim()) {
-            case "Cho xu ly", "Cho xac nhan",
-                "\u0043h\u1edd x\u1eed l\u00fd", "\u0043h\u1edd x\u00e1c nh\u1eadn" -> "pending";
-            case "Dang xu ly", "\u0110ang x\u1eed l\u00fd" -> "processing";
-            case "Dang giao", "\u0110ang giao" -> "shipping";
-            case "Da hoan thanh", "Hoan thanh",
-                "\u0110\u00e3 ho\u00e0n th\u00e0nh", "Ho\u00e0n th\u00e0nh" -> "completed";
-            case "Da huy", "\u0110\u00e3 h\u1ee7y" -> "cancelled";
-            default -> "other";
-        };
+        String normalized = status.trim().toLowerCase(Locale.ROOT);
+        if (normalized.isBlank()) {
+            return "other";
+        }
+        return normalized;
     }
 
     private record OrderRow(

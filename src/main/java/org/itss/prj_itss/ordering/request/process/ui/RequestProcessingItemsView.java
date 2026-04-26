@@ -11,7 +11,7 @@ import javafx.scene.layout.VBox;
 
 import org.itss.prj_itss.dto.ItemRequirement;
 import org.itss.prj_itss.dto.SiteStockOption;
-import org.itss.prj_itss.ordering.request.process.allocation.AllocationSection;
+import org.itss.prj_itss.ordering.request.process.allocation.AllocationControl;
 import org.itss.prj_itss.ordering.request.process.ui.AllocationViewSupport.ItemAllocationState;
 
 import java.time.LocalDate;
@@ -31,7 +31,7 @@ public final class RequestProcessingItemsView {
     private final List<ItemRequirement> items;
     private final List<SiteStockOption> allSites;
     private final Set<Integer> excludedSiteIds;
-    private final AllocationSection allocationSection;
+    private final AllocationControl allocationSection;
     private final LocalDate earliestDeliveryDate;
     private final int expandedItemIndex;
     private final Runnable onOptimizeRequested;
@@ -45,7 +45,7 @@ public final class RequestProcessingItemsView {
         List<ItemRequirement> items,
         List<SiteStockOption> allSites,
         Set<Integer> excludedSiteIds,
-        AllocationSection allocationSection,
+        AllocationControl allocationSection,
         LocalDate earliestDeliveryDate,
         int expandedItemIndex,
         Runnable onOptimizeRequested,

@@ -107,7 +107,7 @@ public final class RequestDetailPopupController {
                 : "N/A"
         );
         earliestDeadlineValueLabel.setText(earliestDeadline != null ? earliestDeadline.format(DATE_FORMAT) : "N/A");
-        statusContainer.getChildren().setAll(buildStatusBadge(displayStatus(request != null ? request.getStatus() : null)));
+        statusContainer.getChildren().setAll(buildStatusBadge(statusText(request != null ? request.getStatus() : null)));
 
         renderRequestItems(requestItems, context.merchandiseService());
         renderAllocatedOrders(allocatedOrders, context.orderService(), context.siteService());
@@ -196,7 +196,7 @@ public final class RequestDetailPopupController {
             false
         ));
 
-        HBox statusBox = new HBox(buildStatusBadge(displayStatus(order.getStatus())));
+        HBox statusBox = new HBox(buildStatusBadge(statusText(order.getStatus())));
         statusBox.setAlignment(Pos.CENTER_LEFT);
         statusBox.setMinWidth(widths.get(4));
         statusBox.setPrefWidth(widths.get(4));
@@ -299,19 +299,11 @@ public final class RequestDetailPopupController {
         panel.setMaxWidth(width);
     }
 
-    private String displayStatus(String status) {
+    private String statusText(String status) {
         if (status == null || status.isBlank()) {
             return "N/A";
         }
-        return switch (status.trim()) {
-            case "Cho xu ly", "Chờ xử lý" -> "Chờ xử lý";
-            case "Dang xu ly", "Đang xử lý" -> "Đang xử lý";
-            case "Cho xac nhan", "Chờ xác nhận" -> "Chờ xác nhận";
-            case "Dang giao", "Đang giao" -> "Đang giao";
-            case "Da hoan thanh", "Hoan thanh", "Đã hoàn thành", "Hoàn thành" -> "Đã hoàn thành";
-            case "Da huy", "Đã hủy" -> "Đã hủy";
-            default -> status;
-        };
+        return status.trim();
     }
 
     private String displayTransportMethod(String deliveryMethod) {
@@ -360,16 +352,15 @@ public final class RequestDetailPopupController {
     }
 
     private String[] resolveStatusBadgeColors(String status) {
-        if (status == null) {
+        if (status == null || status.isBlank()) {
             return new String[]{"#F3F4F6", "#6B7280"};
         }
-        return switch (status.trim()) {
-            case "Cho xu ly", "Cho xac nhan",
-                "\u0043h\u1edd x\u1eed l\u00fd", "\u0043h\u1edd x\u00e1c nh\u1eadn" -> new String[]{"#FFF4E5", "#D97706"};
-            case "Dang xu ly", "\u0110ang x\u1eed l\u00fd" -> new String[]{"#E8F1FF", "#2563EB"};
-            case "Dang giao", "\u0110ang giao" -> new String[]{"#F2EAFF", "#7C3AED"};
-            case "Da hoan thanh", "Hoan thanh",
-                "\u0110\u00e3 ho\u00e0n th\u00e0nh", "Ho\u00e0n th\u00e0nh" -> new String[]{"#EAF8EF", "#15803D"};
+        return switch (status.trim().toLowerCase()) {
+            case "pending" -> new String[]{"#FFF4E5", "#D97706"};
+            case "processing" -> new String[]{"#E8F1FF", "#2563EB"};
+            case "shipping" -> new String[]{"#F2EAFF", "#7C3AED"};
+            case "completed" -> new String[]{"#EAF8EF", "#15803D"};
+            case "cancelled" -> new String[]{"#FEE2E2", "#B91C1C"};
             default -> new String[]{"#F3F4F6", "#6B7280"};
         };
     }
