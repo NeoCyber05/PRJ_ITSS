@@ -57,8 +57,10 @@ public final class RequestDetailPopup {
         double requestExpandedWidth = Math.min(980, dialogMaxWidth);
         double panelSpacing = 32;
         double maxPanelsTotalWidth = dialogMaxWidth - panelSpacing;
-        double requestCollapsedWidth = Math.max(400, Math.min(780, maxPanelsTotalWidth * 0.46));
-        double orderPanelWidth = Math.min(880, maxPanelsTotalWidth - requestCollapsedWidth);
+        double requestCollapsedMinWidth = 780;
+        double orderPanelMinWidth = 540;
+        double requestCollapsedWidth = Math.max(requestCollapsedMinWidth, Math.min(820, maxPanelsTotalWidth * 0.48));
+        double orderPanelWidth = Math.min(880, Math.max(orderPanelMinWidth, maxPanelsTotalWidth - requestCollapsedWidth));
 
         StackPane root = loadRoot(
             dialog,
