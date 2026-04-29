@@ -26,7 +26,7 @@
                     </padding>
                     <children>
                         <HBox fx:id="dialogShell"
-                              spacing="20"
+                              spacing="32"
                               alignment="TOP_CENTER">
                             <children>
                                 <VBox fx:id="requestCard"
