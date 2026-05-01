@@ -34,4 +34,12 @@ public final class RequestService {
     public LocalDate getEarliestDeliveryDate(int requestId) {
         return requestRepository.getEarliestDeliveryDate(requestId);
     }
+
+    public void updateRequestItems(int requestId, List<RequestMerchandise> items, String note) throws Exception {
+        requestRepository.updateRequestItems(requestId, items, note);
+    }
+
+    public boolean deleteRequest(int requestId) {
+        return requestRepository.deleteById(requestId);
+    }
 }

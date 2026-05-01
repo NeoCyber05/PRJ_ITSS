@@ -28,6 +28,8 @@ public class MainLayoutController implements INavigator {
 
     private static final String ORDER_DETAIL_PREFIX = "order-detail:";
     private static final String REQUEST_PROCESSING_PREFIX = "request-processing:";
+    private static final String SALES_REQUEST_UPDATE_PREFIX = "sales-request-update:";
+    private static final String SALES_REQUEST_DETAIL_PREFIX = "sales-request-detail:";
 
     private final Map<String, Button> navButtons = new LinkedHashMap<>();
     private final Map<String, LoadedView> cachedViews = new HashMap<>();
@@ -67,11 +69,18 @@ public class MainLayoutController implements INavigator {
     private VBox ordersNavContainer;
 
     @FXML
+    private Button salesRequestsButton;
+
+    @FXML
+    private VBox salesNavContainer;
+
+    @FXML
     private void initialize() {
         registerNavButton("home", homeButton);
         registerNavButton("site-management", siteManagementButton);
         registerNavButton("received-requests", receivedRequestsButton);
         registerNavButton("orders", ordersButton);
+        registerNavButton("sales-requests", salesRequestsButton);
     }
 
     public void setUser(AuthenticatedUser user) {
@@ -144,6 +153,12 @@ public class MainLayoutController implements INavigator {
         if (viewId.startsWith("role-workspace")) {
             return "home";
         }
+        if (viewId.startsWith(SALES_REQUEST_UPDATE_PREFIX) || viewId.startsWith(SALES_REQUEST_DETAIL_PREFIX)) {
+            return "sales-requests";
+        }
+        if ("sales-request-create".equals(viewId)) {
+            return "sales-requests";
+        }
         return viewId;
     }
 
@@ -158,13 +173,17 @@ public class MainLayoutController implements INavigator {
             return loadRequestProcessingView(requestId);
         }
 
+        if (viewId.startsWith(SALES_REQUEST_DETAIL_PREFIX)) {
+            return getOrLoadCachedView("sales-requests", "/org/itss/prj_itss/sales/request/sales-request-list-view.fxml");
+        }
+
         return switch (viewId) {
             case "home" -> getOrLoadCachedView("home", "/org/itss/prj_itss/home/home-view.fxml");
             case "site-management" -> getOrLoadCachedView("site-management", "/org/itss/prj_itss/ordering/site/site-management-view.fxml");
             case "received-requests" -> getOrLoadCachedView("received-requests", "/org/itss/prj_itss/ordering/request/received/received-requests-view.fxml");
             case "orders" -> getOrLoadCachedView("orders", "/org/itss/prj_itss/ordering/order/order-management-view.fxml");
+            case "sales-requests" -> getOrLoadCachedView("sales-requests", "/org/itss/prj_itss/sales/request/sales-request-list-view.fxml");
             case "sales-request-create" -> getOrLoadCachedView("sales-request-create", "/org/itss/prj_itss/sales/request/create/create-order-request-view.fxml");
-            case "sales-request-update" -> getOrLoadCachedView("sales-request-update", "/org/itss/prj_itss/sales/request/update/update-order-request-view.fxml");
             case "warehouse-order-confirm-arrival" -> getOrLoadCachedView("warehouse-order-confirm-arrival", "/org/itss/prj_itss/warehouse/order/confirm_arrival/confirm-order-arrival-view.fxml");
             case "ordering-order-handle-cancellation" -> getOrLoadCachedView("ordering-order-handle-cancellation", "/org/itss/prj_itss/ordering/order/handle_cancellation/handle-order-cancellation-view.fxml");
             case "role-workspace" -> getOrLoadCachedView("role-workspace", "/org/itss/prj_itss/auth/workspace/role-workspace-view.fxml");
@@ -250,9 +269,14 @@ public class MainLayoutController implements INavigator {
         userNameLabel.setText(currentUser.displayName());
         userRoleLabel.setText(currentUser.roleName());
 
-        boolean orderingRole = RoleType.from(currentUser).isOrderingRole();
+        RoleType role = RoleType.from(currentUser);
+        boolean orderingRole = role.isOrderingRole();
         ordersNavContainer.setVisible(orderingRole);
         ordersNavContainer.setManaged(orderingRole);
+
+        boolean salesRole = role.isSalesRole();
+        salesNavContainer.setVisible(salesRole);
+        salesNavContainer.setManaged(salesRole);
     }
 
     @FXML

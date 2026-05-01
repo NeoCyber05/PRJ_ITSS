@@ -50,6 +50,10 @@ public enum RoleType {
         return this == ORDERING;
     }
 
+    public boolean isSalesRole() {
+        return this == SALES;
+    }
+
     private static String normalizeText(String value) {
         if (value == null) {
             return "";

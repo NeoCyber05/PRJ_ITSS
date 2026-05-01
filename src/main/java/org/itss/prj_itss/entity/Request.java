@@ -15,14 +15,16 @@ public class Request {
     private int id;
     private LocalDateTime createdAt;
     private String status;
+    private String note;
 
     public Request() {
     }
 
-    public Request(int id, LocalDateTime createdAt, String status) {
+    public Request(int id, LocalDateTime createdAt, String status, String note) {
         this.id = id;
         this.createdAt = createdAt;
         this.status = status;
+        this.note = note;
     }
 
     public int getId() {
@@ -49,12 +51,21 @@ public class Request {
         this.status = status;
     }
 
+    public String getNote() {
+        return note;
+    }
+
+    public void setNote(String note) {
+        this.note = note;
+    }
+
     @Override
     public String toString() {
         return "Request{" +
                 "id=" + id +
                 ", createdAt=" + createdAt +
                 ", status='" + status + '\'' +
+                ", note='" + note + '\'' +
                 '}';
     }
 }

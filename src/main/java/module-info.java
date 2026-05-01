@@ -11,6 +11,7 @@ module org.itss.prj_itss {
     requires org.kordamp.bootstrapfx.core;
 
     requires java.sql;
+    requires java.desktop;
 
     opens org.itss.prj_itss.layout to javafx.fxml;
     opens org.itss.prj_itss.auth.login to javafx.fxml;
@@ -24,8 +25,10 @@ module org.itss.prj_itss {
     opens org.itss.prj_itss.ordering.request.process.preview to javafx.fxml;
     opens org.itss.prj_itss.ordering.request.process.site to javafx.fxml;
     opens org.itss.prj_itss.ordering.order to javafx.fxml;
+    opens org.itss.prj_itss.sales.request to javafx.fxml;
     opens org.itss.prj_itss.sales.request.create to javafx.fxml;
     opens org.itss.prj_itss.sales.request.update to javafx.fxml;
+    opens org.itss.prj_itss.sales.request.view to javafx.fxml;
     opens org.itss.prj_itss.warehouse.order.confirm_arrival to javafx.fxml;
     exports org.itss.prj_itss;
     exports org.itss.prj_itss.entity;

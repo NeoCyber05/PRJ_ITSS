@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.itss.prj_itss.sales.request.view.ViewOrderRequestController"
+            styleClass="sr-edit-root">
+
+    <!-- ── Header ── -->
+    <top>
+        <HBox alignment="CENTER_LEFT" styleClass="sr-edit-header">
+            <Label fx:id="headerTitle" text="Chi tiết yêu cầu" styleClass="sr-edit-title"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="closeButton" text="✕" styleClass="request-detail-close-button"/>
+        </HBox>
+    </top>
+
+    <!-- ── Center ── -->
+    <center>
+        <VBox spacing="28" style="-fx-padding: 28 32; -fx-background-color: white;">
+
+            <!-- Summary row -->
+            <HBox spacing="40" styleClass="sr-edit-summary-row">
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <Label text="MÃ YÊU CẦU" styleClass="request-detail-summary-label"/>
+                    <Label fx:id="requestCodeLabel" text="YC-..." styleClass="request-detail-summary-value"/>
+                </VBox>
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <Label text="NGÀY TẠO" styleClass="request-detail-summary-label"/>
+                    <Label fx:id="createdAtLabel" text="--/--/----" styleClass="request-detail-summary-value"/>
+                </VBox>
+                <VBox spacing="6" HBox.hgrow="ALWAYS">
+                    <Label text="TRẠNG THÁI" styleClass="request-detail-summary-label"/>
+                    <HBox fx:id="statusBadge" alignment="CENTER_LEFT" spacing="6"
+                          style="-fx-background-color: #FEF3C7; -fx-background-radius: 12; -fx-padding: 4 12;"/>
+                </VBox>
+            </HBox>
+
+            <!-- Note -->
+            <VBox spacing="8">
+                <Label text="GHI CHÚ YÊU CẦU THÊM" styleClass="request-detail-summary-label"/>
+                <javafx.scene.control.TextArea fx:id="noteArea" prefRowCount="2"
+                    style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #374151; -fx-font-size: 13px;"/>
+            </VBox>
+
+            <!-- Items table -->
+            <VBox spacing="14">
+                <Label text="Danh sách mặt hàng" styleClass="request-detail-section-title"/>
+                <VBox styleClass="sr-edit-table-shell">
+                    <HBox styleClass="sr-edit-table-header">
+                        <Label text="MÃ HÀNG"   prefWidth="140" styleClass="sr-edit-th"/>
+                        <Label text="TÊN"       prefWidth="300" styleClass="sr-edit-th" HBox.hgrow="ALWAYS"/>
+                        <Label text="SỐ LƯỢNG"  prefWidth="130" styleClass="sr-edit-th"/>
+                        <Label text="ĐƠN VỊ"   prefWidth="100" styleClass="sr-edit-th"/>
+                        <Label text="NGÀY NHẬN MONG MUỐN" prefWidth="200" styleClass="sr-edit-th"/>
+                    </HBox>
+                    <TableView fx:id="itemsTable"
+                               style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-table-header-border-color: transparent;">
+                        <columns>
+                            <TableColumn fx:id="merchandiseCodeColumn" text="" prefWidth="140"/>
+                            <TableColumn fx:id="merchandiseNameColumn" text="" prefWidth="300"/>
+                            <TableColumn fx:id="quantityColumn"        text="" prefWidth="130"/>
+                            <TableColumn fx:id="unitColumn"            text="" prefWidth="100"/>
+                            <TableColumn fx:id="desiredDateColumn"     text="" prefWidth="200"/>
+                        </columns>
+                    </TableView>
+                </VBox>
+            </VBox>
+        </VBox>
+    </center>
+
+    <!-- ── Footer ── -->
+    <bottom>
+        <HBox alignment="CENTER_RIGHT" styleClass="sr-edit-footer">
+            <Button fx:id="cancelButton" text="Đóng" styleClass="forest-outline-button"
+                    style="-fx-padding: 9 24; -fx-font-size: 13px;"/>
+        </HBox>
+    </bottom>
+
+</BorderPane>

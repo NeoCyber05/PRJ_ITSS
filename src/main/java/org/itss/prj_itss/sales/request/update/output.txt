@@ -1,0 +1,538 @@
+1. Use case “Sửa yêu cầu đặt hàng”
+Đây là một usecase nhằm mục đích sửa yêu cầu đặt hàng
+Mã Use case
+
+UC002
+
+Tác nhân
+
+Bộ phận bán hàng
+
+Tiền điều kiện
+
+Luồng sự kiện chính
+(Thành công)
+
+Chỉnh
+sửa yêu
+cầu đặt
+hàng
+
+Tên
+Use
+case
+
+Bộ phận bán hàng đã đăng
+nhập. Yêu cầu nhập hàng tồn
+tại. Yêu cầu ở trạng thái
+Pending
+
+STT
+
+Thực
+hiện
+bởi
+
+Hành
+động
+
+1
+
+Bộ
+phận
+bán
+hàng
+
+chọn chức
+năng
+"Chỉnh
+sửa" trên
+một
+yêu
+cầu nhập
+hàng cụ thể
+trong danh
+sách
+yêu
+cầu nhập
+hàng.
+
+2
+
+Hệ
+thống
+
+tiếp nhận
+yêu
+cầu
+chỉnh sửa,
+sử dụng mã
+yêu
+cầu
+nhập hàng
+(ID)
+để
+kiểm
+tra
+trạng thái
+của yêu cầu
+trong
+hệ
+thống.
+
+3
+
+Hệ
+thống
+
+kiểm
+tra
+nếu yêu cầu
+nhập hàng
+đang
+ở
+trạng thái
+
+Pending
+(chờ xử lý)
+thì tiếp tục
+xử
+lý;
+ngược lại
+chuyển
+sang luồng
+thay thế.
+4
+
+Hệ
+thống
+
+5
+
+Bộ
+phận
+đặt
+hàng
+
+6
+7
+
+Bộ
+phận
+bán
+hàng
+Hệ
+thống
+
+sử dụng mã
+yêu
+cầu
+nhập hàng
+(ID) để truy
+vấn và lấy
+toàn
+bộ
+thông tin chi
+tiết của yêu
+cầu
+nhập
+hàng,
+bao
+gồm(Danh
+sách
+sản
+phẩm,
+Mã
+sản
+phẩm,
+Tên
+sản
+phẩm,
+Số
+lượng
+yêu
+cầu
+nhập,
+Các thông tin
+liên
+quan
+khác)
+
+thực
+hiện
+chỉnh
+sửa
+thông tin của
+yêu cầu nhập
+hàng,
+bao
+gồm( Thêm
+sản
+phẩm
+mới, Xóa sản
+phẩm khỏi
+danh sách,
+Cập nhật số
+lượng
+của
+từng
+sản
+phẩm)
+
+nhấn "Lưu
+thay đổi"
+
+thực hiện
+kiểm tra tính
+hợp lệ của
+
+dữ liệu nhập
+vào, bao
+gồm( Số
+lượng của
+từng sản
+phẩm phải là
+số nguyên
+dương (> 0),
+Mã sản
+phẩm phải
+tồn tại trong
+hệ thống,
+Các trường
+dữ liệu phải
+đúng định
+dạng quy
+định)
+
+Luồng sự kiện thay thế
+
+8.
+
+Hệ
+thống
+
+tiến hành
+cập
+nhật
+thông tin
+yêu
+cầu
+nhập hàng
+vào cơ sở
+dữ liệu.
+
+9.
+
+Hệ
+thống
+
+hiển
+thị
+thông báo:
+"Cập nhật
+yêu
+cầu
+nhập hàng
+thành
+công".
+
+STT
+
+Thực
+hiện
+bởi
+
+Hành
+động
+
+2a
+
+Hệ
+thống
+
+2a.1
+
+Hệ
+thống
+
+Tại bước 3,
+nếu yêu cầu
+nhập hàng
+không
+ở
+trạng
+thái
+Pending, hệ
+thống hiển
+thị
+thông
+báo: "Không
+thể chỉnh sửa
+yêu cầu nhập
+hàng đã được
+xử lý hoặc
+không
+ở
+trạng
+thái
+chờ"
+Kết thúc Use
+Case
+
+2b
+
+Hệ
+thống
+
+2b.1
+
+Hệ
+thống
+
+6a
+
+Bộ
+phận
+đặt
+hàng
+
+6a.1
+
+Hệ
+thống
+
+8a.
+
+Hệ
+thống
+
+8a.1
+
+Hệ
+thống
+
+8a.2
+
+Hệ
+thống
+
+9a
+
+Hệ
+thống
+
+Tại bước 4,
+nếu không
+tìm thấy yêu
+cầu
+nhập
+hàng theo mã
+ID đã cung
+cấp, hệ thống
+hiển
+thị
+thông báo:
+"Không tìm
+thấy yêu cầu
+nhập hàng"
+Kết thúc Use
+Case
+Tại bước 6,
+chọn
+chức
+năng "Hủy"
+
+Hủy thao tác
+chỉnh sửa và
+chuyển
+về
+màn
+hình
+danh
+sách
+yêu cầu nhập
+hàng
+
+Tại bước 8,
+nếu dữ liệu
+nhập không
+hợp lệ (ví dụ:
+số lượng ≤ 0,
+sai
+định
+dạng, mã sản
+phẩm không
+tồn tại), hệ
+thống hiển
+thị thông báo
+lỗi
+tương
+ứng với từng
+trường
+dữ
+liệu
+Yêu cầu bộ
+phận
+đặt
+hàng nhập lại
+dữ liệu
+Quay
+lại
+bước 6 của
+luồng chính
+
+Tại bước 9,
+nếu xảy ra
+lỗi trong quá
+trình
+cập
+nhật dữ liệu,
+hệ thống hiển
+thị
+thông
+
+9a.1
+
+Hậu điều kiện
+
+
+
+
+
+
+Hệ
+thống
+
+báo: "Có lỗi
+xảy ra trong
+quá trình cập
+nhật,
+vui
+lòng thử lại"
+Cho phép bộ
+phận
+đặt
+hàng
+thực
+hiện lại thao
+tác lưu
+
+Thông tin của yêu
+cầu nhập hàng đã
+được cập nhật thành
+công trong hệ thống
+Dữ liệu cập nhật
+được lưu trữ vào cơ
+sở dữ liệu
+
+Yêu cầu nhập hàng
+vẫn ở trạng thái
+Pending và sẵn sàng
+cho các bước xử lý
+tiếp theo
+
+* Dữ liệu đầu vào của thông tin cá nhân gồm các trường dữ liệu sau:
+STT
+
+1.
+2.
+3.
+
+Trường dữ
+liệu
+
+Mô tả
+
+Bắt buộc?
+
+Điều kiện hợp lệ
+
+Ví dụ
+
+Mã hàng
+
+Mã định danh của mặt
+hàng cần nhập
+
+Có
+
+Phải tồn tại trong danh mục sản phẩm
+của hệ thống
+
+MH001
+
+Số lượng cần
+đặt
+
+Số lượng hàng mà bộ
+phận bán hàng yêu cầu
+nhập
+
+Có
+
+Là số nguyên dương (> 0)
+
+10
+
+Danh
+sách
+mặt hàng
+
+Danh sách các mặt hàng
+thuộc yêu cầu nhập hàng
+
+Có
+
+- Phải có ít nhất 1 mặt hàng
+
+3 mặt hàng
+khác nhau
+
+- Mỗi mặt hàng phải có mã hàng hợp lệ
+
+- Không được trùng mã hàng trong
+cùng danh sách
+
+4.
+
+5.
+
+Ghi chú yêu
+cầu thêm
+
+Thông tin bổ sung cho
+yêu cầu đặt hàng
+
+Có
+
+Thời điểm tạo
+
+Thời điểm hệ thống ghi
+nhận yêu cầu nhập hàng
+
+Không (tự
+động)
+
+Activity diagram
+
+Độ dài tối đa 255 ký tự
+
+Hàng cần nhập
+gấp
+
+Hệ thống tự động sinh theo định dạng
+datetime (dd/MM/yyyy HH:mm:ss)
+
+10/06/2026
+12:20:00
+
+- Không chứa ký tự đặc biệt bị cấm
+(nếu có quy định)
+
+Sequence Diagram
+
+Class Diagram
+
+Sơ đồ chuyển màn hình
+
+
