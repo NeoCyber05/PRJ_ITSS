@@ -112,11 +112,10 @@ public class SalesRequestListController implements IViewController {
         searchField.textProperty().addListener((obs, oldVal, newVal) -> { currentPage = 1; applyFilters(); });
         statusFilter.valueProperty().addListener((obs, oldVal, newVal) -> { currentPage = 1; applyFilters(); });
 
-        createRequestButton.setStyle(
-            "-fx-background-color: #253D2C; -fx-text-fill: white; -fx-background-radius: 8; " +
-            "-fx-font-size: 13px; -fx-font-weight: bold; -fx-padding: 10 20; -fx-cursor: hand;"
+        createRequestButton.getStyleClass().add("btn-create-request");
+        createRequestButton.setOnAction(event -> 
+            org.itss.prj_itss.sales.request.create.CreateOrderRequestPopup.show(requestTable.getScene().getWindow(), this::reload)
         );
-        createRequestButton.setOnAction(event -> navigator.showView("sales-request-create"));
     }
 
     @Override

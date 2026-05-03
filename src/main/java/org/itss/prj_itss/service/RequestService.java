@@ -39,6 +39,10 @@ public final class RequestService {
         requestRepository.updateRequestItems(requestId, items, note);
     }
 
+    public int createRequest(List<RequestMerchandise> items, String note) throws Exception {
+        return requestRepository.createRequest(items, note);
+    }
+
     public boolean deleteRequest(int requestId) {
         return requestRepository.deleteById(requestId);
     }

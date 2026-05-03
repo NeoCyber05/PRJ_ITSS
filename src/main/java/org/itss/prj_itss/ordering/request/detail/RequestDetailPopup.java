@@ -44,9 +44,9 @@ public final class RequestDetailPopup {
         Request request = requestService.findById(requestId);
         List<RequestMerchandise> requestItems = requestService.findItemsByRequestId(requestId);
         List<Order> allocatedOrders = orderService.findAll().stream()
-            .filter(order -> order.getRequestId() == requestId)
-            .sorted(Comparator.comparingInt(Order::getId))
-            .toList();
+                .filter(order -> order.getRequestId() == requestId)
+                .sorted(Comparator.comparingInt(Order::getId))
+                .toList();
         LocalDate earliestDeadline = requestService.getEarliestDeliveryDate(requestId);
 
         Stage dialog = createDialog(owner);
@@ -59,18 +59,17 @@ public final class RequestDetailPopup {
         double orderPanelWidth = Math.max(740, Math.min(880, dialogMaxWidth - requestCollapsedWidth - 20));
 
         StackPane root = loadRoot(
-            dialog,
-            requestCode,
-            context,
-            request,
-            requestItems,
-            allocatedOrders,
-            earliestDeadline,
-            sceneWidth,
-            requestCollapsedWidth,
-            requestExpandedWidth,
-            orderPanelWidth
-        );
+                dialog,
+                requestCode,
+                context,
+                request,
+                requestItems,
+                allocatedOrders,
+                earliestDeadline,
+                sceneWidth,
+                requestCollapsedWidth,
+                requestExpandedWidth,
+                orderPanelWidth);
 
         Scene scene = new Scene(root, sceneWidth, sceneHeight);
         scene.setFill(Color.TRANSPARENT);
@@ -96,38 +95,35 @@ public final class RequestDetailPopup {
     }
 
     private static StackPane loadRoot(
-        Stage dialog,
-        String requestCode,
-        ApplicationContext context,
-        Request request,
-        List<RequestMerchandise> requestItems,
-        List<Order> allocatedOrders,
-        LocalDate earliestDeadline,
-        double sceneWidth,
-        double requestCollapsedWidth,
-        double requestExpandedWidth,
-        double orderPanelWidth
-    ) {
+            Stage dialog,
+            String requestCode,
+            ApplicationContext context,
+            Request request,
+            List<RequestMerchandise> requestItems,
+            List<Order> allocatedOrders,
+            LocalDate earliestDeadline,
+            double sceneWidth,
+            double requestCollapsedWidth,
+            double requestExpandedWidth,
+            double orderPanelWidth) {
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
-                RequestDetailPopup.class.getResource(VIEW_RESOURCE),
-                "Missing request detail popup FXML"
-            ));
+                    RequestDetailPopup.class.getResource(VIEW_RESOURCE),
+                    "Missing request detail popup FXML"));
             StackPane root = loader.load();
             RequestDetailPopupController controller = loader.getController();
             controller.init(
-                dialog,
-                requestCode,
-                context,
-                request,
-                requestItems,
-                allocatedOrders,
-                earliestDeadline,
-                sceneWidth,
-                requestCollapsedWidth,
-                requestExpandedWidth,
-                orderPanelWidth
-            );
+                    dialog,
+                    requestCode,
+                    context,
+                    request,
+                    requestItems,
+                    allocatedOrders,
+                    earliestDeadline,
+                    sceneWidth,
+                    requestCollapsedWidth,
+                    requestExpandedWidth,
+                    orderPanelWidth);
             return root;
         } catch (IOException exception) {
             throw new IllegalStateException("Cannot load request detail popup", exception);

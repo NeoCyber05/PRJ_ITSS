@@ -155,6 +155,52 @@ public class RequestRepository extends RepositorySupport implements IRequestRepo
     }
 
     @Override
+    public int createRequest(List<RequestMerchandise> items, String note) throws Exception {
+        Connection conn = getConnection();
+        boolean originalAutoCommit = conn.getAutoCommit();
+        try {
+            conn.setAutoCommit(false);
+            
+            int requestId = -1;
+            String insertRequestSql = "INSERT INTO request (status, note, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)";
+            try (PreparedStatement ps = conn.prepareStatement(insertRequestSql, Statement.RETURN_GENERATED_KEYS)) {
+                ps.setString(1, "pending");
+                ps.setString(2, note);
+                ps.executeUpdate();
+                try (ResultSet rs = ps.getGeneratedKeys()) {
+                    if (rs.next()) requestId = rs.getInt(1);
+                }
+            }
+
+            if (requestId == -1) throw new SQLException("Failed to create request, no ID obtained.");
+
+            String insertItemSql = "INSERT INTO request_merchandise (request_id, merchandise_id, quantity_ordered, desired_delivery_date) VALUES (?, ?, ?, ?)";
+            try (PreparedStatement ps = conn.prepareStatement(insertItemSql)) {
+                for (RequestMerchandise item : items) {
+                    ps.setInt(1, requestId);
+                    ps.setInt(2, item.getMerchandiseId());
+                    ps.setBigDecimal(3, item.getQuantityOrdered());
+                    if (item.getDesiredDeliveryDate() != null) {
+                        ps.setDate(4, Date.valueOf(item.getDesiredDeliveryDate()));
+                    } else {
+                        ps.setNull(4, Types.DATE);
+                    }
+                    ps.addBatch();
+                }
+                ps.executeBatch();
+            }
+            
+            conn.commit();
+            return requestId;
+        } catch (Exception e) {
+            conn.rollback();
+            throw e;
+        } finally {
+            conn.setAutoCommit(originalAutoCommit);
+        }
+    }
+
+    @Override
     public boolean deleteById(int requestId) {
         try {
             Connection conn = getConnection();

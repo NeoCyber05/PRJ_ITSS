@@ -45,11 +45,11 @@ class AllocationPlanningServiceTest {
         SiteStockOption priority = site(2, 4, 2, 10, 6);
 
         Map<Integer, Map<Integer, Allocation>> result = service.buildOptimalAllocation(
-            List.of(item),
-            List.of(normal, priority),
-            Set.of(),
-            Set.of(priority.id),
-            10
+                List.of(item),
+                List.of(normal, priority),
+                Set.of(),
+                Set.of(priority.id),
+                10
         );
 
         assertEquals(6, result.get(item.merchandiseId).get(priority.id).getQuantity());
@@ -63,11 +63,11 @@ class AllocationPlanningServiceTest {
         SiteStockOption available = site(2, 4, 2, 10, 3);
 
         Map<Integer, Map<Integer, Allocation>> result = service.buildOptimalAllocation(
-            List.of(item),
-            List.of(excluded, available),
-            Set.of(excluded.id),
-            Set.of(),
-            10
+                List.of(item),
+                List.of(excluded, available),
+                Set.of(excluded.id),
+                Set.of(),
+                10
         );
 
         Map<Integer, Allocation> allocations = result.get(item.merchandiseId);
@@ -81,13 +81,13 @@ class AllocationPlanningServiceTest {
 
     private SiteStockOption site(int id, int shipDays, int airDays, int merchandiseId, int stock) {
         return new SiteStockOption(
-            id,
-            "S" + id,
-            "Site " + id,
-            "",
-            shipDays,
-            airDays,
-            Map.of(merchandiseId, stock)
+                id,
+                "S" + id,
+                "Site " + id,
+                "",
+                shipDays,
+                airDays,
+                Map.of(merchandiseId, stock)
         );
     }
 }

@@ -14,5 +14,6 @@ public interface IRequestRepository {
     LocalDate getEarliestDeliveryDate(int requestId);
     boolean updateStatus(int requestId, String newStatus);
     void updateRequestItems(int requestId, List<RequestMerchandise> items, String note) throws Exception;
+    int createRequest(List<RequestMerchandise> items, String note) throws Exception;
     boolean deleteById(int requestId);
 }

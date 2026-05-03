@@ -26,13 +26,11 @@ public class App extends Application {
     public void start(Stage stage) {
         this.primaryStage = stage;
         this.mainStylesheet = Objects.requireNonNull(
-            getClass().getResource("/org/itss/prj_itss/styles/main-style.css"),
-            "Missing main stylesheet"
-        ).toExternalForm();
+                getClass().getResource("/org/itss/prj_itss/styles/main-style.css"),
+                "Missing main stylesheet").toExternalForm();
         Image appIcon = new Image(Objects.requireNonNull(
-            getClass().getResource("/org/itss/prj_itss/images/logo.png"),
-            "Missing app icon"
-        ).toExternalForm());
+                getClass().getResource("/org/itss/prj_itss/images/logo.png"),
+                "Missing app icon").toExternalForm());
 
         stage.setTitle("Hệ thống đặt hàng nhập khẩu");
         stage.setMinWidth(1100);
@@ -45,9 +43,8 @@ public class App extends Application {
     private void showLogin() {
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
-                getClass().getResource("/org/itss/prj_itss/auth/login/login-view.fxml"),
-                "Missing login view"
-            ));
+                    getClass().getResource("/org/itss/prj_itss/auth/login/login-view.fxml"),
+                    "Missing login view"));
             Parent root = loader.load();
             LoginController controller = loader.getController();
             controller.configure(context.authenticationService(), this::showMainLayout);
@@ -80,9 +77,8 @@ public class App extends Application {
     private void showMainLayout(AuthenticatedUser user) {
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
-                getClass().getResource("/org/itss/prj_itss/layout/main-layout.fxml"),
-                "Missing main layout FXML"
-            ));
+                    getClass().getResource("/org/itss/prj_itss/layout/main-layout.fxml"),
+                    "Missing main layout FXML"));
             Parent root = loader.load();
             MainLayoutController controller = loader.getController();
             controller.setUser(user);

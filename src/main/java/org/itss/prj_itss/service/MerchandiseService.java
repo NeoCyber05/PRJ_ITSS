@@ -21,6 +21,10 @@ public final class MerchandiseService {
         return merchandiseRepository.findById(id);
     }
 
+    public Merchandise findByCode(String code) {
+        return merchandiseRepository.findByCode(code);
+    }
+
     public int countAll() {
         return merchandiseRepository.countAll();
     }

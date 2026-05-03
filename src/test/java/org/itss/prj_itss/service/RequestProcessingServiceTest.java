@@ -55,8 +55,8 @@ class RequestProcessingServiceTest {
 
         Map<Integer, Map<Integer, Allocation>> allocations = new LinkedHashMap<>();
         allocations.put(10, Map.of(
-            1, allocation(1, 10, 2),
-            2, allocation(2, 10, 3)
+                1, allocation(1, 10, 2),
+                2, allocation(2, 10, 3)
         ));
 
         service.createAllocatedOrders(99, allocations);
@@ -86,11 +86,11 @@ class RequestProcessingServiceTest {
         SiteStockOption site = new SiteStockOption(1, "S1", "Site 1", "", 6, 2, Map.of(item.merchandiseId, 5));
 
         String validationMessage = service.validateSubmission(
-            List.of(item),
-            List.of(site),
-            allocations(item.merchandiseId, allocation(1, item.merchandiseId, 5)),
-            Map.of(item.merchandiseId, LocalDate.now().plusDays(3)),
-            14
+                List.of(item),
+                List.of(site),
+                allocations(item.merchandiseId, allocation(1, item.merchandiseId, 5)),
+                Map.of(item.merchandiseId, LocalDate.now().plusDays(3)),
+                14
         );
 
         assertEquals("Không đáp ứng ngày nhận mong muốn", validationMessage);
@@ -103,11 +103,11 @@ class RequestProcessingServiceTest {
         SiteStockOption site = new SiteStockOption(1, "S1", "Site 1", "", 2, 5, Map.of(item.merchandiseId, 5));
 
         String validationMessage = service.validateSubmission(
-            List.of(item),
-            List.of(site),
-            allocations(item.merchandiseId, allocation(1, item.merchandiseId, 5)),
-            Map.of(item.merchandiseId, LocalDate.now().plusDays(4)),
-            14
+                List.of(item),
+                List.of(site),
+                allocations(item.merchandiseId, allocation(1, item.merchandiseId, 5)),
+                Map.of(item.merchandiseId, LocalDate.now().plusDays(4)),
+                14
         );
 
         assertNull(validationMessage);
@@ -116,33 +116,33 @@ class RequestProcessingServiceTest {
     @Test
     void loadProcessingDataOnlyQueriesSitesAvailableForRequestedMerchandise() {
         RecordingSiteRepository siteRepository = new RecordingSiteRepository(List.of(
-            new Site(1, "S1", "Site 1", "", 2, 1)
+                new Site(1, "S1", "Site 1", "", 2, 1)
         ));
         RequestProcessingService service = new RequestProcessingService(
-            new EmptyRequestRepository() {
-                @Override
-                public List<RequestMerchandise> findItemsByRequestId(int requestId) {
-                    return List.of(
-                        new RequestMerchandise(requestId, 10, BigDecimal.valueOf(2), LocalDate.now().plusDays(7)),
-                        new RequestMerchandise(requestId, 11, BigDecimal.valueOf(3), LocalDate.now().plusDays(8))
-                    );
-                }
-            },
-            new FakeOrderRepository(),
-            siteRepository,
-            new EmptyInventoryRepository() {
-                @Override
-                public Map<Integer, Integer> getInventoryBySiteId(int siteId) {
-                    return Map.of(10, 5);
-                }
-            },
-            new EmptyMerchandiseRepository() {
-                @Override
-                public Merchandise findById(int id) {
-                    return new Merchandise(id, "M" + id, "Item " + id, "pcs");
-                }
-            },
-            new RecordingTransactionRunner()
+                new EmptyRequestRepository() {
+                    @Override
+                    public List<RequestMerchandise> findItemsByRequestId(int requestId) {
+                        return List.of(
+                                new RequestMerchandise(requestId, 10, BigDecimal.valueOf(2), LocalDate.now().plusDays(7)),
+                                new RequestMerchandise(requestId, 11, BigDecimal.valueOf(3), LocalDate.now().plusDays(8))
+                        );
+                    }
+                },
+                new FakeOrderRepository(),
+                siteRepository,
+                new EmptyInventoryRepository() {
+                    @Override
+                    public Map<Integer, Integer> getInventoryBySiteId(int siteId) {
+                        return Map.of(10, 5);
+                    }
+                },
+                new EmptyMerchandiseRepository() {
+                    @Override
+                    public Merchandise findById(int id) {
+                        return new Merchandise(id, "M" + id, "Item " + id, "pcs");
+                    }
+                },
+                new RecordingTransactionRunner()
         );
 
         RequestProcessingData data = service.loadProcessingData(99);
@@ -153,16 +153,16 @@ class RequestProcessingServiceTest {
     }
 
     private RequestProcessingService serviceWith(
-        FakeOrderRepository orderRepository,
-        RecordingTransactionRunner transactionRunner
+            FakeOrderRepository orderRepository,
+            RecordingTransactionRunner transactionRunner
     ) {
         return new RequestProcessingService(
-            new EmptyRequestRepository(),
-            orderRepository,
-            new EmptySiteRepository(),
-            new EmptyInventoryRepository(),
-            new EmptyMerchandiseRepository(),
-            transactionRunner
+                new EmptyRequestRepository(),
+                orderRepository,
+                new EmptySiteRepository(),
+                new EmptyInventoryRepository(),
+                new EmptyMerchandiseRepository(),
+                transactionRunner
         );
     }
 
@@ -283,6 +283,20 @@ class RequestProcessingServiceTest {
 
         @Override
         public boolean updateStatus(int requestId, String newStatus) {
+            return true;
+        }
+
+        @Override
+        public void updateRequestItems(int requestId, List<RequestMerchandise> items, String note) throws Exception {
+        }
+
+        @Override
+        public int createRequest(List<RequestMerchandise> items, String note) throws Exception {
+            return 1;
+        }
+
+        @Override
+        public boolean deleteById(int requestId) {
             return true;
         }
     }

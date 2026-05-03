@@ -1737,3 +1737,42 @@
     -fx-scale-x: 0.65;
     -fx-scale-y: 0.65;
 }
+
+.btn-submit-order {
+    -fx-background-color: #2563EB;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-font-weight: bold;
+    -fx-padding: 8 16;
+    -fx-cursor: hand;
+}
+
+.btn-submit-order:hover {
+    -fx-background-color: #1D4ED8;
+}
+
+.btn-submit-order:pressed {
+    -fx-background-color: #60A5FA;
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}
+
+.btn-create-request {
+    -fx-background-color: #253D2C;
+    -fx-text-fill: white;
+    -fx-background-radius: 8;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 20;
+    -fx-cursor: hand;
+}
+
+.btn-create-request:hover {
+    -fx-background-color: #1A2E22;
+}
+
+.btn-create-request:pressed {
+    -fx-background-color: #4A6D55;
+    -fx-scale-x: 0.98;
+    -fx-scale-y: 0.98;
+}

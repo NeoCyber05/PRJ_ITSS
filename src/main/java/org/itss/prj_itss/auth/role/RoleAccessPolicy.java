@@ -17,14 +17,14 @@ public final class RoleAccessPolicy {
             return switch (normalizedViewId) {
                 case "home", "site-management", "received-requests", "orders",
                     "request-processing", "order-detail",
-                    "sales-requests", "sales-request-create", "sales-request-update", "sales-request-detail",
+                    "sales-requests", "sales-request-update", "sales-request-detail",
                     "warehouse-order-confirm-arrival", "ordering-order-handle-cancellation" -> true;
                 default -> false;
             };
         }
         if (roleType.isSalesRole()) {
             return switch (normalizedViewId) {
-                case "sales-requests", "sales-request-create", "sales-request-update", "sales-request-detail" -> true;
+                case "sales-requests", "sales-request-update", "sales-request-detail" -> true;
                 default -> false;
             };
         }
