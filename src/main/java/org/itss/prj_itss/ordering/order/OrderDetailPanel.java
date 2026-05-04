@@ -13,6 +13,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
+import javafx.scene.input.ScrollEvent;
 
 import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.entity.Merchandise;
@@ -111,7 +112,6 @@ public class OrderDetailPanel {
         header.getChildren().addAll(topRow, topStatusBadge);
 
         VBox content = new VBox(22);
-        content.setPadding(new Insets(22, 22, 28, 22));
         content.getChildren().addAll(
             buildOverviewCard(order, site, items),
             buildProgressCard(order.getStatus()),
@@ -119,9 +119,25 @@ public class OrderDetailPanel {
         );
 
         ScrollPane scrollPane = new ScrollPane(content);
+        // Di chuyển padding từ content ra ngoài ScrollPane để thu ngắn thanh cuộn
+        scrollPane.setPadding(new Insets(22, 22, 28, 22));
         scrollPane.setFitToWidth(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+
+        // Tăng tốc độ cuộn cho ScrollPane chi tiết đơn hàng
+        scrollPane.addEventFilter(ScrollEvent.SCROLL, event -> {
+            if (event.getDeltaY() != 0) {
+                double contentHeight = scrollPane.getContent().getBoundsInLocal().getHeight();
+                double viewportHeight = scrollPane.getViewportBounds().getHeight();
+                double scrollRange = contentHeight - viewportHeight;
+                if (scrollRange > 0) {
+                    double deltaY = event.getDeltaY() * 3;
+                    scrollPane.setVvalue(scrollPane.getVvalue() - deltaY / scrollRange);
+                }
+                event.consume();
+            }
+        });
 
         root.setTop(header);
         root.setCenter(scrollPane);
