@@ -112,6 +112,8 @@ public class OrderDetailPanel {
         header.getChildren().addAll(topRow, topStatusBadge);
 
         VBox content = new VBox(22);
+        // Phục hồi lại padding cho nội dung để chữ không bị dính sát vào thanh cuộn
+        content.setPadding(new Insets(16, 24, 16, 24));
         content.getChildren().addAll(
             buildOverviewCard(order, site, items),
             buildProgressCard(order.getStatus()),
@@ -119,8 +121,6 @@ public class OrderDetailPanel {
         );
 
         ScrollPane scrollPane = new ScrollPane(content);
-        // Di chuyển padding từ content ra ngoài ScrollPane để thu ngắn thanh cuộn
-        scrollPane.setPadding(new Insets(22, 22, 28, 22));
         scrollPane.setFitToWidth(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
@@ -141,6 +141,9 @@ public class OrderDetailPanel {
 
         root.setTop(header);
         root.setCenter(scrollPane);
+        
+        // CỰC KỲ QUAN TRỌNG: Ép ScrollPane lùi vào trong để thanh cuộn không đè lên viền bo góc 24px của popup cha
+        BorderPane.setMargin(scrollPane, new Insets(0, 4, 24, 4));
     }
 
     private VBox buildOverviewCard(Order order, Site site, List<OrderMerchandise> items) {
