@@ -14,6 +14,8 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.shape.Circle;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.control.Alert;
+import javafx.scene.control.ButtonType;
 
 import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.entity.Merchandise;
@@ -107,6 +109,42 @@ public class OrderDetailPanel {
         titleBox.getChildren().addAll(titleLabel, subtitleLabel);
 
         topRow.getChildren().addAll(backButton, titleBox);
+
+        // THÊM ĐOẠN MÃ NÀY ĐỂ TẠO NÚT HỦY CHO ĐƠN HÀNG PENDING
+        if ("pending".equalsIgnoreCase(order.getStatus())) {
+            Region spacer = new Region();
+            HBox.setHgrow(spacer, Priority.ALWAYS); // Đẩy nút về sát lề phải
+            
+            Button cancelBtn = new Button("Hủy đơn hàng");
+            cancelBtn.setStyle(
+                "-fx-background-color: #FEF2F2; " +
+                "-fx-text-fill: #DC2626; " +
+                "-fx-border-color: #F87171; " +
+                "-fx-border-radius: 6; " +
+                "-fx-background-radius: 6; " +
+                "-fx-padding: 6 12; " +
+                "-fx-font-weight: bold; " +
+                "-fx-cursor: hand;"
+            );
+
+            cancelBtn.setOnAction(e -> {
+                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Xác nhận hủy");
+                alert.setHeaderText("Bạn có chắc chắn muốn hủy đơn hàng này không?");
+                alert.setContentText("Hành động này không thể hoàn tác.");
+
+                alert.showAndWait().ifPresent(response -> {
+                    if (response == javafx.scene.control.ButtonType.OK) {
+                        // TODO: Gọi Service hủy đơn hàng trong CSDL ở đây
+                        orderService.updateStatus(order.getId(), "cancelled");
+
+                        if (onBack != null) onBack.run(); // Chỉ quay lại sau khi đã bấm OK
+                    }
+                });
+            });
+            
+            topRow.getChildren().addAll(spacer, cancelBtn);
+        }
 
         Label topStatusBadge = buildTopStatusBadge(order.getStatus());
         header.getChildren().addAll(topRow, topStatusBadge);
