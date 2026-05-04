@@ -55,10 +55,8 @@ public class OrderDetailPanel {
         this.wideLayout = this.panelWidth >= 720;
 
         root = new BorderPane();
-        root.setMinWidth(this.panelWidth);
-        root.setPrefWidth(this.panelWidth);
-        root.setMaxWidth(this.panelWidth);
-        root.setStyle("-fx-background-color: #F5F7FB;");
+        root.setMaxWidth(Double.MAX_VALUE); // Gỡ bỏ giới hạn cứng, cho phép tự động fill toàn bộ không gian của popup cha
+        root.setStyle("-fx-background-color: transparent;");
         buildContent();
     }
 
@@ -76,7 +74,7 @@ public class OrderDetailPanel {
 
         VBox header = new VBox(18);
         header.setPadding(new Insets(28, 28, 22, 28));
-        header.setStyle("-fx-background-color: white; -fx-border-color: transparent transparent #E7EDF5 transparent; -fx-border-width: 0 0 1 0;");
+        header.setStyle("-fx-background-color: transparent; -fx-border-color: transparent transparent #E7EDF5 transparent; -fx-border-width: 0 0 1 0;"); // Xóa nền trắng để không đè mất bo góc tròn 24px của khung ngoài
 
         HBox topRow = new HBox(14);
         topRow.setAlignment(Pos.CENTER_LEFT);

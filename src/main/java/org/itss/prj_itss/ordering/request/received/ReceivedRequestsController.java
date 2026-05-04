@@ -106,6 +106,7 @@ public class ReceivedRequestsController implements IViewController {
                 }
 
                 HBox actions = new HBox(8);
+                actions.setAlignment(Pos.CENTER_LEFT);
 
                 Button detailButton = new Button("Chi tiết");
                 detailButton.setOnAction(event -> RequestDetailPopup.show(

@@ -37,7 +37,7 @@ public final class RequestDetailPopupController {
     private StackPane scrollContent;
 
     @FXML
-    private HBox dialogShell;
+    private StackPane dialogShell;
 
     @FXML
     private VBox requestCard;
@@ -96,7 +96,7 @@ public final class RequestDetailPopupController {
         StackPane.setAlignment(dialogShell, Pos.TOP_CENTER);
         scrollContent.setMinWidth(Math.max(0, sceneWidth - 1));
         setPanelWidth(requestCard, requestExpandedWidth);
-        setPanelWidth(orderDetailContainer, orderPanelWidth);
+        setPanelWidth(orderDetailContainer, requestExpandedWidth);
         hideOrderDetail();
 
         titleLabel.setText("Chi tiết " + requestCode);
@@ -221,11 +221,14 @@ public final class RequestDetailPopupController {
                 String.valueOf(orderId),
                 this::hideOrderDetail,
                 context,
-                orderPanelWidth
+                requestExpandedWidth
             ).getView()
         );
-        setPanelWidth(requestCard, requestCollapsedWidth);
-        setPanelWidth(orderDetailContainer, orderPanelWidth);
+
+        // Ẩn Popup yêu cầu
+        requestCard.setVisible(false);
+        requestCard.setManaged(false);
+
         orderDetailContainer.setManaged(true);
         orderDetailContainer.setVisible(true);
     }
@@ -234,7 +237,10 @@ public final class RequestDetailPopupController {
         orderDetailContainer.getChildren().clear();
         orderDetailContainer.setManaged(false);
         orderDetailContainer.setVisible(false);
-        setPanelWidth(requestCard, requestExpandedWidth);
+
+        // Hiện lại Popup yêu cầu
+        requestCard.setVisible(true);
+        requestCard.setManaged(true);
     }
 
     private HBox buildTableHeader(List<String> labels, List<Integer> widths) {
