@@ -28,6 +28,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.BiConsumer;
 
 public final class RequestDetailPopupController {
 
@@ -37,7 +38,7 @@ public final class RequestDetailPopupController {
     private StackPane scrollContent;
 
     @FXML
-    private HBox dialogShell;
+    private StackPane dialogShell;
 
     @FXML
     private VBox requestCard;
@@ -74,6 +75,10 @@ public final class RequestDetailPopupController {
     private double requestExpandedWidth;
     private double orderPanelWidth;
 
+    private HBox currentSelectedRow;
+    private Order currentSelectedOrder;
+    private Request currentRequest;
+
     void init(
         Stage dialog,
         String requestCode,
@@ -91,12 +96,13 @@ public final class RequestDetailPopupController {
         this.requestCollapsedWidth = requestCollapsedWidth;
         this.requestExpandedWidth = requestExpandedWidth;
         this.orderPanelWidth = orderPanelWidth;
+        this.currentRequest = request;
 
         closeButton.setOnAction(event -> dialog.close());
         StackPane.setAlignment(dialogShell, Pos.TOP_CENTER);
         scrollContent.setMinWidth(Math.max(0, sceneWidth - 1));
         setPanelWidth(requestCard, requestExpandedWidth);
-        setPanelWidth(orderDetailContainer, orderPanelWidth);
+        setPanelWidth(orderDetailContainer, requestExpandedWidth);
         hideOrderDetail();
 
         titleLabel.setText("Chi tiết " + requestCode);
@@ -143,7 +149,7 @@ public final class RequestDetailPopupController {
     }
 
     private void renderAllocatedOrders(List<Order> orders, OrderService orderService, SiteService siteService) {
-        List<Integer> widths = List.of(115, 170, 120, 110, 130, 36);
+        List<Integer> widths = List.of(115, 140, 110, 110, 120, 90);
         allocatedOrdersTable.getChildren().clear();
         allocatedOrdersTable.getChildren().add(buildTableHeader(
             List.of("MÃ ĐƠN", "SITE", "VẬN CHUYỂN", "NGÀY TẠO", "TRẠNG THÁI", ""),
@@ -162,7 +168,11 @@ public final class RequestDetailPopupController {
                 order,
                 site,
                 deliveryMethod,
-                selectedOrder -> showOrderDetail(selectedOrder.getId()),
+                (selectedOrder, selectedRow) -> {
+                    this.currentSelectedOrder = selectedOrder;
+                    this.currentSelectedRow = selectedRow;
+                    showOrderDetail(selectedOrder.getId());
+                },
                 widths
             ));
         }
@@ -172,14 +182,14 @@ public final class RequestDetailPopupController {
         Order order,
         Site site,
         String deliveryMethod,
-        Consumer<Order> onOrderSelected,
+        BiConsumer<Order, HBox> onOrderSelected,
         List<Integer> widths
     ) {
         HBox row = new HBox();
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(14, 18, 14, 18));
         addStyleClass(row, "request-detail-table-row", "request-detail-clickable-row");
-        row.setOnMouseClicked(event -> onOrderSelected.accept(order));
+        row.setOnMouseClicked(event -> onOrderSelected.accept(order, row));
 
         row.getChildren().add(fixedCell(String.format("DH-2026-%03d", order.getId()), widths.get(0), true));
         row.getChildren().add(fixedCell(site != null ? site.getName() : "N/A", widths.get(1), false));
@@ -204,12 +214,42 @@ public final class RequestDetailPopupController {
 
         Button openButton = new Button("→");
         openButton.setOnMouseClicked(event -> event.consume());
-        openButton.setOnAction(event -> onOrderSelected.accept(order));
+        openButton.setOnAction(event -> onOrderSelected.accept(order, row));
         addStyleClass(openButton, "request-detail-open-button");
-        HBox actionBox = new HBox(openButton);
+        
+        HBox actionBox = new HBox(8);
         actionBox.setAlignment(Pos.CENTER_RIGHT);
         actionBox.setMinWidth(widths.get(5));
         actionBox.setPrefWidth(widths.get(5));
+
+        if ("pending".equalsIgnoreCase(order.getStatus())) {
+            Button cancelBtn = new Button("Hủy");
+            cancelBtn.setStyle("-fx-background-color: transparent; -fx-text-fill: #DC2626; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 4;");
+            cancelBtn.setOnAction(e -> {
+                e.consume(); // Chặn sự kiện click này để không mở nhầm popup chi tiết
+
+                javafx.scene.control.Alert alert = new javafx.scene.control.Alert(javafx.scene.control.Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Xác nhận hủy");
+                alert.setHeaderText("Bạn có chắc chắn muốn hủy đơn hàng này không?");
+
+                alert.showAndWait().ifPresent(response -> {
+                    if (response == javafx.scene.control.ButtonType.OK) {
+
+                        // 1. GỌI SERVICE ĐỂ HỦY TRONG CSDL
+                        context.orderService().updateStatus(order.getId(), "cancelled");
+
+                        // 2. CẬP NHẬT TRỰC TIẾP GIAO DIỆN: Không cần truy vấn lại CSDL
+                        statusBox.getChildren().setAll(buildStatusBadge("cancelled"));
+                        actionBox.getChildren().remove(cancelBtn); // Xóa nút Hủy
+
+                        System.out.println("Đã hủy đơn hàng và cập nhật giao diện thành công!");
+                    }
+                });
+            });
+            actionBox.getChildren().add(cancelBtn);
+        }
+        actionBox.getChildren().add(openButton);
+        
         row.getChildren().add(actionBox);
 
         return row;
@@ -221,11 +261,14 @@ public final class RequestDetailPopupController {
                 String.valueOf(orderId),
                 this::hideOrderDetail,
                 context,
-                orderPanelWidth
+                requestExpandedWidth
             ).getView()
         );
-        setPanelWidth(requestCard, requestCollapsedWidth);
-        setPanelWidth(orderDetailContainer, orderPanelWidth);
+
+        // Ẩn Popup yêu cầu
+        requestCard.setVisible(false);
+        requestCard.setManaged(false);
+
         orderDetailContainer.setManaged(true);
         orderDetailContainer.setVisible(true);
     }
@@ -234,7 +277,24 @@ public final class RequestDetailPopupController {
         orderDetailContainer.getChildren().clear();
         orderDetailContainer.setManaged(false);
         orderDetailContainer.setVisible(false);
-        setPanelWidth(requestCard, requestExpandedWidth);
+
+        // Hiện lại Popup yêu cầu
+        requestCard.setVisible(true);
+        requestCard.setManaged(true);
+
+        // Tự động xóa dòng nếu đơn hàng vừa xem đã bị hủy từ bên trong Popup Chi tiết
+        if (currentSelectedOrder != null && currentSelectedRow != null) {
+            Order updatedOrder = context.orderService().findById(currentSelectedOrder.getId());
+            if (updatedOrder != null && "cancelled".equalsIgnoreCase(updatedOrder.getStatus())) {
+                HBox statusBox = (HBox) currentSelectedRow.getChildren().get(4);
+                statusBox.getChildren().setAll(buildStatusBadge("cancelled"));
+                
+                HBox actionBox = (HBox) currentSelectedRow.getChildren().get(5);
+                if (actionBox.getChildren().size() > 1) {
+                    actionBox.getChildren().remove(0); // Xóa nút Hủy, giữ lại nút mũi tên
+                }
+            }
+        }
     }
 
     private HBox buildTableHeader(List<String> labels, List<Integer> widths) {

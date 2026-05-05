@@ -5,6 +5,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.beans.binding.Bindings;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -36,6 +37,9 @@ public class ReceivedRequestsController implements IViewController {
 
     private final ObservableList<RequestRow> rows = FXCollections.observableArrayList();
     private final FilteredList<RequestRow> filteredRows = new FilteredList<>(rows, row -> true);
+    private final ObservableList<RequestRow> paginatedRows = FXCollections.observableArrayList();
+    private int currentPage = 0;
+    private int pageSize = 10;
 
     private INavigator navigator;
     private ApplicationContext context;
@@ -72,8 +76,28 @@ public class ReceivedRequestsController implements IViewController {
     private Label paginationInfoLabel;
 
     @FXML
+    private ComboBox<Integer> pageSizeComboBox;
+
+    @FXML
+    private Button prevPageButton;
+
+    @FXML
+    private Button nextPageButton;
+
+    @FXML
+    private Label pageIndicatorLabel;
+
+    @FXML
     private void initialize() {
         requestTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+
+        // Ép chiều cao bảng tự động co giãn theo số lượng bản ghi thực tế đang hiển thị
+        requestTable.setFixedCellSize(46); // Khớp với thuộc tính -fx-fixed-cell-size: 46 trong file CSS
+        requestTable.prefHeightProperty().bind(
+            Bindings.max(1, Bindings.size(paginatedRows)).multiply(requestTable.getFixedCellSize()).add(36) // 36px để triệt tiêu hoàn toàn sai số phần header
+        );
+        requestTable.minHeightProperty().bind(requestTable.prefHeightProperty());
+        requestTable.maxHeightProperty().bind(requestTable.prefHeightProperty());
 
         requestCodeColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().requestCode()));
         createdAtColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().createdAt()));
@@ -106,6 +130,7 @@ public class ReceivedRequestsController implements IViewController {
                 }
 
                 HBox actions = new HBox(8);
+                actions.setAlignment(Pos.CENTER_LEFT);
 
                 Button detailButton = new Button("Chi tiết");
                 detailButton.setOnAction(event -> RequestDetailPopup.show(
@@ -128,7 +153,7 @@ public class ReceivedRequestsController implements IViewController {
             }
         });
 
-        requestTable.setItems(filteredRows);
+        requestTable.setItems(paginatedRows);
 
         statusFilter.getItems().addAll(
             "all",
@@ -139,6 +164,16 @@ public class ReceivedRequestsController implements IViewController {
             "cancelled"
         );
         statusFilter.setValue("all");
+
+        pageSizeComboBox.getItems().addAll(5, 10, 20, 50);
+        pageSizeComboBox.setValue(pageSize);
+        pageSizeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null) {
+                pageSize = newValue;
+                currentPage = 0;
+                updatePagination();
+            }
+        });
 
         searchField.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         statusFilter.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
@@ -187,10 +222,58 @@ public class ReceivedRequestsController implements IViewController {
             return matchesKeyword && matchesStatus;
         });
 
-        int size = filteredRows.size();
-        paginationInfoLabel.setText(size == 0
+        currentPage = 0;
+        updatePagination();
+    }
+
+    private void updatePagination() {
+        int totalItems = filteredRows.size();
+        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+        if (totalPages == 0) totalPages = 1;
+
+        if (currentPage >= totalPages) {
+            currentPage = totalPages - 1;
+        }
+        if (currentPage < 0) {
+            currentPage = 0;
+        }
+
+        int fromIndex = currentPage * pageSize;
+        int toIndex = Math.min(fromIndex + pageSize, totalItems);
+
+        if (fromIndex <= totalItems && fromIndex < toIndex) {
+            paginatedRows.setAll(filteredRows.subList(fromIndex, toIndex));
+        } else {
+            paginatedRows.clear();
+        }
+
+        int displayFrom = totalItems == 0 ? 0 : fromIndex + 1;
+        paginationInfoLabel.setText(totalItems == 0
             ? "Không có yêu cầu phù hợp"
-            : "Hiển thị 1 - " + size + " của " + size + " yêu cầu");
+            : String.format("Hiển thị %d - %d của %d yêu cầu", displayFrom, toIndex, totalItems));
+
+        pageIndicatorLabel.setText(String.format("Trang %d / %d", currentPage + 1, totalPages));
+
+        prevPageButton.setDisable(currentPage <= 0);
+        nextPageButton.setDisable(currentPage >= totalPages - 1);
+    }
+
+    @FXML
+    private void goToPrevPage() {
+        if (currentPage > 0) {
+            currentPage--;
+            updatePagination();
+        }
+    }
+
+    @FXML
+    private void goToNextPage() {
+        int totalItems = filteredRows.size();
+        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
+        if (currentPage < totalPages - 1) {
+            currentPage++;
+            updatePagination();
+        }
     }
 
     private HBox buildStatusDot(String status) {
