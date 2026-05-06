@@ -27,6 +27,23 @@ public class OrderRepository extends RepositorySupport implements IOrderReposito
     }
 
     @Override
+    public List<Order> findByStatus(String status) {
+        List<Order> list = new ArrayList<>();
+        String sql = "SELECT id, request_id, site_id, created_at, status FROM \"order\" WHERE status = ? ORDER BY id DESC";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setString(1, status);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapOrder(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("OrderRepository.findByStatus: " + e.getMessage());
+        }
+        return list;
+    }
+
+    @Override
     public Order findById(int id) {
         String sql = "SELECT id, request_id, site_id, created_at, status FROM \"order\" WHERE id = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {

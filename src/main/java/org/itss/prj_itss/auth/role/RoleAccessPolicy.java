@@ -18,7 +18,13 @@ public final class RoleAccessPolicy {
                 case "home", "site-management", "received-requests", "orders",
                     "request-processing", "order-detail",
                     "sales-request-create", "sales-request-update",
-                    "warehouse-order-confirm-arrival", "ordering-order-handle-cancellation" -> true;
+                    "ordering-order-handle-cancellation" -> true;
+                default -> false;
+            };
+        }
+        if (roleType.isWarehouseRole()) {
+            return switch (normalizedViewId) {
+                case "warehouse-order-confirm-arrival" -> true;
                 default -> false;
             };
         }
@@ -30,7 +36,13 @@ public final class RoleAccessPolicy {
     }
 
     public static String defaultViewId(RoleType roleType) {
-        return roleType.isOrderingRole() ? "home" : "role-workspace";
+        if (roleType.isOrderingRole()) {
+            return "home";
+        }
+        if (roleType.isWarehouseRole()) {
+            return "warehouse-order-confirm-arrival";
+        }
+        return "role-workspace";
     }
 
     private static String normalizeViewId(String viewId) {

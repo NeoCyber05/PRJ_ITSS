@@ -18,6 +18,10 @@ public final class OrderService {
         return orderRepository.findAll();
     }
 
+    public List<Order> findByStatus(String status) {
+        return orderRepository.findByStatus(status);
+    }
+
     public Order findById(int id) {
         return orderRepository.findById(id);
     }
