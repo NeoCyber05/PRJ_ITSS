@@ -90,15 +90,31 @@ public final class RequestProcessingItemsView {
     }
 
     private HBox buildTableToolbar() {
-        return AllocationActionToolbarView.build(
-            "PHÂN BỔ THEO MẶT HÀNG",
-            "Điều chỉnh tồn kho theo từng yêu cầu",
-            onOptimizeRequested,
-            onShowAllPlansRequested,
-            "request-toolbar-secondary-button",
-            "request-toolbar-primary-button",
-            "-fx-border-color:transparent transparent #EEF3EF transparent;-fx-border-width:0 0 1 0;"
-        );
+        HBox toolbar = new HBox(12);
+        toolbar.setAlignment(Pos.CENTER_LEFT);
+        toolbar.setPadding(new Insets(18, 20, 18, 20));
+        toolbar.setStyle("-fx-border-color:transparent transparent #EEF3EF transparent;-fx-border-width:0 0 1 0;");
+
+        VBox titleBox = new VBox(3);
+        Label sectionLabel = new Label("PHÂN BỔ THEO MẶT HÀNG");
+        sectionLabel.setStyle("-fx-font-size:11px;-fx-font-weight:bold;-fx-text-fill:#2E6F40;");
+        Label titleLabel = new Label("Điều chỉnh tồn kho theo từng yêu cầu");
+        titleLabel.setStyle("-fx-font-size:15px;-fx-font-weight:bold;-fx-text-fill:#1a2e22;");
+        titleBox.getChildren().addAll(sectionLabel, titleLabel);
+
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+
+        Button optimizeButton = new Button("Gợi ý tối ưu");
+        optimizeButton.getStyleClass().add("request-toolbar-secondary-button");
+        optimizeButton.setOnAction(event -> onOptimizeRequested.run());
+
+        Button showAllButton = new Button("Xem tất cả phương án");
+        showAllButton.getStyleClass().add("request-toolbar-primary-button");
+        showAllButton.setOnAction(event -> onShowAllPlansRequested.run());
+
+        toolbar.getChildren().addAll(titleBox, spacer, optimizeButton, showAllButton);
+        return toolbar;
     }
 
     private HBox buildTableHeader() {

@@ -15,7 +15,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import org.itss.prj_itss.ordering.request.process.allocation.AllocationSupport;
+import org.itss.prj_itss.model.DeliveryMethod;
 import org.itss.prj_itss.ordering.request.process.allocation.algo.AllSuggestAlgo.OrderLineSuggestion;
 import org.itss.prj_itss.ordering.request.process.allocation.algo.AllSuggestAlgo.SiteOrderSuggestion;
 import org.itss.prj_itss.ordering.request.process.allocation.algo.AllSuggestAlgo.SuggestedPlan;
@@ -247,7 +247,7 @@ public final class AllSuggestPopupView {
             buildValueCell(line.item().code, 130, true),
             buildValueCell(line.item().name, 280, false),
             buildValueCell(line.quantity() + " chiếc", 120, true),
-            buildValueCell(AllocationSupport.transportLabel(line.transport()), 150, false)
+            buildValueCell(DeliveryMethod.displayLabelOf(line.transport()), 150, false)
         );
         return row;
     }

@@ -2,15 +2,15 @@ package org.itss.prj_itss.ordering.request.process.allocation.algo;
 
 import org.itss.prj_itss.dto.ItemRequirement;
 import org.itss.prj_itss.dto.SiteStockOption;
-import org.itss.prj_itss.ordering.request.process.allocation.AllocationTransport;
+import org.itss.prj_itss.model.DeliveryMethod;
 
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
 /**
- * Thuật toán gợi ý tối ưu theo hướng greedy:
- * ưu tiên site có thời gian giao tốt và lượng tồn kho cao.
+ * Thuáº­t toÃ¡n gá»£i Ã½ tá»‘i Æ°u theo hÆ°á»›ng greedy:
+ * Æ°u tiÃªn site cÃ³ thá»i gian giao tá»‘t vÃ  lÆ°á»£ng tá»“n kho cao.
  */
 public final class OptimalSuggestAlgo {
 
@@ -39,10 +39,10 @@ public final class OptimalSuggestAlgo {
 
     public String pickSuggestedTransport(SiteStockOption site) {
         if (site.shipDays <= deadlineDays && site.shipDays < 999) {
-            return AllocationTransport.SHIP;
+            return DeliveryMethod.SHIP.storageValue();
         }
         if (site.airDays <= deadlineDays && site.airDays < 999) {
-            return AllocationTransport.AIR;
+            return DeliveryMethod.AIR.storageValue();
         }
         return null;
     }

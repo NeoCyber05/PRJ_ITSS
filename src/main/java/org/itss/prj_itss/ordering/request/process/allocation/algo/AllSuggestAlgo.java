@@ -2,7 +2,8 @@ package org.itss.prj_itss.ordering.request.process.allocation.algo;
 
 import org.itss.prj_itss.dto.ItemRequirement;
 import org.itss.prj_itss.dto.SiteStockOption;
-import org.itss.prj_itss.ordering.request.process.allocation.AllocationTransport;
+import org.itss.prj_itss.model.DeliveryMethod;
+import org.itss.prj_itss.ordering.request.process.model.DeliveryOptions;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -14,8 +15,8 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Thuật toán sinh tất cả gợi ý khả dụng (có giới hạn)
- * và xếp hạng để người dùng chọn.
+ * Thuáº­t toÃ¡n sinh táº¥t cáº£ gá»£i Ã½ kháº£ dá»¥ng (cÃ³ giá»›i háº¡n)
+ * vÃ  xáº¿p háº¡ng Ä‘á»ƒ ngÆ°á»i dÃ¹ng chá»n.
  */
 public final class AllSuggestAlgo {
     private static final int MAX_COMBINATION_ATTEMPTS = 240;
@@ -402,12 +403,12 @@ public final class AllSuggestAlgo {
             .toList();
         String transportSummary = siteOrder.transports.size() == 1
             ? transportLabel(siteOrder.transports.iterator().next())
-            : "Nhiều cách";
+            : "Nhiá»u cÃ¡ch";
         return new SiteOrderSuggestion(siteOrder.site, lines, siteOrder.totalQuantity, siteOrder.deliveryDays, transportSummary);
     }
 
     private String transportLabel(String transport) {
-        return AllocationTransport.AIR.equals(transport) ? "Hàng không" : "Đường biển";
+        return DeliveryMethod.displayLabelOf(transport);
     }
 
     private SiteStockOption findSiteById(int siteId) {
@@ -420,7 +421,7 @@ public final class AllSuggestAlgo {
     }
 
     private int getDeliveryDays(SiteStockOption site, String transport) {
-        return AllocationTransport.AIR.equals(transport) ? site.airDays : site.shipDays;
+        return DeliveryOptions.deliveryDays(site, DeliveryOptions.resolve(site, transport, Integer.MAX_VALUE));
     }
 
     private record ItemVariant(

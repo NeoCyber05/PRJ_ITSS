@@ -11,8 +11,8 @@ import javafx.scene.layout.VBox;
 import org.itss.prj_itss.dto.Allocation;
 import org.itss.prj_itss.dto.ItemRequirement;
 import org.itss.prj_itss.dto.SiteStockOption;
-import org.itss.prj_itss.ordering.request.process.allocation.AllocationTransport;
-import org.itss.prj_itss.ordering.request.process.allocation.AllocationSupport;
+import org.itss.prj_itss.model.DeliveryMethod;
+import org.itss.prj_itss.ordering.request.process.model.DeliveryOptions;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -45,9 +45,9 @@ final class AllocationSiteRowView {
         Label stockLabel = buildStockLabel(site.stock.getOrDefault(item.merchandiseId, 0));
 
         Allocation existing = allocations.getOrDefault(item.merchandiseId, Collections.emptyMap()).get(site.id);
-        String selectedTransport = AllocationSupport.normalizeTransport(
-            existing == null ? null : existing.transport,
+        String selectedTransport = DeliveryOptions.resolveStorageValue(
             site,
+            existing == null ? null : existing.transport,
             deadlineDays
         );
 
@@ -128,16 +128,16 @@ final class AllocationSiteRowView {
     private ComboBox<String> buildTransportBox(SiteStockOption site, String selectedTransport) {
         ComboBox<String> transportBox = new ComboBox<>();
         if (site.shipDays < 999) {
-            transportBox.getItems().add(AllocationSupport.transportLabel(AllocationTransport.SHIP));
+            transportBox.getItems().add(DeliveryMethod.SHIP.displayLabel());
         }
         if (site.airDays < 999) {
-            transportBox.getItems().add(AllocationSupport.transportLabel(AllocationTransport.AIR));
+            transportBox.getItems().add(DeliveryMethod.AIR.displayLabel());
         }
         if (transportBox.getItems().isEmpty()) {
             transportBox.getItems().add("Không khả dụng");
             transportBox.setDisable(true);
         } else {
-            transportBox.setValue(AllocationSupport.transportLabel(selectedTransport));
+            transportBox.setValue(DeliveryMethod.displayLabelOf(selectedTransport));
         }
         transportBox.setPrefWidth(180);
         transportBox.setMinWidth(180);
@@ -183,11 +183,7 @@ final class AllocationSiteRowView {
 
         hideWarning(warningLabel);
 
-        String transport = AllocationSupport.normalizeTransport(
-            transportBox.getValue(),
-            site,
-            deadlineDays
-        );
+        String transport = DeliveryOptions.resolveStorageValue(site, transportBox.getValue(), deadlineDays);
         updateEtaBadge(etaBadge, site, transport);
         updateAllocationsState(item, site, quantity, transport);
 
@@ -225,7 +221,10 @@ final class AllocationSiteRowView {
     }
 
     private void updateEtaBadge(Label badge, SiteStockOption site, String transport) {
-        int deliveryDays = AllocationSupport.getDeliveryDays(site, transport);
+        int deliveryDays = DeliveryOptions.deliveryDays(
+            site,
+            DeliveryOptions.resolve(site, transport, deadlineDays)
+        );
         if (deliveryDays >= 999) {
             badge.setText("Không khả dụng");
             setStateClass(badge, ETA_STATE_CLASSES, "allocation-eta-unavailable");

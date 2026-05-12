@@ -11,6 +11,8 @@ import org.itss.prj_itss.entity.OrderMerchandise;
 import org.itss.prj_itss.entity.Request;
 import org.itss.prj_itss.entity.RequestMerchandise;
 import org.itss.prj_itss.entity.Site;
+import org.itss.prj_itss.model.DeliveryMethod;
+import org.itss.prj_itss.ordering.request.process.RequestProcessingService;
 import org.itss.prj_itss.repository.IInventoryRepository;
 import org.itss.prj_itss.repository.IMerchandiseRepository;
 import org.itss.prj_itss.repository.IOrderRepository;
@@ -173,7 +175,7 @@ class RequestProcessingServiceTest {
     }
 
     private Allocation allocation(int siteId, int merchandiseId, int quantity) {
-        return new Allocation(siteId, merchandiseId, quantity, AllocationPlanningService.TRANSPORT_SHIP);
+        return new Allocation(siteId, merchandiseId, quantity, DeliveryMethod.SHIP.storageValue());
     }
 
     private static final class RecordingTransactionRunner implements ITransactionRunner {

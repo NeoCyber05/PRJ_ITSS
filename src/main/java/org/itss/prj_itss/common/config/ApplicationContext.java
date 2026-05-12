@@ -15,7 +15,7 @@ import org.itss.prj_itss.service.AuthenticationService;
 import org.itss.prj_itss.service.DashboardService;
 import org.itss.prj_itss.service.MerchandiseService;
 import org.itss.prj_itss.service.OrderService;
-import org.itss.prj_itss.service.RequestProcessingService;
+import org.itss.prj_itss.ordering.request.process.RequestProcessingService;
 import org.itss.prj_itss.service.RequestService;
 import org.itss.prj_itss.service.SiteService;
 

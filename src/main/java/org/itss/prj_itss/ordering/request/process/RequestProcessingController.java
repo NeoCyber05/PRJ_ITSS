@@ -15,12 +15,11 @@ import org.itss.prj_itss.dto.SiteStockOption;
 import org.itss.prj_itss.layout.INavigator;
 import org.itss.prj_itss.layout.IViewController;
 import org.itss.prj_itss.ordering.request.process.allocation.AllocationControl;
-import org.itss.prj_itss.ordering.request.process.allocation.AllocationSupport;
+import org.itss.prj_itss.ordering.request.process.model.AllocationPlan;
 import org.itss.prj_itss.ordering.request.process.preview.RequestProcessingPreviewBuilder;
 import org.itss.prj_itss.ordering.request.process.preview.RequestProcessingPreviewDialog;
 import org.itss.prj_itss.ordering.request.process.site.SiteFilterController;
 import org.itss.prj_itss.ordering.request.process.ui.RequestProcessingItemsView;
-import org.itss.prj_itss.service.RequestProcessingService;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -184,7 +183,7 @@ public class RequestProcessingController implements IViewController {
             earliestDeliveryDate,
             expandedItemIndex,
             this::handleOptimizeAllocation,
-            allocationSection::showAllAllocationsDialog,
+            this::handleShowAllPlans,
             this::toggleExpandedItem
         );
 
@@ -198,8 +197,14 @@ public class RequestProcessingController implements IViewController {
         renderItemsViewSection();
     }
 
+    private void handleShowAllPlans() {
+        if (allocationSection != null) {
+            allocationSection.showAllAllocationsDialog();
+        }
+    }
+
     private void handleSiteFilterChanged() {
-        AllocationSupport.pruneExcludedAllocations(allocations, siteFilter.getExcludedSiteIds());
+        AllocationPlan.using(allocations).removeSites(siteFilter.getExcludedSiteIds());
         allocationSection = new AllocationControl(
             items,
             allSites,

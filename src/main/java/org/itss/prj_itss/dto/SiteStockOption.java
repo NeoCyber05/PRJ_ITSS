@@ -28,4 +28,5 @@ public final class SiteStockOption {
         this.airDays = airDays;
         this.stock = stock;
     }
+
 }

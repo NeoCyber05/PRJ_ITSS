@@ -10,7 +10,7 @@ import javafx.stage.Window;
 
 import org.itss.prj_itss.dto.Allocation;
 import org.itss.prj_itss.layout.INavigator;
-import org.itss.prj_itss.service.RequestProcessingService;
+import org.itss.prj_itss.ordering.request.process.RequestProcessingService;
 
 import java.io.IOException;
 import java.util.List;
