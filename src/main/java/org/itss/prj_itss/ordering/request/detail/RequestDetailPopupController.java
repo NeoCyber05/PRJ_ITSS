@@ -239,7 +239,7 @@ public final class RequestDetailPopupController {
                         context.orderService().updateStatus(order.getId(), "cancelled");
 
                         // 2. CẬP NHẬT TRỰC TIẾP GIAO DIỆN: Không cần truy vấn lại CSDL
-                        statusBox.getChildren().setAll(buildStatusBadge("cancelled"));
+                        statusBox.getChildren().setAll(buildStatusBadge("cancelled", false));
                         actionBox.getChildren().remove(cancelBtn); // Xóa nút Hủy
 
                         System.out.println("Đã hủy đơn hàng và cập nhật giao diện thành công!");
@@ -287,7 +287,7 @@ public final class RequestDetailPopupController {
             Order updatedOrder = context.orderService().findById(currentSelectedOrder.getId());
             if (updatedOrder != null && "cancelled".equalsIgnoreCase(updatedOrder.getStatus())) {
                 HBox statusBox = (HBox) currentSelectedRow.getChildren().get(4);
-                statusBox.getChildren().setAll(buildStatusBadge("cancelled"));
+                statusBox.getChildren().setAll(buildStatusBadge("cancelled", false));
                 
                 HBox actionBox = (HBox) currentSelectedRow.getChildren().get(5);
                 if (actionBox.getChildren().size() > 1) {

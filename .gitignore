@@ -43,5 +43,7 @@ BussinessLogic.md
 
 ### Database credentials ###
 db.properties
+warehouse-db.properties
+src/main/resources/warehouse-db.properties
 
 implementation_plan.md

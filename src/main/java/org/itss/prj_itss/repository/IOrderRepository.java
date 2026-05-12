@@ -7,6 +7,7 @@ import java.util.List;
 
 public interface IOrderRepository {
     List<Order> findAll();
+    List<Order> findByStatus(String status);
     Order findById(int id);
     List<OrderMerchandise> findItemsByOrderId(int orderId);
     int create(Order order);

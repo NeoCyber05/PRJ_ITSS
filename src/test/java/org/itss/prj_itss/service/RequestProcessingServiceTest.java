@@ -226,6 +226,11 @@ class RequestProcessingServiceTest {
         }
 
         @Override
+        public List<Order> findByStatus(String status) {
+            return List.of();
+        }
+
+        @Override
         public Order findById(int id) {
             return null;
         }

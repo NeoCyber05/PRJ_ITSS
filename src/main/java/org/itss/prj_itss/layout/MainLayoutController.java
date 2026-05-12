@@ -85,6 +85,7 @@ public class MainLayoutController implements INavigator {
 
     public void setUser(AuthenticatedUser user) {
         this.currentUser = user;
+        context.setAuthenticatedUser(user);
         updateUIForUser();
         showView(RoleAccessPolicy.defaultViewId(currentUser));
     }
@@ -282,6 +283,7 @@ public class MainLayoutController implements INavigator {
     private void handleLogout() {
         cachedViews.clear();
         activeViewId = null;
+        context.setAuthenticatedUser(null);
         if (logoutHandler != null) {
             logoutHandler.run();
         }
