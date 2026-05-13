@@ -283,12 +283,10 @@ public class SalesRequestListController implements IViewController {
         HBox actions = new HBox(8);
         actions.setAlignment(Pos.CENTER_LEFT);
 
+        boolean isPending = "pending".equals(normalizeStatusKey(row.status()));
+
         // ── Xem ──────────────────────────────────────────────────────────────
-        Button viewBtn = new Button("👁  Xem");
-        viewBtn.setStyle(
-            "-fx-background-color: #F1F5F9; -fx-text-fill: #475569; -fx-font-size: 12px; " +
-            "-fx-background-radius: 6; -fx-cursor: hand; -fx-padding: 6 12; -fx-font-weight: bold;"
-        );
+        Button viewBtn = new Button("Xem");
         viewBtn.setOnAction(event ->
             org.itss.prj_itss.sales.request.view.ViewOrderRequestPopup.show(
                 requestTable.getScene().getWindow(),
@@ -296,41 +294,28 @@ public class SalesRequestListController implements IViewController {
                 ApplicationContext.getInstance()
             )
         );
+        actions.getChildren().add(viewBtn);
 
         // ── Sửa ──────────────────────────────────────────────────────────────
-        Button editBtn = new Button("✏  Sửa");
-        editBtn.setStyle(
-            "-fx-background-color: #253D2C; -fx-text-fill: white; -fx-background-radius: 6; " +
-            "-fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 6 12; -fx-cursor: hand;"
-        );
-        editBtn.setOnAction(event -> {
-            if ("pending".equals(normalizeStatusKey(row.status()))) {
+        if (isPending) {
+            Button editBtn = new Button("Sửa");
+            editBtn.setStyle("-fx-background-color: #253D2C; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 6 14; -fx-cursor: hand;");
+            editBtn.setOnAction(event -> {
                 org.itss.prj_itss.sales.request.update.UpdateOrderRequestPopup.show(
                     requestTable.getScene().getWindow(),
                     row.request().getId(),
                     ApplicationContext.getInstance(),
                     this::reload
                 );
-            } else {
-                Alert alert = new Alert(Alert.AlertType.WARNING);
-                alert.initOwner(requestTable.getScene().getWindow());
-                alert.setTitle("Không thể chỉnh sửa");
-                alert.setHeaderText(null);
-                alert.setContentText(
-                    "Chỉ có thể chỉnh sửa yêu cầu ở trạng thái \"Chờ xử lý\"."
-                );
-                alert.showAndWait();
-            }
-        });
+            });
+            actions.getChildren().add(editBtn);
+        }
 
         // ── Xóa ──────────────────────────────────────────────────────────────
-        Button deleteBtn = new Button("🗑  Xóa");
-        deleteBtn.setStyle(
-            "-fx-background-color: #FEE2E2; -fx-text-fill: #B91C1C; -fx-background-radius: 6; " +
-            "-fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 6 12; -fx-cursor: hand;"
-        );
+        Button deleteBtn = new Button("Xóa");
+        deleteBtn.setStyle("-fx-background-color: #FEE2E2; -fx-text-fill: #B91C1C; -fx-background-radius: 6; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 6 14; -fx-cursor: hand;");
         deleteBtn.setOnAction(event -> {
-            if (!"pending".equals(normalizeStatusKey(row.status()))) {
+            if (!isPending) {
                 Alert warn = new Alert(Alert.AlertType.WARNING);
                 warn.initOwner(requestTable.getScene().getWindow());
                 warn.setTitle("Không thể xóa");
@@ -371,12 +356,12 @@ public class SalesRequestListController implements IViewController {
                 }
             });
         });
+        actions.getChildren().add(deleteBtn);
 
-        actions.getChildren().addAll(viewBtn, editBtn, deleteBtn);
         return actions;
     }
 
-    // ── Helpers ────────────────────────────────────────────────────────
+    // ── Helpers ──────────────────────────────────────────────────────
 
     private String normalizeStatusKey(String status) {
         if (status == null) return "other";
