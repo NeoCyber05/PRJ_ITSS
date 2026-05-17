@@ -1,23 +1,33 @@
 package org.itss.prj_itss.common.config;
 
 import org.itss.prj_itss.auth.AuthenticatedUser;
-import org.itss.prj_itss.repository.IAccountRepository;
+import org.itss.prj_itss.auth.application.AuthSession;
+import org.itss.prj_itss.auth.application.AuthenticationService;
+import org.itss.prj_itss.auth.infrastructure.AccountRepository;
+import org.itss.prj_itss.auth.infrastructure.IAccountRepository;
 import org.itss.prj_itss.repository.IInventoryRepository;
-import org.itss.prj_itss.repository.AccountRepository;
 import org.itss.prj_itss.repository.MerchandiseRepository;
 import org.itss.prj_itss.repository.OrderRepository;
 import org.itss.prj_itss.repository.RequestRepository;
+import org.itss.prj_itss.repository.RequestProcessingRepositoryGateway;
 import org.itss.prj_itss.repository.SiteRepository;
 import org.itss.prj_itss.repository.WarehouseReceiptRepository;
 import org.itss.prj_itss.repository.IMerchandiseRepository;
 import org.itss.prj_itss.repository.IOrderRepository;
 import org.itss.prj_itss.repository.IRequestRepository;
 import org.itss.prj_itss.repository.ISiteRepository;
-import org.itss.prj_itss.service.AuthenticationService;
 import org.itss.prj_itss.service.DashboardService;
 import org.itss.prj_itss.service.MerchandiseService;
 import org.itss.prj_itss.service.OrderService;
+import org.itss.prj_itss.ordering.order.application.OrderCancellationApplicationService;
+import org.itss.prj_itss.ordering.order.application.OrderManagementApplicationService;
+import org.itss.prj_itss.ordering.request.application.ReceivedRequestsApplicationService;
+import org.itss.prj_itss.ordering.request.application.RequestDetailApplicationService;
+import org.itss.prj_itss.ordering.request.application.RequestProcessingApplicationService;
 import org.itss.prj_itss.ordering.request.process.RequestProcessingService;
+import org.itss.prj_itss.ordering.site.application.SiteManagementApplicationService;
+import org.itss.prj_itss.request.business.service.RequestProcessingUseCase;
+import org.itss.prj_itss.request.data.JdbcRequestProcessingGateway;
 import org.itss.prj_itss.service.RequestService;
 import org.itss.prj_itss.service.SiteService;
 
@@ -56,15 +66,39 @@ public final class ApplicationContext {
             this::currentAuthenticatedUser
         );
     private final RequestProcessingService requestProcessingService = new RequestProcessingService(
-        requestRepository,
-        orderRepository,
-        siteReadRepository,
-        inventoryRepository,
-        merchandiseRepository,
-        transactionManager
+        new RequestProcessingRepositoryGateway(
+            requestRepository,
+            orderRepository,
+            siteReadRepository,
+            inventoryRepository,
+            merchandiseRepository,
+            transactionManager
+        )
     );
+    private final RequestProcessingUseCase requestProcessingUseCaseV2 = new RequestProcessingUseCase(
+        new JdbcRequestProcessingGateway(
+            requestRepository,
+            orderRepository,
+            siteReadRepository,
+            inventoryRepository,
+            merchandiseRepository,
+            transactionManager
+        )
+    );
+    private final SiteManagementApplicationService siteManagementApplicationService =
+        new SiteManagementApplicationService(siteService, merchandiseService);
+    private final OrderManagementApplicationService orderManagementApplicationService =
+        new OrderManagementApplicationService(orderService, siteService, merchandiseService);
+    private final OrderCancellationApplicationService orderCancellationApplicationService =
+        new OrderCancellationApplicationService(orderService);
+    private final ReceivedRequestsApplicationService receivedRequestsApplicationService =
+        new ReceivedRequestsApplicationService(requestService);
+    private final RequestDetailApplicationService requestDetailApplicationService =
+        new RequestDetailApplicationService(requestService, orderService);
+    private final RequestProcessingApplicationService requestProcessingApplicationService =
+        new RequestProcessingApplicationService(requestProcessingService);
 
-    private volatile AuthenticatedUser authenticatedUser;
+    private final AuthSession authSession = new AuthSession();
 
     private ApplicationContext() {
     }
@@ -113,11 +147,44 @@ public final class ApplicationContext {
         return requestProcessingService;
     }
 
-    public void setAuthenticatedUser(AuthenticatedUser authenticatedUser) {
-        this.authenticatedUser = authenticatedUser;
+    public SiteManagementApplicationService siteManagementApplicationService() {
+        return siteManagementApplicationService;
+    }
+
+    public OrderManagementApplicationService orderManagementApplicationService() {
+        return orderManagementApplicationService;
+    }
+
+    public OrderCancellationApplicationService orderCancellationApplicationService() {
+        return orderCancellationApplicationService;
+    }
+
+    public ReceivedRequestsApplicationService receivedRequestsApplicationService() {
+        return receivedRequestsApplicationService;
+    }
+
+    public RequestDetailApplicationService requestDetailApplicationService() {
+        return requestDetailApplicationService;
+    }
+
+    public RequestProcessingApplicationService requestProcessingApplicationService() {
+        return requestProcessingApplicationService;
+    }
+
+    public RequestProcessingUseCase requestProcessingUseCaseV2() {
+        return requestProcessingUseCaseV2;
+    }
+
+    public void setAuthenticatedUser(org.itss.prj_itss.auth.domain.AuthenticatedUser authenticatedUser) {
+        if (authenticatedUser == null) {
+            authSession.clear();
+        } else {
+            authSession.start(authenticatedUser);
+        }
     }
 
     public AuthenticatedUser currentAuthenticatedUser() {
-        return authenticatedUser;
+        org.itss.prj_itss.auth.domain.AuthenticatedUser currentUser = authSession.currentAuthenticatedUser();
+        return currentUser == null ? null : currentUser.toLegacy();
     }
 }

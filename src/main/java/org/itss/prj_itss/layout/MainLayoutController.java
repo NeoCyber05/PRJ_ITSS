@@ -9,15 +9,15 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import org.itss.prj_itss.App;
-import org.itss.prj_itss.auth.AuthenticatedUser;
-import org.itss.prj_itss.auth.role.RoleAccessPolicy;
-import org.itss.prj_itss.auth.role.RoleType;
-import org.itss.prj_itss.auth.workspace.RoleWorkspaceContent;
-import org.itss.prj_itss.auth.workspace.RoleWorkspaceContentFactory;
-import org.itss.prj_itss.auth.workspace.RoleWorkspaceController;
+import org.itss.prj_itss.auth.domain.AuthenticatedUser;
+import org.itss.prj_itss.auth.application.RoleAccessPolicy;
+import org.itss.prj_itss.auth.domain.RoleType;
+import org.itss.prj_itss.auth.ui.workspace.RoleWorkspaceContent;
+import org.itss.prj_itss.auth.ui.workspace.RoleWorkspaceContentFactory;
+import org.itss.prj_itss.auth.ui.workspace.RoleWorkspaceController;
 import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.ordering.order.OrderDetailView;
-import org.itss.prj_itss.ordering.request.process.RequestProcessingController;
+import org.itss.prj_itss.request.presentation.ordering.process.layout.RequestProcessingLayoutView;
 
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -202,10 +202,10 @@ public class MainLayoutController implements INavigator {
 
     private LoadedView loadRequestProcessingView(int requestId) {
         return loadView(
-            "/org/itss/prj_itss/ordering/request/process/request-processing-view.fxml",
+            "/org/itss/prj_itss/request/presentation/ordering/process/layout/request-processing-view.fxml",
             controller -> {
-                if (controller instanceof RequestProcessingController requestProcessingController) {
-                    requestProcessingController.setRequestId(requestId);
+                if (controller instanceof RequestProcessingLayoutView requestProcessingView) {
+                    requestProcessingView.setRequestId(requestId);
                 }
             }
         );
