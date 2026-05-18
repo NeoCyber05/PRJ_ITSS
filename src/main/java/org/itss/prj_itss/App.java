@@ -8,8 +8,8 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
-import org.itss.prj_itss.auth.AuthenticatedUser;
-import org.itss.prj_itss.auth.login.LoginController;
+import org.itss.prj_itss.auth.domain.AuthenticatedUser;
+import org.itss.prj_itss.auth.presentation.login.LoginController;
 import org.itss.prj_itss.common.config.ApplicationContext;
 import org.itss.prj_itss.layout.MainLayoutController;
 

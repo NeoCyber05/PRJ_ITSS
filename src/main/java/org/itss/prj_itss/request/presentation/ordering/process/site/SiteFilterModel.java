@@ -1,6 +1,6 @@
 package org.itss.prj_itss.request.presentation.ordering.process.site;
 
-import org.itss.prj_itss.request.business.model.SiteStockOption;
+import org.itss.prj_itss.request.application.processing.ProcessingSiteView;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -11,23 +11,23 @@ import java.util.Set;
 
 final class SiteFilterModel {
 
-    private final List<SiteStockOption> visibleSites = new ArrayList<>();
+    private final List<ProcessingSiteView> visibleSites = new ArrayList<>();
     private final Set<Integer> prioritySiteIds = new LinkedHashSet<>();
     private final Set<Integer> excludedSiteIds = new LinkedHashSet<>();
 
-    private List<SiteStockOption> allSites = List.of();
+    private List<ProcessingSiteView> allSites = List.of();
 
-    void setSites(List<SiteStockOption> allSites) {
+    void setSites(List<ProcessingSiteView> allSites) {
         this.allSites = allSites == null ? List.of() : List.copyOf(allSites);
         visibleSites.clear();
         visibleSites.addAll(this.allSites);
     }
 
-    List<SiteStockOption> allSites() {
+    List<ProcessingSiteView> allSites() {
         return allSites;
     }
 
-    List<SiteStockOption> visibleSites() {
+    List<ProcessingSiteView> visibleSites() {
         return visibleSites;
     }
 
@@ -44,28 +44,28 @@ final class SiteFilterModel {
         excludedSiteIds.clear();
     }
 
-    void prioritize(SiteStockOption site) {
+    void prioritize(ProcessingSiteView site) {
         if (site == null) {
             return;
         }
 
-        prioritySiteIds.add(site.id);
-        excludedSiteIds.remove(site.id);
+        prioritySiteIds.add(site.id());
+        excludedSiteIds.remove(site.id());
     }
 
-    void unprioritize(SiteStockOption site) {
+    void unprioritize(ProcessingSiteView site) {
         if (site != null) {
-            prioritySiteIds.remove(site.id);
+            prioritySiteIds.remove(site.id());
         }
     }
 
-    void exclude(SiteStockOption site) {
+    void exclude(ProcessingSiteView site) {
         if (site == null) {
             return;
         }
 
-        excludedSiteIds.add(site.id);
-        prioritySiteIds.remove(site.id);
+        excludedSiteIds.add(site.id());
+        prioritySiteIds.remove(site.id());
     }
 
     void removePriority(int siteId) {
@@ -76,16 +76,16 @@ final class SiteFilterModel {
         excludedSiteIds.remove(siteId);
     }
 
-    boolean isPriority(SiteStockOption site) {
-        return site != null && prioritySiteIds.contains(site.id);
+    boolean isPriority(ProcessingSiteView site) {
+        return site != null && prioritySiteIds.contains(site.id());
     }
 
     void refreshVisibleSites(String keyword) {
         String normalizedKeyword = normalizeKeyword(keyword);
-        List<SiteStockOption> filteredSites = new ArrayList<>();
+        List<ProcessingSiteView> filteredSites = new ArrayList<>();
 
-        for (SiteStockOption site : allSites) {
-            if (excludedSiteIds.contains(site.id)) {
+        for (ProcessingSiteView site : allSites) {
+            if (excludedSiteIds.contains(site.id())) {
                 continue;
             }
 
@@ -98,23 +98,23 @@ final class SiteFilterModel {
         visibleSites.addAll(sortedSites(filteredSites));
     }
 
-    List<SiteStockOption> prioritySites() {
+    List<ProcessingSiteView> prioritySites() {
         return sitesFor(prioritySiteIds);
     }
 
-    List<SiteStockOption> excludedSites() {
+    List<ProcessingSiteView> excludedSites() {
         return sitesFor(excludedSiteIds);
     }
 
-    private List<SiteStockOption> sortedSites(List<SiteStockOption> filteredSites) {
-        List<SiteStockOption> sortedSites = new ArrayList<>();
+    private List<ProcessingSiteView> sortedSites(List<ProcessingSiteView> filteredSites) {
+        List<ProcessingSiteView> sortedSites = new ArrayList<>();
 
         for (int prioritySiteId : prioritySiteIds) {
             findSite(filteredSites, prioritySiteId).ifPresent(sortedSites::add);
         }
 
-        for (SiteStockOption site : filteredSites) {
-            if (!prioritySiteIds.contains(site.id)) {
+        for (ProcessingSiteView site : filteredSites) {
+            if (!prioritySiteIds.contains(site.id())) {
                 sortedSites.add(site);
             }
         }
@@ -122,23 +122,23 @@ final class SiteFilterModel {
         return sortedSites;
     }
 
-    private List<SiteStockOption> sitesFor(Set<Integer> siteIds) {
-        List<SiteStockOption> sites = new ArrayList<>();
+    private List<ProcessingSiteView> sitesFor(Set<Integer> siteIds) {
+        List<ProcessingSiteView> sites = new ArrayList<>();
         for (int siteId : siteIds) {
             findSite(allSites, siteId).ifPresent(sites::add);
         }
         return sites;
     }
 
-    private static Optional<SiteStockOption> findSite(List<SiteStockOption> sites, int siteId) {
+    private static Optional<ProcessingSiteView> findSite(List<ProcessingSiteView> sites, int siteId) {
         return sites.stream()
-            .filter(site -> site.id == siteId)
+            .filter(site -> site.id() == siteId)
             .findFirst();
     }
 
-    private static boolean matches(SiteStockOption site, String keyword) {
-        return normalizeText(site.name).contains(keyword)
-            || normalizeText(site.siteCode).contains(keyword);
+    private static boolean matches(ProcessingSiteView site, String keyword) {
+        return normalizeText(site.name()).contains(keyword)
+            || normalizeText(site.siteCode()).contains(keyword);
     }
 
     private static String normalizeKeyword(String keyword) {
@@ -149,4 +149,3 @@ final class SiteFilterModel {
         return text == null ? "" : text.toLowerCase(Locale.ROOT);
     }
 }
-

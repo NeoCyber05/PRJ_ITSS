@@ -16,7 +16,7 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.itss.prj_itss.ordering.site.SiteManagementController"
+            fx:controller="org.itss.prj_itss.site.presentation.ordering.SiteManagementController"
             styleClass="content-area">
     <top>
         <VBox spacing="4" styleClass="page-header">

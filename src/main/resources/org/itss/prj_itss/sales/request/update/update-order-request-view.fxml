@@ -13,7 +13,7 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.itss.prj_itss.sales.request.update.UpdateOrderRequestController"
+            fx:controller="org.itss.prj_itss.request.presentation.sales.update.UpdateOrderRequestController"
             styleClass="sr-edit-root">
 
     <!-- ── Header ── -->

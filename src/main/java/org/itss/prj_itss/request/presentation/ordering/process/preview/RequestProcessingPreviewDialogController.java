@@ -1,20 +1,20 @@
 package org.itss.prj_itss.request.presentation.ordering.process.preview;
 
 import org.itss.prj_itss.request.presentation.ordering.process.RequestProcessingController;
-import org.itss.prj_itss.request.business.service.RequestProcessingPreviewBuilder.PreviewOrder;
+import org.itss.prj_itss.request.application.processing.RequestProcessingException;
+import org.itss.prj_itss.request.application.processing.ProcessingPreviewOrderView;
 
-import java.sql.SQLException;
 import java.util.List;
 import java.util.Objects;
 
 public final class RequestProcessingPreviewDialogController {
 
     private final RequestProcessingController requestProcessingController;
-    private final List<PreviewOrder> previewOrders;
+    private final List<ProcessingPreviewOrderView> previewOrders;
 
     public RequestProcessingPreviewDialogController(
         RequestProcessingController requestProcessingController,
-        List<PreviewOrder> previewOrders
+        List<ProcessingPreviewOrderView> previewOrders
     ) {
         this.requestProcessingController = Objects.requireNonNull(
             requestProcessingController,
@@ -23,7 +23,7 @@ public final class RequestProcessingPreviewDialogController {
         this.previewOrders = previewOrders == null ? List.of() : List.copyOf(previewOrders);
     }
 
-    public List<PreviewOrder> previewOrders() {
+    public List<ProcessingPreviewOrderView> previewOrders() {
         return previewOrders;
     }
 
@@ -31,7 +31,7 @@ public final class RequestProcessingPreviewDialogController {
         try {
             requestProcessingController.submitAllocatedOrders();
             return SubmitResult.succeeded();
-        } catch (SQLException exception) {
+        } catch (RequestProcessingException exception) {
             return SubmitResult.failed();
         }
     }
@@ -46,4 +46,3 @@ public final class RequestProcessingPreviewDialogController {
         }
     }
 }
-

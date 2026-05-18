@@ -10,7 +10,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.request.business.model.SiteStockOption;
+import org.itss.prj_itss.request.application.processing.ProcessingSiteView;
 
 import java.io.IOException;
 import java.util.List;
@@ -63,7 +63,7 @@ public final class SiteFilterView {
     private boolean expanded;
     private Runnable onFiltersChanged = () -> {};
 
-    public static SiteFilterView load(List<SiteStockOption> allSites, Runnable onFiltersChanged) {
+    public static SiteFilterView load(List<ProcessingSiteView> allSites, Runnable onFiltersChanged) {
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
                 SiteFilterView.class.getResource(VIEW_RESOURCE),
@@ -106,7 +106,7 @@ public final class SiteFilterView {
         });
     }
 
-    private void init(List<SiteStockOption> allSites, Runnable onFiltersChanged) {
+    private void init(List<ProcessingSiteView> allSites, Runnable onFiltersChanged) {
         controller.init(allSites);
         this.onFiltersChanged = onFiltersChanged == null ? () -> {} : onFiltersChanged;
         expanded = false;
@@ -122,19 +122,19 @@ public final class SiteFilterView {
         notifyFiltersChanged();
     }
 
-    private void prioritizeSite(SiteStockOption site) {
+    private void prioritizeSite(ProcessingSiteView site) {
         controller.prioritizeSite(site);
         renderUi();
         notifyFiltersChanged();
     }
 
-    private void unprioritizeSite(SiteStockOption site) {
+    private void unprioritizeSite(ProcessingSiteView site) {
         controller.unprioritizeSite(site);
         renderUi();
         notifyFiltersChanged();
     }
 
-    private void excludeSite(SiteStockOption site) {
+    private void excludeSite(ProcessingSiteView site) {
         controller.excludeSite(site);
         renderUi();
         notifyFiltersChanged();
@@ -154,7 +154,7 @@ public final class SiteFilterView {
         }
 
         siteListContainer.getChildren().clear();
-        for (SiteStockOption site : controller.visibleSites()) {
+        for (ProcessingSiteView site : controller.visibleSites()) {
             boolean prioritized = controller.isPriority(site);
 
             HBox card = new HBox(12);
@@ -164,7 +164,7 @@ public final class SiteFilterView {
             card.getStyleClass().add(prioritized ? "site-filter-site-card-priority" : "site-filter-site-card-normal");
 
             if (prioritized) {
-                Label starLabel = new Label("â˜…");
+                Label starLabel = new Label("★");
                 starLabel.getStyleClass().add("site-filter-star");
                 card.getChildren().add(starLabel);
             }
@@ -178,23 +178,23 @@ public final class SiteFilterView {
         }
     }
 
-    private VBox buildSiteInfo(SiteStockOption site, boolean prioritized) {
+    private VBox buildSiteInfo(ProcessingSiteView site, boolean prioritized) {
         VBox infoBox = new VBox(2);
         HBox.setHgrow(infoBox, Priority.ALWAYS);
 
-        Label nameLabel = new Label(siteName(site) + (prioritized ? " - Äang Æ°u tiÃªn" : ""));
+        Label nameLabel = new Label(siteName(site) + (prioritized ? " - Đang ưu tiên" : ""));
         nameLabel.getStyleClass().add("site-filter-site-name");
         nameLabel.getStyleClass().removeAll(SITE_NAME_STATE_CLASSES);
         nameLabel.getStyleClass().add(prioritized ? "site-filter-site-name-priority" : "site-filter-site-name-normal");
 
-        Label codeLabel = new Label(siteCode(site) + " | TÃ u: " + site.shipDays + " ngÃ y | Bay: " + site.airDays + " ngÃ y");
+        Label codeLabel = new Label(siteCode(site) + " | Tàu: " + site.shipDays() + " ngày | Bay: " + site.airDays() + " ngày");
         codeLabel.getStyleClass().add("site-filter-site-code");
         infoBox.getChildren().addAll(nameLabel, codeLabel);
         return infoBox;
     }
 
-    private Button buildPriorityButton(SiteStockOption site, boolean prioritized) {
-        Button priorityButton = new Button(prioritized ? "Bá» Æ°u tiÃªn" : "Æ¯u tiÃªn");
+    private Button buildPriorityButton(ProcessingSiteView site, boolean prioritized) {
+        Button priorityButton = new Button(prioritized ? "Bỏ ưu tiên" : "Ưu tiên");
         priorityButton.getStyleClass().addAll(
             "forest-chip-button",
             prioritized ? "site-filter-unprioritize-button" : "site-filter-priority-button"
@@ -209,8 +209,8 @@ public final class SiteFilterView {
         return priorityButton;
     }
 
-    private Button buildExcludeButton(SiteStockOption site) {
-        Button excludeButton = new Button("Loáº¡i bá»");
+    private Button buildExcludeButton(ProcessingSiteView site) {
+        Button excludeButton = new Button("Loại bỏ");
         excludeButton.getStyleClass().addAll("forest-chip-button", "site-filter-exclude-button");
         excludeButton.setOnAction(event -> excludeSite(site));
         return excludeButton;
@@ -223,17 +223,17 @@ public final class SiteFilterView {
 
         priorityTagsBox.getChildren().clear();
         if (controller.prioritySiteIds().isEmpty()) {
-            Label placeholderLabel = new Label("ChÆ°a chá»n site Æ°u tiÃªn");
+            Label placeholderLabel = new Label("Chưa chọn site ưu tiên");
             placeholderLabel.getStyleClass().add("site-filter-tag-placeholder");
             priorityTagsBox.getChildren().add(placeholderLabel);
             return;
         }
 
-        for (SiteStockOption site : controller.prioritySites()) {
-            Label tag = new Label("â˜… " + siteName(site) + "  âœ•");
+        for (ProcessingSiteView site : controller.prioritySites()) {
+            Label tag = new Label("★ " + siteName(site) + "  ✕");
             tag.getStyleClass().addAll("site-filter-tag", "site-filter-priority-tag");
             tag.setOnMouseClicked(event -> {
-                controller.removePriority(site.id);
+                controller.removePriority(site.id());
                 renderUi();
                 notifyFiltersChanged();
             });
@@ -248,17 +248,17 @@ public final class SiteFilterView {
 
         excludeTagsBox.getChildren().clear();
         if (controller.excludedSiteIds().isEmpty()) {
-            Label placeholderLabel = new Label("ChÆ°a loáº¡i bá» site nÃ o");
+            Label placeholderLabel = new Label("Chưa loại bỏ site nào");
             placeholderLabel.getStyleClass().add("site-filter-tag-placeholder");
             excludeTagsBox.getChildren().add(placeholderLabel);
             return;
         }
 
-        for (SiteStockOption site : controller.excludedSites()) {
-            Label tag = new Label("âœ• " + siteName(site) + "  âœ•");
+        for (ProcessingSiteView site : controller.excludedSites()) {
+            Label tag = new Label("✕ " + siteName(site) + "  ✕");
             tag.getStyleClass().addAll("site-filter-tag", "site-filter-exclude-tag");
             tag.setOnMouseClicked(event -> {
-                controller.removeExcluded(site.id);
+                controller.removeExcluded(site.id());
                 renderUi();
                 notifyFiltersChanged();
             });
@@ -269,8 +269,8 @@ public final class SiteFilterView {
     private void renderSummary() {
         String countText = controller.visibleSites().size() + "/" + controller.allSites().size() + " site";
         String summaryText = countText + " | "
-            + controller.prioritySiteIds().size() + " Æ°u tiÃªn | "
-            + controller.excludedSiteIds().size() + " loáº¡i bá»";
+            + controller.prioritySiteIds().size() + " ưu tiên | "
+            + controller.excludedSiteIds().size() + " loại bỏ";
 
         if (countLabel != null) {
             countLabel.setText(countText);
@@ -286,7 +286,7 @@ public final class SiteFilterView {
             filterContent.setVisible(expanded);
         }
         if (toggleChevronLabel != null) {
-            toggleChevronLabel.setText(expanded ? "â–¾" : "â–¸");
+            toggleChevronLabel.setText(expanded ? "▾" : "▸");
         }
         if (toggleButton != null) {
             toggleButton.getStyleClass().removeAll(TOGGLE_STATE_CLASSES);
@@ -298,12 +298,12 @@ public final class SiteFilterView {
         onFiltersChanged.run();
     }
 
-    private static String siteName(SiteStockOption site) {
-        return site.name == null ? "" : site.name;
+    private static String siteName(ProcessingSiteView site) {
+        return site.name() == null ? "" : site.name();
     }
 
-    private static String siteCode(SiteStockOption site) {
-        return site.siteCode == null ? "" : site.siteCode;
+    private static String siteCode(ProcessingSiteView site) {
+        return site.siteCode() == null ? "" : site.siteCode();
     }
+
 }
-

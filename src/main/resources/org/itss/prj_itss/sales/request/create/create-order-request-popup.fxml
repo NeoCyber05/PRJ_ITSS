@@ -14,7 +14,7 @@
 
 <StackPane xmlns="http://javafx.com/javafx/17"
            xmlns:fx="http://javafx.com/fxml/1"
-           fx:controller="org.itss.prj_itss.sales.request.create.CreateOrderRequestController"
+           fx:controller="org.itss.prj_itss.request.presentation.sales.create.CreateOrderRequestController"
            styleClass="request-detail-overlay">
     <children>
         <ScrollPane fitToWidth="true"

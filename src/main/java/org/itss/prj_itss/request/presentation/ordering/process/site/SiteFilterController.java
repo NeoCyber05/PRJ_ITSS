@@ -1,6 +1,6 @@
 package org.itss.prj_itss.request.presentation.ordering.process.site;
 
-import org.itss.prj_itss.request.business.model.SiteStockOption;
+import org.itss.prj_itss.request.application.processing.ProcessingSiteView;
 
 import java.util.List;
 import java.util.Set;
@@ -10,7 +10,7 @@ public final class SiteFilterController {
     private final SiteFilterModel model = new SiteFilterModel();
     private String keyword = "";
 
-    public void init(List<SiteStockOption> allSites) {
+    public void init(List<ProcessingSiteView> allSites) {
         model.setSites(allSites);
         refreshVisibleSites();
     }
@@ -26,17 +26,17 @@ public final class SiteFilterController {
         refreshVisibleSites();
     }
 
-    public void prioritizeSite(SiteStockOption site) {
+    public void prioritizeSite(ProcessingSiteView site) {
         model.prioritize(site);
         refreshVisibleSites();
     }
 
-    public void unprioritizeSite(SiteStockOption site) {
+    public void unprioritizeSite(ProcessingSiteView site) {
         model.unprioritize(site);
         refreshVisibleSites();
     }
 
-    public void excludeSite(SiteStockOption site) {
+    public void excludeSite(ProcessingSiteView site) {
         model.exclude(site);
         refreshVisibleSites();
     }
@@ -51,19 +51,19 @@ public final class SiteFilterController {
         refreshVisibleSites();
     }
 
-    public List<SiteStockOption> allSites() {
+    public List<ProcessingSiteView> allSites() {
         return model.allSites();
     }
 
-    public List<SiteStockOption> visibleSites() {
+    public List<ProcessingSiteView> visibleSites() {
         return model.visibleSites();
     }
 
-    public List<SiteStockOption> prioritySites() {
+    public List<ProcessingSiteView> prioritySites() {
         return model.prioritySites();
     }
 
-    public List<SiteStockOption> excludedSites() {
+    public List<ProcessingSiteView> excludedSites() {
         return model.excludedSites();
     }
 
@@ -75,7 +75,7 @@ public final class SiteFilterController {
         return model.excludedSiteIds();
     }
 
-    public boolean isPriority(SiteStockOption site) {
+    public boolean isPriority(ProcessingSiteView site) {
         return model.isPriority(site);
     }
 
@@ -87,4 +87,3 @@ public final class SiteFilterController {
         model.refreshVisibleSites(keyword);
     }
 }
-

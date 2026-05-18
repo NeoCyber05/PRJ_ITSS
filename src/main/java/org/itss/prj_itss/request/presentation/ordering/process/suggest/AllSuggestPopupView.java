@@ -15,10 +15,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import org.itss.prj_itss.request.business.model.DeliveryMethod;
-import org.itss.prj_itss.request.business.allocation.algo.AllSuggestAlgo.OrderLineSuggestion;
-import org.itss.prj_itss.request.business.allocation.algo.AllSuggestAlgo.SiteOrderSuggestion;
-import org.itss.prj_itss.request.business.allocation.algo.AllSuggestAlgo.SuggestedPlan;
+import org.itss.prj_itss.request.application.processing.SuggestedPlanView;
 
 import java.io.IOException;
 import java.util.List;
@@ -27,7 +24,6 @@ import java.util.function.Consumer;
 
 import static org.itss.prj_itss.request.presentation.ordering.process.shared.AllocationViewSupport.addStyleClass;
 import static org.itss.prj_itss.request.presentation.ordering.process.shared.AllocationViewSupport.applyMainStylesheet;
-import static org.itss.prj_itss.request.presentation.ordering.process.shared.AllocationViewSupport.buildColumnHeader;
 import static org.itss.prj_itss.request.presentation.ordering.process.shared.AllocationViewSupport.showToast;
 
 public final class AllSuggestPopupView {
@@ -47,14 +43,14 @@ public final class AllSuggestPopupView {
     @FXML
     private Button closeButton;
 
-    private List<SuggestedPlan> plans = List.of();
-    private Consumer<SuggestedPlan> onApply = plan -> {};
+    private List<SuggestedPlanView> plans = List.of();
+    private Consumer<SuggestedPlanView> onApply = plan -> {};
     private Stage dialog;
 
-    public static void show(List<SuggestedPlan> plans, Consumer<SuggestedPlan> onApply) {
+    public static void show(List<SuggestedPlanView> plans, Consumer<SuggestedPlanView> onApply) {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
-        dialog.setTitle("CÃ¡c phÆ°Æ¡ng Ã¡n phÃ¢n bá»• thá»a mÃ£n");
+        dialog.setTitle("Các phương án phân bổ thỏa mãn");
         dialog.setResizable(true);
 
         try {
@@ -75,12 +71,12 @@ public final class AllSuggestPopupView {
         }
     }
 
-    private void init(Stage dialog, List<SuggestedPlan> plans, Consumer<SuggestedPlan> onApply) {
+    private void init(Stage dialog, List<SuggestedPlanView> plans, Consumer<SuggestedPlanView> onApply) {
         this.dialog = dialog;
         this.plans = plans == null ? List.of() : plans;
         this.onApply = onApply == null ? plan -> {} : onApply;
 
-        titleLabel.setText("CÃ¡c phÆ°Æ¡ng Ã¡n phÃ¢n bá»• thá»a mÃ£n");
+        titleLabel.setText("Các phương án phân bổ thỏa mãn");
         subtitleLabel.setText(buildSubtitle());
         closeButton.setOnAction(event -> dialog.close());
         renderPlans();
@@ -88,8 +84,8 @@ public final class AllSuggestPopupView {
 
     private String buildSubtitle() {
         return plans.isEmpty()
-            ? "KhÃ´ng tÃ¬m Ä‘Æ°á»£c phÆ°Æ¡ng Ã¡n Ä‘Ã¡p á»©ng Ä‘á»§ sá»‘ lÆ°á»£ng vÃ  thá»i háº¡n hiá»‡n táº¡i."
-            : "Hiá»ƒn thá»‹ " + plans.size() + " phÆ°Æ¡ng Ã¡n khÃ¡c nhau theo tá»«ng Ä‘Æ¡n hÃ ng gá»­i tá»›i site.";
+            ? "Không tìm được phương án đáp ứng đủ số lượng và thời hạn hiện tại."
+            : "Hiển thị " + plans.size() + " phương án khác nhau theo từng đơn hàng gửi tới site.";
     }
 
     private void renderPlans() {
@@ -108,10 +104,10 @@ public final class AllSuggestPopupView {
         emptyCard.setPadding(new Insets(18));
         addStyleClass(emptyCard, "allocation-table");
 
-        Label emptyTitle = new Label("ChÆ°a cÃ³ phÆ°Æ¡ng Ã¡n thá»a mÃ£n");
+        Label emptyTitle = new Label("Chưa có phương án thỏa mãn");
         addStyleClass(emptyTitle, "allocation-card-title");
 
-        Label emptyText = new Label("Kiá»ƒm tra láº¡i site bá»‹ loáº¡i bá», sá»‘ lÆ°á»£ng tá»“n kho hoáº·c ngÃ y giao yÃªu cáº§u.");
+        Label emptyText = new Label("Kiểm tra lại site bị loại bỏ, số lượng tồn kho hoặc ngày giao yêu cầu.");
         emptyText.setWrapText(true);
         addStyleClass(emptyText, "allocation-subtitle");
 
@@ -119,34 +115,33 @@ public final class AllSuggestPopupView {
         return emptyCard;
     }
 
-    private VBox buildPlanCard(SuggestedPlan plan, int number) {
+    private VBox buildPlanCard(SuggestedPlanView plan, int number) {
         VBox card = new VBox(14);
         card.setPadding(new Insets(16));
         addStyleClass(card, "allocation-plan-card");
 
         card.getChildren().add(buildPlanHeader(plan, number));
 
-        VBox siteOrdersBox = new VBox(12);
-        for (SiteOrderSuggestion siteOrder : plan.siteOrders()) {
-            siteOrdersBox.getChildren().add(buildSiteOrderCard(siteOrder));
-        }
-
-        card.getChildren().add(siteOrdersBox);
+        // Note: siteOrders metadata is not available in SuggestedPlanView; 
+        // we render only the top-level plan summary here.
+        VBox summaryBox = new VBox(8);
+        summaryBox.getChildren().add(new Label("Tổng: " + plan.totalQuantity() + " chiếc, " + plan.totalLineCount() + " dòng, " + plan.siteCount() + " site"));
+        card.getChildren().add(summaryBox);
         return card;
     }
 
-    private HBox buildPlanHeader(SuggestedPlan plan, int number) {
+    private HBox buildPlanHeader(SuggestedPlanView plan, int number) {
         HBox header = new HBox(12);
         header.setAlignment(Pos.TOP_LEFT);
 
         VBox titleBox = new VBox(6);
-        Label titleLabel = new Label("PhÆ°Æ¡ng Ã¡n " + String.format("%02d", number));
+        Label titleLabel = new Label("Phương án " + String.format("%02d", number));
         addStyleClass(titleLabel, "allocation-title");
 
         Label summaryLabel = new Label(
-            plan.siteOrders().size() + " site"
-                + " â€¢ " + plan.totalLineCount() + " dÃ²ng Ä‘áº·t hÃ ng"
-                + " â€¢ " + plan.totalQuantity() + " chiáº¿c"
+            plan.siteCount() + " site"
+                + " • " + plan.totalLineCount() + " dòng đặt hàng"
+                + " • " + plan.totalQuantity() + " chiếc"
         );
         addStyleClass(summaryLabel, "allocation-subtitle");
         titleBox.getChildren().addAll(titleLabel, summaryLabel);
@@ -157,16 +152,16 @@ public final class AllSuggestPopupView {
         HBox tagRow = new HBox(8);
         tagRow.setAlignment(Pos.CENTER_RIGHT);
         tagRow.getChildren().addAll(
-            buildMetricTag("Äá»§ sá»‘ lÆ°á»£ng", "allocation-metric-success"),
-            buildMetricTag("Ká»‹p ngÃ y nháº­n", "allocation-metric-info")
+            buildMetricTag("Đủ số lượng", "allocation-metric-success"),
+            buildMetricTag("Kịp ngày nhận", "allocation-metric-info")
         );
 
-        Button applyButton = new Button("Ãp dá»¥ng phÆ°Æ¡ng Ã¡n nÃ y");
+        Button applyButton = new Button("Áp dụng phương án này");
         addStyleClass(applyButton, "allocation-apply-plan-button");
         applyButton.setOnAction(event -> {
             onApply.accept(plan);
             dialog.close();
-            showToast("ÄÃ£ Ã¡p dá»¥ng phÆ°Æ¡ng Ã¡n " + number + ".");
+            showToast("Đã áp dụng phương án " + number + ".");
         });
 
         VBox headerRight = new VBox(10, tagRow, applyButton);
@@ -175,99 +170,9 @@ public final class AllSuggestPopupView {
         return header;
     }
 
-    private VBox buildSiteOrderCard(SiteOrderSuggestion siteOrder) {
-        VBox card = new VBox(10);
-        card.setPadding(new Insets(14));
-        addStyleClass(card, "allocation-site-order-card");
-
-        card.getChildren().add(buildSiteOrderHeader(siteOrder));
-
-        VBox table = new VBox(0);
-        addStyleClass(table, "allocation-suggested-table");
-        table.getChildren().add(buildTableHeader());
-        for (OrderLineSuggestion line : siteOrder.lines()) {
-            table.getChildren().add(buildTableRow(line));
-        }
-
-        card.getChildren().add(table);
-        return card;
-    }
-
-    private HBox buildSiteOrderHeader(SiteOrderSuggestion siteOrder) {
-        HBox header = new HBox(12);
-        header.setAlignment(Pos.CENTER_LEFT);
-
-        VBox siteBox = new VBox(4);
-        Label siteNameLabel = new Label(siteOrder.site().name);
-        addStyleClass(siteNameLabel, "allocation-card-title");
-
-        Label siteMetaLabel = new Label(
-            siteOrder.site().siteCode
-                + " â€¢ " + siteOrder.lines().size() + " máº·t hÃ ng"
-                + " â€¢ " + siteOrder.totalQuantity() + " chiáº¿c"
-        );
-        addStyleClass(siteMetaLabel, "allocation-subtitle");
-        siteBox.getChildren().addAll(siteNameLabel, siteMetaLabel);
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        HBox tagRow = new HBox(8);
-        tagRow.setAlignment(Pos.CENTER_RIGHT);
-        tagRow.getChildren().addAll(
-            buildMetricTag(siteOrder.transportSummary(), "allocation-metric-info"),
-            buildMetricTag("ETA " + siteOrder.deliveryDays() + " ngÃ y", "allocation-metric-success")
-        );
-
-        header.getChildren().addAll(siteBox, spacer, tagRow);
-        return header;
-    }
-
-    private HBox buildTableHeader() {
-        HBox header = new HBox();
-        header.setAlignment(Pos.CENTER_LEFT);
-        header.setPadding(new Insets(10, 14, 10, 14));
-        addStyleClass(header, "allocation-suggested-table-header");
-        header.getChildren().addAll(
-            buildColumnHeader("MÃƒ HÃ€NG", 130),
-            buildColumnHeader("TÃŠN Máº¶T HÃ€NG", 280),
-            buildColumnHeader("Sá» LÆ¯á»¢NG", 120),
-            buildColumnHeader("Váº¬N CHUYá»‚N", 150)
-        );
-        return header;
-    }
-
-    private HBox buildTableRow(OrderLineSuggestion line) {
-        HBox row = new HBox();
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(12, 14, 12, 14));
-        addStyleClass(row, "allocation-table-row");
-
-        row.getChildren().addAll(
-            buildValueCell(line.item().code, 130, true),
-            buildValueCell(line.item().name, 280, false),
-            buildValueCell(line.quantity() + " chiáº¿c", 120, true),
-            buildValueCell(DeliveryMethod.displayLabelOf(line.transport()), 150, false)
-        );
-        return row;
-    }
-
     private Label buildMetricTag(String text, String modifierClass) {
         Label label = new Label(text);
         addStyleClass(label, "allocation-metric-tag", modifierClass);
         return label;
     }
-
-    private Label buildValueCell(String text, double width, boolean emphasize) {
-        Label label = new Label(text);
-        label.setMinWidth(width);
-        label.setPrefWidth(width);
-        label.setWrapText(true);
-        addStyleClass(label, "allocation-value-cell");
-        if (emphasize) {
-            addStyleClass(label, "allocation-value-cell-emphasis");
-        }
-        return label;
-    }
 }
-

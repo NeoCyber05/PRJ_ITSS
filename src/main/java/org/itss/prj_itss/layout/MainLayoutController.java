@@ -12,11 +12,11 @@ import org.itss.prj_itss.App;
 import org.itss.prj_itss.auth.domain.AuthenticatedUser;
 import org.itss.prj_itss.auth.application.RoleAccessPolicy;
 import org.itss.prj_itss.auth.domain.RoleType;
-import org.itss.prj_itss.auth.ui.workspace.RoleWorkspaceContent;
-import org.itss.prj_itss.auth.ui.workspace.RoleWorkspaceContentFactory;
-import org.itss.prj_itss.auth.ui.workspace.RoleWorkspaceController;
+import org.itss.prj_itss.auth.presentation.workspace.RoleWorkspaceContent;
+import org.itss.prj_itss.auth.presentation.workspace.RoleWorkspaceContentFactory;
+import org.itss.prj_itss.auth.presentation.workspace.RoleWorkspaceController;
 import org.itss.prj_itss.common.config.ApplicationContext;
-import org.itss.prj_itss.ordering.order.OrderDetailView;
+import org.itss.prj_itss.order.presentation.ordering.OrderDetailView;
 import org.itss.prj_itss.request.presentation.ordering.process.layout.RequestProcessingLayoutView;
 
 import java.util.HashMap;
@@ -205,6 +205,7 @@ public class MainLayoutController implements INavigator {
             "/org/itss/prj_itss/request/presentation/ordering/process/layout/request-processing-view.fxml",
             controller -> {
                 if (controller instanceof RequestProcessingLayoutView requestProcessingView) {
+                    requestProcessingView.init(context.requestProcessingUseCase(), this::showView);
                     requestProcessingView.setRequestId(requestId);
                 }
             }

@@ -11,32 +11,24 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.request.business.allocation.AllocationControl;
-import org.itss.prj_itss.request.business.allocation.AllocationControl.AllocationChangeRequest;
-import org.itss.prj_itss.request.business.allocation.AllocationControl.AllocationChangeResult;
-import org.itss.prj_itss.request.business.model.ItemRequirement;
-import org.itss.prj_itss.request.business.model.SiteStockOption;
+import org.itss.prj_itss.request.application.processing.AllocationChangeCommand;
+import org.itss.prj_itss.request.application.processing.AllocationChangeResultView;
+import org.itss.prj_itss.request.application.processing.RequestProcessingViewModel;
 
 import java.io.IOException;
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 import java.util.function.Function;
 import java.util.function.IntConsumer;
 
 import static org.itss.prj_itss.request.presentation.ordering.process.shared.AllocationViewSupport.FRACTION_STATE_CLASSES;
 import static org.itss.prj_itss.request.presentation.ordering.process.shared.AllocationViewSupport.addStyleClass;
-import static org.itss.prj_itss.request.presentation.ordering.process.shared.AllocationViewSupport.applyItemAllocationState;
 import static org.itss.prj_itss.request.presentation.ordering.process.shared.AllocationViewSupport.setStateClass;
 
 public final class ItemsSectionView {
 
     private static final String VIEW_RESOURCE =
         "/org/itss/prj_itss/request/presentation/ordering/process/items/items-section-view.fxml";
-
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     @FXML
     private Button optimizeButton;
@@ -49,31 +41,21 @@ public final class ItemsSectionView {
 
     private VBox root;
 
-    private List<ItemRequirement> items = List.of();
-    private List<SiteStockOption> allSites = List.of();
-    private Set<Integer> excludedSiteIds = Set.of();
-    private AllocationControl allocationControl;
-    private LocalDate earliestDeliveryDate;
-    private int expandedItemIndex = -1;
+    private RequestProcessingViewModel viewModel;
     private Runnable onOptimizeRequested = () -> {};
     private Runnable onShowAllPlansRequested = () -> {};
     private IntConsumer onToggleExpandedItem = index -> {};
-    private Function<AllocationChangeRequest, AllocationChangeResult> onAllocationInputChanged = request -> null;
+    private Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged = request -> null;
 
     private Label[] allocationStatusLabels = new Label[0];
     private Label[] allocationFractionLabels = new Label[0];
 
     public static ItemsSectionView load(
-        List<ItemRequirement> items,
-        List<SiteStockOption> allSites,
-        Set<Integer> excludedSiteIds,
-        AllocationControl allocationControl,
-        LocalDate earliestDeliveryDate,
-        int expandedItemIndex,
+        RequestProcessingViewModel viewModel,
         Runnable onOptimizeRequested,
         Runnable onShowAllPlansRequested,
         IntConsumer onToggleExpandedItem,
-        Function<AllocationChangeRequest, AllocationChangeResult> onAllocationInputChanged
+        Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged
     ) {
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
@@ -84,12 +66,7 @@ public final class ItemsSectionView {
             ItemsSectionView view = loader.getController();
             view.root = root;
             view.init(
-                items,
-                allSites,
-                excludedSiteIds,
-                allocationControl,
-                earliestDeliveryDate,
-                expandedItemIndex,
+                viewModel,
                 onOptimizeRequested,
                 onShowAllPlansRequested,
                 onToggleExpandedItem,
@@ -106,8 +83,8 @@ public final class ItemsSectionView {
     }
 
     public void refreshAllocationLabels() {
-        for (int index = 0; index < items.size(); index++) {
-            updateAllocationLabels(items.get(index), index);
+        for (int index = 0; index < viewModel.allocationItems().size(); index++) {
+            updateAllocationLabels(viewModel.allocationItems().get(index), index);
         }
     }
 
@@ -122,23 +99,13 @@ public final class ItemsSectionView {
     }
 
     private void init(
-        List<ItemRequirement> items,
-        List<SiteStockOption> allSites,
-        Set<Integer> excludedSiteIds,
-        AllocationControl allocationControl,
-        LocalDate earliestDeliveryDate,
-        int expandedItemIndex,
+        RequestProcessingViewModel viewModel,
         Runnable onOptimizeRequested,
         Runnable onShowAllPlansRequested,
         IntConsumer onToggleExpandedItem,
-        Function<AllocationChangeRequest, AllocationChangeResult> onAllocationInputChanged
+        Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged
     ) {
-        this.items = items == null ? List.of() : items;
-        this.allSites = allSites == null ? List.of() : allSites;
-        this.excludedSiteIds = excludedSiteIds == null ? Set.of() : excludedSiteIds;
-        this.allocationControl = Objects.requireNonNull(allocationControl, "allocationControl");
-        this.earliestDeliveryDate = earliestDeliveryDate;
-        this.expandedItemIndex = expandedItemIndex;
+        this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
         this.onOptimizeRequested = onOptimizeRequested == null ? () -> {} : onOptimizeRequested;
         this.onShowAllPlansRequested = onShowAllPlansRequested == null ? () -> {} : onShowAllPlansRequested;
         this.onToggleExpandedItem = onToggleExpandedItem == null ? index -> {} : onToggleExpandedItem;
@@ -148,26 +115,24 @@ public final class ItemsSectionView {
     }
 
     private void renderItems() {
-        allocationStatusLabels = new Label[items.size()];
-        allocationFractionLabels = new Label[items.size()];
+        allocationStatusLabels = new Label[viewModel.allocationItems().size()];
+        allocationFractionLabels = new Label[viewModel.allocationItems().size()];
 
         itemsContainer.getChildren().clear();
-        for (int index = 0; index < items.size(); index++) {
-            itemsContainer.getChildren().add(buildItemBlock(items.get(index), index));
+        for (int index = 0; index < viewModel.allocationItems().size(); index++) {
+            itemsContainer.getChildren().add(buildItemBlock(viewModel.allocationItems().get(index), index));
         }
         refreshAllocationLabels();
     }
 
-    private VBox buildItemBlock(ItemRequirement item, int index) {
+    private VBox buildItemBlock(RequestProcessingViewModel.AllocationItemViewModel item, int index) {
         VBox block = new VBox(0);
         block.getChildren().add(buildItemRow(item, index));
-        if (expandedItemIndex == index) {
+        if (item.expanded()) {
             block.getChildren().add(AllocationItemEditorView.load(
                 item,
                 index,
-                allSites,
-                excludedSiteIds,
-                allocationControl,
+                item.siteRows(),
                 onAllocationInputChanged,
                 this::handleItemAllocationChanged
             ));
@@ -175,8 +140,8 @@ public final class ItemsSectionView {
         return block;
     }
 
-    private HBox buildItemRow(ItemRequirement item, int index) {
-        boolean expanded = expandedItemIndex == index;
+    private HBox buildItemRow(RequestProcessingViewModel.AllocationItemViewModel item, int index) {
+        boolean expanded = item.expanded();
 
         HBox row = new HBox();
         row.setAlignment(Pos.CENTER_LEFT);
@@ -188,17 +153,17 @@ public final class ItemsSectionView {
 
         VBox codeColumn = new VBox(4);
         codeColumn.setMinWidth(200);
-        Label codeLabel = new Label(item.code);
+        Label codeLabel = new Label(item.code());
         codeLabel.setStyle("-fx-font-size:14px;-fx-font-weight:bold;-fx-text-fill:#1a2e22;");
-        Label nameLabel = new Label(item.name);
+        Label nameLabel = new Label(item.name());
         nameLabel.setStyle("-fx-font-size:12px;-fx-text-fill:#6B7C72;");
         codeColumn.getChildren().addAll(codeLabel, nameLabel);
 
-        Label requiredLabel = new Label(item.required + " chiáº¿c");
+        Label requiredLabel = new Label(item.required() + " chiếc");
         requiredLabel.setStyle("-fx-font-size:13px;-fx-text-fill:#1a2e22;");
         requiredLabel.setMinWidth(170);
 
-        Label deadlineLabel = new Label(earliestDeliveryDate != null ? earliestDeliveryDate.format(DATE_FORMAT) : "N/A");
+        Label deadlineLabel = new Label(viewModel.earliestDeliveryDate() != null && !viewModel.earliestDeliveryDate().isBlank() ? viewModel.earliestDeliveryDate() : "N/A");
         deadlineLabel.setStyle("-fx-font-size:13px;-fx-text-fill:#1a2e22;");
         deadlineLabel.setMinWidth(150);
 
@@ -213,18 +178,13 @@ public final class ItemsSectionView {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        int totalStock = allSites.stream()
-            .filter(site -> !excludedSiteIds.contains(site.id))
-            .mapToInt(site -> site.stock.getOrDefault(item.merchandiseId, 0))
-            .sum();
-
         VBox stockColumn = new VBox(10);
         stockColumn.setAlignment(Pos.CENTER_RIGHT);
         stockColumn.setMinWidth(160);
-        Label stockValueLabel = new Label(String.valueOf(totalStock));
+        Label stockValueLabel = new Label(String.valueOf(item.totalStock()));
         stockValueLabel.setStyle("-fx-font-size:20px;-fx-font-weight:bold;-fx-text-fill:#1a2e22;");
 
-        Button toggleButton = new Button(expanded ? "áº¨n tá»“n kho" : "Hiá»‡n tá»“n kho");
+        Button toggleButton = new Button(expanded ? "Ẩn tồn kho" : "Hiện tồn kho");
         toggleButton.getStyleClass().add(expanded ? "forest-dark-button" : "forest-outline-button");
         toggleButton.setOnAction(event -> onToggleExpandedItem.accept(index));
         stockColumn.getChildren().addAll(stockValueLabel, toggleButton);
@@ -234,7 +194,7 @@ public final class ItemsSectionView {
         return row;
     }
 
-    private void updateAllocationLabels(ItemRequirement item, int index) {
+    private void updateAllocationLabels(RequestProcessingViewModel.AllocationItemViewModel item, int index) {
         if (index >= allocationStatusLabels.length || index >= allocationFractionLabels.length) {
             return;
         }
@@ -245,27 +205,21 @@ public final class ItemsSectionView {
             return;
         }
 
-        AllocationControl.ItemAllocationSummary summary = allocationControl.allocationSummary(item);
-        applyItemAllocationState(stateLabel, summary.state());
-        updateFractionLabel(fractionLabel, summary);
+        stateLabel.setText(item.allocationStatusText());
+        String stateClass = switch (item.allocationStatusText()) {
+            case "Vượt mức" -> "allocation-fraction-over";
+            case "Đủ" -> "allocation-fraction-complete";
+            case "Chưa đủ" -> "allocation-fraction-partial";
+            default -> "allocation-fraction-muted";
+        };
+        fractionLabel.setText(item.allocationFractionText());
+        addStyleClass(fractionLabel, "allocation-fraction-label");
+        setStateClass(fractionLabel, FRACTION_STATE_CLASSES, stateClass);
     }
 
     private void handleItemAllocationChanged(int index) {
-        if (index >= 0 && index < items.size()) {
-            updateAllocationLabels(items.get(index), index);
+        if (index >= 0 && index < viewModel.allocationItems().size()) {
+            updateAllocationLabels(viewModel.allocationItems().get(index), index);
         }
     }
-
-    private void updateFractionLabel(Label label, AllocationControl.ItemAllocationSummary summary) {
-        String stateClass = switch (summary.state()) {
-            case OVER -> "allocation-fraction-over";
-            case COMPLETE -> "allocation-fraction-complete";
-            case PARTIAL -> "allocation-fraction-partial";
-            case NONE -> "allocation-fraction-muted";
-        };
-        label.setText(summary.allocated() + "/" + summary.required());
-        addStyleClass(label, "allocation-fraction-label");
-        setStateClass(label, FRACTION_STATE_CLASSES, stateClass);
-    }
 }
-

@@ -10,13 +10,13 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import org.itss.prj_itss.common.config.ApplicationContext;
-import org.itss.prj_itss.dto.DashboardData;
-import org.itss.prj_itss.entity.Order;
-import org.itss.prj_itss.entity.Request;
+import org.itss.prj_itss.dashboard.application.DashboardData;
+import org.itss.prj_itss.order.domain.Order;
+import org.itss.prj_itss.request.domain.request.Request;
 import org.itss.prj_itss.layout.INavigator;
 import org.itss.prj_itss.layout.IViewController;
-import org.itss.prj_itss.service.DashboardService;
-import org.itss.prj_itss.service.RequestService;
+import org.itss.prj_itss.dashboard.application.DashboardQuery;
+import org.itss.prj_itss.request.application.RequestManagementUseCase;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -29,8 +29,8 @@ public class HomeController implements IViewController {
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
     private INavigator navigator;
-    private DashboardService dashboardService;
-    private RequestService requestService;
+    private DashboardQuery dashboardQuery;
+    private RequestManagementUseCase requestService;
 
 
 
@@ -46,8 +46,8 @@ public class HomeController implements IViewController {
     @Override
     public void init(INavigator navigator, ApplicationContext context) {
         this.navigator = navigator;
-        this.dashboardService = context.dashboardService();
-        this.requestService = context.requestService();
+        this.dashboardQuery = context.dashboardQuery();
+        this.requestService = context.requestManagementUseCase();
         reload();
     }
 
@@ -66,7 +66,7 @@ public class HomeController implements IViewController {
     }
 
     private void reload() {
-        DashboardData dashboardData = dashboardService.loadDashboardData();
+        DashboardData dashboardData = dashboardQuery.loadDashboardData();
         List<Request> requests = dashboardData.requests();
         List<Order> orders = dashboardData.orders();
 

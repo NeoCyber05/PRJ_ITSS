@@ -20,9 +20,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import org.itss.prj_itss.layout.INavigator;
-import org.itss.prj_itss.request.business.model.DeliveryMethod;
-import org.itss.prj_itss.request.business.service.RequestProcessingPreviewBuilder;
+import org.itss.prj_itss.request.application.processing.ProcessingPreviewOrderView;
 
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -44,16 +42,16 @@ public final class RequestProcessingPreviewDialogView {
     private Button sendButton;
 
     private Stage dialog;
-    private INavigator navigator;
+    private Runnable onOrdersRequested;
     private RequestProcessingPreviewDialogController controller;
 
     void init(
         Stage dialog,
-        INavigator navigator,
+        Runnable onOrdersRequested,
         RequestProcessingPreviewDialogController controller
     ) {
         this.dialog = dialog;
-        this.navigator = navigator;
+        this.onOrdersRequested = onOrdersRequested == null ? () -> {} : onOrdersRequested;
         this.controller = controller;
 
         render(controller.previewOrders());
@@ -61,19 +59,19 @@ public final class RequestProcessingPreviewDialogView {
         sendButton.setOnAction(event -> submit());
     }
 
-    private void render(List<RequestProcessingPreviewBuilder.PreviewOrder> previewOrders) {
+    private void render(List<ProcessingPreviewOrderView> previewOrders) {
         int totalQuantity = previewOrders.stream()
             .flatMap(order -> order.lines().stream())
-            .mapToInt(RequestProcessingPreviewBuilder.PreviewLine::quantity)
+            .mapToInt(ProcessingPreviewOrderView.ProcessingPreviewLineView::quantity)
             .sum();
         int totalLines = previewOrders.stream()
             .mapToInt(order -> order.lines().size())
             .sum();
 
         subtitleLabel.setText(
-            previewOrders.size() + " Ä‘Æ¡n hÃ ng dá»± kiáº¿n"
-                + " â€¢ " + totalLines + " dÃ²ng phÃ¢n bá»•"
-                + " â€¢ " + totalQuantity + " chiáº¿c"
+            previewOrders.size() + " đơn hàng dự kiến"
+                + " • " + totalLines + " dòng phân bổ"
+                + " • " + totalQuantity + " chiếc"
         );
 
         ordersBox.getChildren().clear();
@@ -90,11 +88,11 @@ public final class RequestProcessingPreviewDialogView {
         }
 
         dialog.close();
-        navigator.showView("orders");
-        showToast("ÄÃ£ táº¡o Ä‘Æ¡n hÃ ng thÃ nh cÃ´ng.");
+        onOrdersRequested.run();
+        showToast("Đã tạo đơn hàng thành công.");
     }
 
-    private VBox buildPreviewOrderCard(RequestProcessingPreviewBuilder.PreviewOrder order, int index) {
+    private VBox buildPreviewOrderCard(ProcessingPreviewOrderView order, int index) {
         VBox card = new VBox(12);
         card.setPadding(new Insets(16));
         addStyleClass(card, "request-preview-card");
@@ -103,17 +101,17 @@ public final class RequestProcessingPreviewDialogView {
         header.setAlignment(Pos.CENTER_LEFT);
 
         VBox titleBox = new VBox(4);
-        Label orderLabel = new Label("ÄÆ¡n hÃ ng dá»± kiáº¿n " + index);
+        Label orderLabel = new Label("Đơn hàng dự kiến " + index);
         addStyleClass(orderLabel, "request-preview-card-title");
-        Label siteLabel = new Label(order.site().name + " â€¢ " + order.site().siteCode);
+        Label siteLabel = new Label(order.siteName() + " • " + order.siteCode());
         addStyleClass(siteLabel, "request-preview-subtitle");
         titleBox.getChildren().addAll(orderLabel, siteLabel);
 
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        int totalQuantity = order.lines().stream().mapToInt(RequestProcessingPreviewBuilder.PreviewLine::quantity).sum();
-        Label qtyBadge = new Label(totalQuantity + " chiáº¿c");
+        int totalQuantity = order.lines().stream().mapToInt(ProcessingPreviewOrderView.ProcessingPreviewLineView::quantity).sum();
+        Label qtyBadge = new Label(totalQuantity + " chiếc");
         addStyleClass(qtyBadge, "request-preview-quantity-badge");
 
         header.getChildren().addAll(titleBox, spacer, qtyBadge);
@@ -121,7 +119,7 @@ public final class RequestProcessingPreviewDialogView {
         VBox table = new VBox(0);
         addStyleClass(table, "request-preview-table");
         table.getChildren().add(buildPreviewTableHeader());
-        for (RequestProcessingPreviewBuilder.PreviewLine line : order.lines()) {
+        for (ProcessingPreviewOrderView.ProcessingPreviewLineView line : order.lines()) {
             table.getChildren().add(buildPreviewTableRow(line));
         }
 
@@ -135,37 +133,35 @@ public final class RequestProcessingPreviewDialogView {
         header.setPadding(new Insets(10, 14, 10, 14));
         addStyleClass(header, "request-preview-table-header");
         header.getChildren().addAll(
-            previewHeaderCell("MÃƒ HÃ€NG", 120),
-            previewHeaderCell("TÃŠN Máº¶T HÃ€NG", 250),
-            previewHeaderCell("Sá» LÆ¯á»¢NG", 110),
-            previewHeaderCell("Váº¬N CHUYá»‚N", 150),
-            previewHeaderCell("Dá»° KIáº¾N NHáº¬N", 140),
-            previewHeaderCell("Háº N NHáº¬N", 140)
+            previewHeaderCell("MÃ HÀNG", 120),
+            previewHeaderCell("TÊN MẶT HÀNG", 250),
+            previewHeaderCell("SỐ LƯỢNG", 110),
+            previewHeaderCell("VẬN CHUYỂN", 150),
+            previewHeaderCell("DỰ KIẾN NHẬN", 140),
+            previewHeaderCell("HẠN NHẬN", 140)
         );
         return header;
     }
 
-    private HBox buildPreviewTableRow(RequestProcessingPreviewBuilder.PreviewLine line) {
+    private HBox buildPreviewTableRow(ProcessingPreviewOrderView.ProcessingPreviewLineView line) {
         HBox row = new HBox();
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(12, 14, 12, 14));
         addStyleClass(row, "request-preview-table-row");
 
-        row.getChildren().add(previewValueCell(line.item().code, 120, true));
-        row.getChildren().add(previewValueCell(line.item().name, 250, false));
+        row.getChildren().add(previewValueCell(line.merchandiseCode(), 120, true));
+        row.getChildren().add(previewValueCell(line.merchandiseName(), 250, false));
         row.getChildren().add(previewValueCell(String.valueOf(line.quantity()), 110, true));
 
-        HBox transportBox = new HBox(buildTransportBadgeCompact(
-            DeliveryMethod.displayLabelOf(line.transport())
-        ));
+        HBox transportBox = new HBox(buildTransportBadgeCompact(line.transport()));
         transportBox.setAlignment(Pos.CENTER_LEFT);
         transportBox.setMinWidth(150);
         transportBox.setPrefWidth(150);
         row.getChildren().add(transportBox);
 
-        row.getChildren().add(previewValueCell(line.estimatedDate().format(DATE_FORMAT), 140, false));
+        row.getChildren().add(previewValueCell(line.estimatedDate() != null ? line.estimatedDate() : "N/A", 140, false));
         row.getChildren().add(previewValueCell(
-            line.desiredDate() == null ? "N/A" : line.desiredDate().format(DATE_FORMAT),
+            line.desiredDate() != null ? line.desiredDate() : "N/A",
             140,
             false
         ));
@@ -194,9 +190,9 @@ public final class RequestProcessingPreviewDialogView {
 
     private void showCreationError() {
         Alert errorAlert = new Alert(Alert.AlertType.ERROR);
-        errorAlert.setTitle("KhÃ´ng thá»ƒ táº¡o Ä‘Æ¡n");
+        errorAlert.setTitle("Không thể tạo đơn");
         errorAlert.setHeaderText(null);
-        errorAlert.setContentText("KhÃ´ng thá»ƒ táº¡o cÃ¡c Ä‘Æ¡n hÃ ng Ä‘Ã£ phÃ¢n bá»•.");
+        errorAlert.setContentText("Không thể tạo các đơn hàng đã phân bổ.");
         styleDialog(errorAlert);
         errorAlert.showAndWait();
     }
@@ -265,4 +261,3 @@ public final class RequestProcessingPreviewDialogView {
         };
     }
 }
-

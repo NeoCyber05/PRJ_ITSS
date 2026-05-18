@@ -6,30 +6,26 @@ import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.common.config.ApplicationContext;
-import org.itss.prj_itss.layout.INavigator;
-import org.itss.prj_itss.layout.IViewController;
+import org.itss.prj_itss.request.application.processing.RequestProcessingSession;
+import org.itss.prj_itss.request.application.processing.RequestProcessingViewModel;
+import org.itss.prj_itss.request.application.processing.SuggestedPlanView;
 import org.itss.prj_itss.request.presentation.ordering.process.RequestProcessingController;
-import org.itss.prj_itss.request.presentation.ordering.process.RequestProcessingController.ConfirmResult;
-import org.itss.prj_itss.request.presentation.ordering.process.RequestProcessingController.ProcessingSnapshot;
-import org.itss.prj_itss.request.business.allocation.algo.AllSuggestAlgo.SuggestedPlan;
 import org.itss.prj_itss.request.presentation.ordering.process.items.ItemsSectionView;
-import org.itss.prj_itss.request.business.service.RequestProcessingPreviewBuilder.PreviewOrder;
+import org.itss.prj_itss.request.application.processing.RequestProcessingUseCase;
 import org.itss.prj_itss.request.presentation.ordering.process.preview.RequestProcessingPreviewDialog;
 import org.itss.prj_itss.request.presentation.ordering.process.preview.RequestProcessingPreviewDialogController;
 import org.itss.prj_itss.request.presentation.ordering.process.site.SiteFilterView;
 import org.itss.prj_itss.request.presentation.ordering.process.suggest.AllSuggestPopupView;
 
-import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Objects;
+import java.util.function.Consumer;
 
-public final class RequestProcessingLayoutView implements IViewController {
+public final class RequestProcessingLayoutView {
 
-    private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
-
-    private INavigator navigator;
     private RequestProcessingController controller;
     private SiteFilterView siteFilterView;
+    private Consumer<String> navigateToView = viewId -> {};
 
     @FXML
     private Label requestCodeLabel;
@@ -49,12 +45,11 @@ public final class RequestProcessingLayoutView implements IViewController {
     @FXML
     private VBox allocationContainer;
 
-    @Override
-    public void init(INavigator navigator, ApplicationContext context) {
-        this.navigator = navigator;
+    public void init(RequestProcessingUseCase requestProcessingUseCase, Consumer<String> navigateToView) {
         this.controller = new RequestProcessingController(
-            context.requestProcessingUseCaseV2()
+            Objects.requireNonNull(requestProcessingUseCase, "requestProcessingUseCase")
         );
+        this.navigateToView = navigateToView == null ? viewId -> {} : navigateToView;
     }
 
     public void setRequestId(int requestId) {
@@ -64,14 +59,12 @@ public final class RequestProcessingLayoutView implements IViewController {
 
     @FXML
     private void goBack() {
-        if (navigator != null) {
-            navigator.showView("received-requests");
-        }
+        navigateToView.accept("received-requests");
     }
 
     @FXML
     private void handleConfirm() {
-        ConfirmResult result = controller.handleConfirm();
+        RequestProcessingController.ConfirmResult result = controller.handleConfirm();
         if (!result.valid()) {
             showValidationError(result.validationMessage());
             return;
@@ -80,9 +73,9 @@ public final class RequestProcessingLayoutView implements IViewController {
         showPreviewDialog(result.previewOrders());
     }
 
-    private void showPreviewDialog(List<PreviewOrder> previewOrders) {
+    private void showPreviewDialog(List<org.itss.prj_itss.request.application.processing.ProcessingPreviewOrderView> previewOrders) {
         new RequestProcessingPreviewDialog(
-            navigator,
+            () -> navigateToView.accept("orders"),
             new RequestProcessingPreviewDialogController(controller, previewOrders)
         ).show(itemsTableContainer);
     }
@@ -95,21 +88,21 @@ public final class RequestProcessingLayoutView implements IViewController {
     }
 
     private void renderHeader() {
-        ProcessingSnapshot snapshot = controller.snapshot();
-        int totalQuantity = snapshot.items().stream().mapToInt(item -> item.required).sum();
-        requestCodeLabel.setText("YÃªu cáº§u " + String.format("YC-2026-%03d", snapshot.requestId()));
+        RequestProcessingViewModel vm = controller.snapshot();
+        int totalQuantity = vm.items().stream().mapToInt(item -> item.required()).sum();
+        requestCodeLabel.setText("Yêu cầu " + vm.requestCode());
         requestSummaryLabel.setText(
-            "NgÃ y cáº§n giao: "
-                + (snapshot.earliestDeliveryDate() == null ? "N/A" : snapshot.earliestDeliveryDate().format(DATE_FORMAT))
-                + "  â€¢  " + snapshot.items().size() + " máº·t hÃ ng"
-                + "  â€¢  " + totalQuantity + " chiáº¿c"
+            "Ngày cần giao: "
+                + (vm.earliestDeliveryDate() == null || vm.earliestDeliveryDate().isBlank() ? "N/A" : vm.earliestDeliveryDate())
+                + "  •  " + vm.items().size() + " mặt hàng"
+                + "  •  " + totalQuantity + " chiếc"
         );
-        requestStatusLabel.setText("Chá» xá»­ lÃ½");
+        requestStatusLabel.setText("Chờ xử lý");
     }
 
     private void renderSiteFilterSection() {
-        ProcessingSnapshot snapshot = controller.snapshot();
-        siteFilterView = SiteFilterView.load(snapshot.allSites(), this::handleSiteFilterChanged);
+        RequestProcessingViewModel vm = controller.snapshot();
+        siteFilterView = SiteFilterView.load(vm.sites(), this::handleSiteFilterChanged);
         siteFilterContainer.getChildren().setAll(siteFilterView.root());
     }
 
@@ -123,14 +116,9 @@ public final class RequestProcessingLayoutView implements IViewController {
     }
 
     private void renderItemsViewSection() {
-        ProcessingSnapshot snapshot = controller.snapshot();
+        RequestProcessingViewModel vm = controller.snapshot();
         ItemsSectionView itemsSection = ItemsSectionView.load(
-            snapshot.items(),
-            snapshot.allSites(),
-            snapshot.excludedSiteIds(),
-            snapshot.allocationControl(),
-            snapshot.earliestDeliveryDate(),
-            snapshot.expandedItemIndex(),
+            vm,
             this::handleOptimizeAllocation,
             this::handleShowAllPlans,
             this::toggleExpandedItem,
@@ -150,8 +138,8 @@ public final class RequestProcessingLayoutView implements IViewController {
         AllSuggestPopupView.show(controller.handleShowAllPlans(), this::applySelectedPlan);
     }
 
-    private void applySelectedPlan(SuggestedPlan plan) {
-        controller.applySelectedPlan(plan);
+    private void applySelectedPlan(SuggestedPlanView plan) {
+        controller.applySelectedPlan(plan.signature());
         renderItemsViewSection();
     }
 
@@ -170,7 +158,7 @@ public final class RequestProcessingLayoutView implements IViewController {
 
     private void showValidationError(String message) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("KhÃ´ng há»£p lá»‡");
+        alert.setTitle("Không hợp lệ");
         alert.setHeaderText(null);
         alert.setContentText(message);
         styleDialog(alert);
@@ -182,4 +170,3 @@ public final class RequestProcessingLayoutView implements IViewController {
         dialogPane.setStyle("-fx-background-color: white; -fx-font-size: 13px;");
     }
 }
-

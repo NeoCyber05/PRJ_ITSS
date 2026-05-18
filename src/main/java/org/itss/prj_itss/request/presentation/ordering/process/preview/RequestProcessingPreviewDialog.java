@@ -8,8 +8,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 
-import org.itss.prj_itss.layout.INavigator;
-
 import java.io.IOException;
 import java.util.Objects;
 
@@ -19,14 +17,14 @@ public final class RequestProcessingPreviewDialog {
         "/org/itss/prj_itss/request/presentation/ordering/process/preview/request-processing-preview-dialog.fxml";
     private static final String MAIN_STYLESHEET = "/org/itss/prj_itss/styles/main-style.css";
 
-    private final INavigator navigator;
+    private final Runnable onOrdersRequested;
     private final RequestProcessingPreviewDialogController controller;
 
     public RequestProcessingPreviewDialog(
-        INavigator navigator,
+        Runnable onOrdersRequested,
         RequestProcessingPreviewDialogController controller
     ) {
-        this.navigator = navigator;
+        this.onOrdersRequested = onOrdersRequested == null ? () -> {} : onOrdersRequested;
         this.controller = Objects.requireNonNull(controller, "controller");
     }
 
@@ -57,7 +55,7 @@ public final class RequestProcessingPreviewDialog {
             ));
             Parent root = loader.load();
             RequestProcessingPreviewDialogView view = loader.getController();
-            view.init(dialog, navigator, controller);
+            view.init(dialog, onOrdersRequested, controller);
             return root;
         } catch (IOException exception) {
             throw new IllegalStateException("Cannot load request processing preview dialog", exception);

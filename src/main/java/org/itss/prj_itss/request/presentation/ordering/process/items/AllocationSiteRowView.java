@@ -8,14 +8,9 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.request.business.model.ItemRequirement;
-import org.itss.prj_itss.request.business.model.SiteStockOption;
-import org.itss.prj_itss.request.business.allocation.AllocationControl;
-import org.itss.prj_itss.request.business.allocation.AllocationControl.AllocationChangeRequest;
-import org.itss.prj_itss.request.business.allocation.AllocationControl.AllocationChangeResult;
-import org.itss.prj_itss.request.business.allocation.AllocationControl.AllocationInputError;
-import org.itss.prj_itss.request.business.allocation.AllocationControl.AllocationSiteRowState;
-import org.itss.prj_itss.request.business.allocation.AllocationControl.DeliveryStatus;
+import org.itss.prj_itss.request.application.processing.AllocationChangeCommand;
+import org.itss.prj_itss.request.application.processing.AllocationChangeResultView;
+import org.itss.prj_itss.request.application.processing.RequestProcessingViewModel;
 
 import java.util.function.Function;
 
@@ -25,19 +20,18 @@ import static org.itss.prj_itss.request.presentation.ordering.process.shared.All
 
 final class AllocationSiteRowView {
 
-    private final AllocationControl allocationControl;
-    private final Function<AllocationChangeRequest, AllocationChangeResult> onAllocationInputChanged;
+    private final Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged;
+    private final Runnable onRowChanged;
 
     AllocationSiteRowView(
-        AllocationControl allocationControl,
-        Function<AllocationChangeRequest, AllocationChangeResult> onAllocationInputChanged
+        Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged,
+        Runnable onRowChanged
     ) {
-        this.allocationControl = allocationControl;
         this.onAllocationInputChanged = onAllocationInputChanged;
+        this.onRowChanged = onRowChanged;
     }
 
-    VBox build(ItemRequirement item, SiteStockOption site, Runnable onChanged) {
-        AllocationSiteRowState state = allocationControl.siteRowState(item, site);
+    VBox build(RequestProcessingViewModel.AllocationSiteRowViewModel siteRow) {
         VBox rowBox = new VBox(4);
         rowBox.setPadding(new Insets(0, 0, 0, 0));
         addStyleClass(rowBox, "allocation-table-row");
@@ -46,15 +40,15 @@ final class AllocationSiteRowView {
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(10, 16, 10, 16));
 
-        VBox siteBox = buildSiteInfoBox(state);
-        Label stockLabel = buildStockLabel(state.stock());
-        TextField quantityField = buildQuantityField(state.quantity());
+        VBox siteBox = buildSiteInfoBox(siteRow);
+        Label stockLabel = buildStockLabel(siteRow.stock());
+        TextField quantityField = buildQuantityField(siteRow.quantity());
         HBox quantityBox = wrapQuantityField(quantityField);
-        ComboBox<String> transportBox = buildTransportBox(state);
-        Label etaBadge = buildEtaBadge(state.deliveryStatus());
+        ComboBox<String> transportBox = buildTransportBox(siteRow);
+        Label etaBadge = buildEtaBadge(siteRow.deliveryStatusText(), siteRow.deliveryStatusClass());
         Label warningLabel = buildWarningLabel();
 
-        wireListeners(item, site, quantityField, transportBox, etaBadge, warningLabel, onChanged);
+        wireListeners(siteRow, quantityField, transportBox, etaBadge, warningLabel);
 
         row.getChildren().addAll(siteBox, stockLabel, quantityBox, transportBox, etaBadge);
         rowBox.getChildren().addAll(row, warningLabel);
@@ -62,31 +56,29 @@ final class AllocationSiteRowView {
     }
 
     private void wireListeners(
-        ItemRequirement item,
-        SiteStockOption site,
+        RequestProcessingViewModel.AllocationSiteRowViewModel siteRow,
         TextField quantityField,
         ComboBox<String> transportBox,
         Label etaBadge,
-        Label warningLabel,
-        Runnable onChanged
+        Label warningLabel
     ) {
         quantityField.textProperty().addListener((observable, oldValue, newValue) ->
-            applyAllocationChange(item, site, quantityField, transportBox, etaBadge, warningLabel, onChanged)
+            applyAllocationChange(siteRow, quantityField, transportBox, etaBadge, warningLabel)
         );
         transportBox.valueProperty().addListener((observable, oldValue, newValue) ->
-            applyAllocationChange(item, site, quantityField, transportBox, etaBadge, warningLabel, onChanged)
+            applyAllocationChange(siteRow, quantityField, transportBox, etaBadge, warningLabel)
         );
     }
 
-    private VBox buildSiteInfoBox(AllocationSiteRowState state) {
+    private VBox buildSiteInfoBox(RequestProcessingViewModel.AllocationSiteRowViewModel siteRow) {
         VBox siteBox = new VBox(4);
         siteBox.setMinWidth(380);
         siteBox.setPrefWidth(380);
 
-        Label siteNameLabel = new Label(state.siteName());
+        Label siteNameLabel = new Label(siteRow.siteName());
         addStyleClass(siteNameLabel, "allocation-site-name");
 
-        Label siteDetailLabel = new Label(state.siteDetail());
+        Label siteDetailLabel = new Label(siteRow.siteDetail());
         addStyleClass(siteDetailLabel, "allocation-site-detail");
         siteBox.getChildren().addAll(siteNameLabel, siteDetailLabel);
         return siteBox;
@@ -109,7 +101,7 @@ final class AllocationSiteRowView {
     }
 
     private HBox wrapQuantityField(TextField quantityField) {
-        Label unitLabel = new Label("chiáº¿c");
+        Label unitLabel = new Label("chiếc");
         addStyleClass(unitLabel, "allocation-unit-label");
         HBox quantityBox = new HBox(8, quantityField, unitLabel);
         quantityBox.setAlignment(Pos.CENTER_LEFT);
@@ -118,22 +110,22 @@ final class AllocationSiteRowView {
         return quantityBox;
     }
 
-    private ComboBox<String> buildTransportBox(AllocationSiteRowState state) {
+    private ComboBox<String> buildTransportBox(RequestProcessingViewModel.AllocationSiteRowViewModel siteRow) {
         ComboBox<String> transportBox = new ComboBox<>();
-        transportBox.getItems().addAll(state.transportLabels());
-        transportBox.setDisable(state.transportDisabled());
-        transportBox.setValue(state.transportDisabled() ? state.transportLabels().get(0) : state.selectedTransportLabel());
+        transportBox.getItems().addAll(siteRow.transportLabels());
+        transportBox.setDisable(siteRow.transportDisabled());
+        transportBox.setValue(siteRow.transportDisabled() ? siteRow.transportLabels().get(0) : siteRow.selectedTransportLabel());
         transportBox.setPrefWidth(180);
         transportBox.setMinWidth(180);
         addStyleClass(transportBox, "allocation-transport-box");
         return transportBox;
     }
 
-    private Label buildEtaBadge(DeliveryStatus deliveryStatus) {
-        Label etaBadge = new Label();
+    private Label buildEtaBadge(String deliveryStatusText, String deliveryStatusClass) {
+        Label etaBadge = new Label(deliveryStatusText);
         etaBadge.setMinWidth(120);
         addStyleClass(etaBadge, "allocation-eta-badge");
-        updateEtaBadge(etaBadge, deliveryStatus);
+        setStateClass(etaBadge, ETA_STATE_CLASSES, deliveryStatusClass);
         return etaBadge;
     }
 
@@ -146,21 +138,21 @@ final class AllocationSiteRowView {
     }
 
     private void applyAllocationChange(
-        ItemRequirement item,
-        SiteStockOption site,
+        RequestProcessingViewModel.AllocationSiteRowViewModel siteRow,
         TextField quantityField,
         ComboBox<String> transportBox,
         Label etaBadge,
-        Label warningLabel,
-        Runnable onUpdated
+        Label warningLabel
     ) {
-        AllocationChangeResult result = onAllocationInputChanged.apply(new AllocationChangeRequest(
-            item,
-            site,
+        AllocationChangeResultView result = onAllocationInputChanged.apply(new AllocationChangeCommand(
+            siteRow.itemMerchandiseId(),
+            siteRow.siteId(),
             quantityField.getText(),
             transportBox.getValue()
         ));
-        updateEtaBadge(etaBadge, result.deliveryStatus());
+
+        etaBadge.setText(buildDeliveryStatusText(result));
+        setStateClass(etaBadge, ETA_STATE_CLASSES, buildDeliveryStatusClass(result));
 
         if (!result.applied()) {
             showWarning(warningLabel, warningMessage(result));
@@ -168,35 +160,42 @@ final class AllocationSiteRowView {
         }
 
         hideWarning(warningLabel);
-        onUpdated.run();
+        onRowChanged.run();
     }
 
-    private void updateEtaBadge(Label badge, DeliveryStatus deliveryStatus) {
-        if (!deliveryStatus.available()) {
-            badge.setText("KhÃ´ng kháº£ dá»¥ng");
-            setStateClass(badge, ETA_STATE_CLASSES, "allocation-eta-unavailable");
-            return;
+    private String buildDeliveryStatusText(AllocationChangeResultView result) {
+        if (!result.deliveryAvailable()) {
+            return "Không khả dụng";
         }
-
-        if (deliveryStatus.dayDelta() > 0) {
-            badge.setText("Sá»›m " + deliveryStatus.dayDelta() + " ngÃ y");
-            setStateClass(badge, ETA_STATE_CLASSES, "allocation-eta-early");
-        } else if (deliveryStatus.dayDelta() == 0) {
-            badge.setText("Ká»‹p háº¡n");
-            setStateClass(badge, ETA_STATE_CLASSES, "allocation-eta-on-time");
+        if (result.dayDelta() > 0) {
+            return "Sớm " + result.dayDelta() + " ngày";
+        } else if (result.dayDelta() == 0) {
+            return "Kịp hạn";
         } else {
-            badge.setText("Trá»… " + Math.abs(deliveryStatus.dayDelta()) + " ngÃ y");
-            setStateClass(badge, ETA_STATE_CLASSES, "allocation-eta-late");
+            return "Trễ " + Math.abs(result.dayDelta()) + " ngày";
         }
     }
 
-    private String warningMessage(AllocationChangeResult result) {
-        AllocationInputError error = result.error();
-        return switch (error) {
-            case EXCEEDS_STOCK -> "VÆ°á»£t tá»“n kho cá»§a site (" + result.stock() + ").";
-            case NEGATIVE_QUANTITY -> "Sá»‘ lÆ°á»£ng khÃ´ng Ä‘Æ°á»£c Ã¢m.";
-            case INVALID_INTEGER -> "Nháº­p sá»‘ nguyÃªn há»£p lá»‡.";
-            case NONE -> "";
+    private String buildDeliveryStatusClass(AllocationChangeResultView result) {
+        if (!result.deliveryAvailable()) {
+            return "allocation-eta-unavailable";
+        }
+        if (result.dayDelta() > 0) {
+            return "allocation-eta-early";
+        } else if (result.dayDelta() == 0) {
+            return "allocation-eta-on-time";
+        } else {
+            return "allocation-eta-late";
+        }
+    }
+
+    private String warningMessage(AllocationChangeResultView result) {
+        String errorType = result.errorType();
+        return switch (errorType) {
+            case "EXCEEDS_STOCK" -> "Vượt tồn kho của site (" + result.stock() + ").";
+            case "NEGATIVE_QUANTITY" -> "Số lượng không được âm.";
+            case "INVALID_INTEGER" -> "Nhập số nguyên hợp lệ.";
+            default -> "";
         };
     }
 
@@ -212,4 +211,3 @@ final class AllocationSiteRowView {
         warningLabel.setManaged(false);
     }
 }
-

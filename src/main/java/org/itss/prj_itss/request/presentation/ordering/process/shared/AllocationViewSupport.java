@@ -10,8 +10,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import org.itss.prj_itss.request.business.allocation.AllocationControl.ItemAllocationState;
-
 import java.util.List;
 
 public final class AllocationViewSupport {
@@ -99,29 +97,30 @@ public final class AllocationViewSupport {
         timeline.play();
     }
 
-    public static void applyItemAllocationState(Label label, ItemAllocationState state) {
-        switch (state) {
-            case OVER -> {
-                label.setText("VÆ°á»£t má»©c");
-                label.setStyle("-fx-background-color:#FEE2E2;-fx-text-fill:#B91C1C;-fx-background-radius:10;"
-                    + "-fx-padding:3 10;-fx-font-size:11px;-fx-font-weight:bold;");
+    public static void applyItemAllocationState(Label label, String statusText, String statusClass) {
+        label.setText(statusText);
+        String bgColor;
+        String textColor;
+        switch (statusClass) {
+            case "allocation-fraction-over" -> {
+                bgColor = "#FEE2E2";
+                textColor = "#B91C1C";
             }
-            case COMPLETE -> {
-                label.setText("Äá»§");
-                label.setStyle("-fx-background-color:#E8F5E9;-fx-text-fill:#2E7D32;-fx-background-radius:10;"
-                    + "-fx-padding:3 10;-fx-font-size:11px;-fx-font-weight:bold;");
+            case "allocation-fraction-complete" -> {
+                bgColor = "#E8F5E9";
+                textColor = "#2E7D32";
             }
-            case PARTIAL -> {
-                label.setText("ChÆ°a Ä‘á»§");
-                label.setStyle("-fx-background-color:#FFF3E0;-fx-text-fill:#E65100;-fx-background-radius:10;"
-                    + "-fx-padding:3 10;-fx-font-size:11px;-fx-font-weight:bold;");
+            case "allocation-fraction-partial" -> {
+                bgColor = "#FFF3E0";
+                textColor = "#E65100";
             }
-            case NONE -> {
-                label.setText("ChÆ°a cÃ³ phÆ°Æ¡ng Ã¡n");
-                label.setStyle("-fx-background-color:#F0F4F2;-fx-text-fill:#6B7C72;-fx-background-radius:10;"
-                    + "-fx-padding:3 10;-fx-font-size:11px;-fx-font-weight:bold;");
+            default -> {
+                bgColor = "#F0F4F2";
+                textColor = "#6B7C72";
             }
         }
+        label.setStyle("-fx-background-color:" + bgColor + ";-fx-text-fill:" + textColor + ";-fx-background-radius:10;"
+            + "-fx-padding:3 10;-fx-font-size:11px;-fx-font-weight:bold;");
     }
 }
 
