@@ -1,6 +1,6 @@
 package org.itss.prj_itss.request.domain.allocation.algo;
 
-import org.itss.prj_itss.request.domain.allocation.AllocationDraft;
+import org.itss.prj_itss.request.domain.allocation.model.AllocationDraft;
 import org.itss.prj_itss.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.request.domain.suggestion.OrderLineSuggestion;
 import org.itss.prj_itss.request.domain.suggestion.SiteOrderSuggestion;

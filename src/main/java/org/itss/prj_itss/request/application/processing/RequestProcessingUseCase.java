@@ -1,13 +1,13 @@
 package org.itss.prj_itss.request.application.processing;
 
-import org.itss.prj_itss.request.domain.allocation.DefaultAllocationSuggester;
-import org.itss.prj_itss.request.domain.allocation.DefaultAllocationValidator;
-import org.itss.prj_itss.request.domain.allocation.Allocation;
+import org.itss.prj_itss.request.domain.allocation.model.Allocation;
+import org.itss.prj_itss.request.domain.allocation.suggester.AllocationSuggester;
+import org.itss.prj_itss.request.domain.allocation.suggester.DefaultAllocationSuggester;
+import org.itss.prj_itss.request.domain.allocation.validator.AllocationValidator;
+import org.itss.prj_itss.request.domain.allocation.validator.DefaultAllocationValidator;
 import org.itss.prj_itss.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.request.domain.processing.RequestProcessingData;
 import org.itss.prj_itss.request.domain.processing.SiteStockOption;
-import org.itss.prj_itss.request.domain.allocation.AllocationSuggester;
-import org.itss.prj_itss.request.domain.allocation.AllocationValidator;
 import org.itss.prj_itss.request.application.port.RequestProcessingGateway;
 import org.itss.prj_itss.request.application.port.RequestProcessingGatewayException;
 

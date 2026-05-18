@@ -1,5 +1,7 @@
-package org.itss.prj_itss.request.domain.allocation;
+package org.itss.prj_itss.request.domain.allocation.suggester;
 
+import org.itss.prj_itss.request.domain.allocation.model.Allocation;
+import org.itss.prj_itss.request.domain.allocation.model.AllocationDraft;
 import org.itss.prj_itss.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.request.domain.processing.SiteStockOption;
 import org.itss.prj_itss.request.domain.suggestion.SuggestedPlan;

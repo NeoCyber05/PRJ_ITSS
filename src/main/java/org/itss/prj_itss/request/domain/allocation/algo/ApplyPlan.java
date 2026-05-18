@@ -1,7 +1,7 @@
 package org.itss.prj_itss.request.domain.allocation.algo;
 
-import org.itss.prj_itss.request.domain.allocation.Allocation;
-import org.itss.prj_itss.request.domain.allocation.AllocationDraft;
+import org.itss.prj_itss.request.domain.allocation.model.Allocation;
+import org.itss.prj_itss.request.domain.allocation.model.AllocationDraft;
 import org.itss.prj_itss.request.domain.processing.ItemRequirement;
 
 import java.util.LinkedHashMap;

@@ -1,5 +1,7 @@
-package org.itss.prj_itss.request.domain.allocation;
+package org.itss.prj_itss.request.domain.allocation.validator;
 
+import org.itss.prj_itss.request.domain.allocation.model.Allocation;
+import org.itss.prj_itss.request.domain.allocation.model.AllocationPlan;
 import org.itss.prj_itss.request.domain.delivery.DeliveryOptions;
 import org.itss.prj_itss.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.request.domain.processing.SiteStockOption;

@@ -1,10 +1,13 @@
 package org.itss.prj_itss.request.domain.allocation;
 
+import org.itss.prj_itss.request.domain.allocation.algo.ApplyPlan;
+import org.itss.prj_itss.request.domain.allocation.model.Allocation;
+import org.itss.prj_itss.request.domain.allocation.suggester.AllocationSuggester;
+import org.itss.prj_itss.request.domain.allocation.suggester.DefaultAllocationSuggester;
+import org.itss.prj_itss.request.domain.delivery.DeliveryMethod;
+import org.itss.prj_itss.request.domain.delivery.DeliveryOptions;
 import org.itss.prj_itss.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.request.domain.processing.SiteStockOption;
-import org.itss.prj_itss.request.domain.delivery.DeliveryMethod;
-import org.itss.prj_itss.request.domain.allocation.algo.ApplyPlan;
-import org.itss.prj_itss.request.domain.delivery.DeliveryOptions;
 import org.itss.prj_itss.request.domain.suggestion.SuggestedPlan;
 
 import java.util.ArrayList;

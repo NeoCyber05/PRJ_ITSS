@@ -7,7 +7,7 @@ import org.itss.prj_itss.order.domain.OrderMerchandise;
 import org.itss.prj_itss.request.domain.request.Request;
 import org.itss.prj_itss.request.domain.request.RequestMerchandise;
 import org.itss.prj_itss.site.domain.Site;
-import org.itss.prj_itss.request.domain.allocation.Allocation;
+import org.itss.prj_itss.request.domain.allocation.model.Allocation;
 import org.itss.prj_itss.request.domain.delivery.DeliveryMethod;
 import org.itss.prj_itss.request.domain.processing.RequestProcessingData;
 import org.itss.prj_itss.request.application.port.RequestProcessingGatewayException;

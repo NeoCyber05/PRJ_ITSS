@@ -1,9 +1,9 @@
 package org.itss.prj_itss.request.application.processing;
 
 import org.itss.prj_itss.common.application.OrderingFormatters;
-import org.itss.prj_itss.request.domain.allocation.Allocation;
 import org.itss.prj_itss.request.domain.allocation.AllocationControl;
-import org.itss.prj_itss.request.domain.allocation.AllocationPlan;
+import org.itss.prj_itss.request.domain.allocation.model.Allocation;
+import org.itss.prj_itss.request.domain.allocation.model.AllocationPlan;
 import org.itss.prj_itss.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.request.domain.processing.RequestProcessingData;
 import org.itss.prj_itss.request.domain.processing.SiteStockOption;
