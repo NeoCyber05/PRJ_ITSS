@@ -11,7 +11,7 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.itss.prj_itss.home.HomeController"
+            fx:controller="org.itss.prj_itss.view.home.HomeView"
             styleClass="content-area">
     <center>
         <ScrollPane fitToWidth="true"

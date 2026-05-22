@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.itss.prj_itss.view.ordering.request.process.items.ItemsSectionView"
+      spacing="0"
+      styleClass="items-section-card"
+      style="-fx-background-color: white; -fx-background-radius: 12; -fx-border-radius: 12; -fx-border-color: #E0EBE4; -fx-border-width: 1; -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);">
+    <padding>
+        <Insets top="0" right="0" bottom="0" left="0"/>
+    </padding>
+
+    <HBox spacing="12"
+          alignment="CENTER_LEFT"
+          styleClass="items-section-toolbar"
+          style="-fx-border-color:transparent transparent #EEF3EF transparent;-fx-border-width:0 0 1 0;">
+        <padding>
+            <Insets top="18" right="20" bottom="18" left="20"/>
+        </padding>
+        <children>
+            <VBox spacing="3">
+                <children>
+                    <Label text="PHÃ‚N Bá»” THEO Máº¶T HÃ€NG"
+                           style="-fx-font-size:11px;-fx-font-weight:bold;-fx-text-fill:#2E6F40;"/>
+                    <Label text="Äiá»u chá»‰nh tá»“n kho theo tá»«ng yÃªu cáº§u"
+                           style="-fx-font-size:15px;-fx-font-weight:bold;-fx-text-fill:#1a2e22;"/>
+                </children>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="optimizeButton"
+                    text="Gá»£i Ã½ tá»‘i Æ°u"
+                    onAction="#handleOptimize"
+                    styleClass="request-toolbar-secondary-button"/>
+            <Button fx:id="showAllButton"
+                    text="Xem táº¥t cáº£ phÆ°Æ¡ng Ã¡n"
+                    onAction="#handleShowAllPlans"
+                    styleClass="request-toolbar-primary-button"/>
+        </children>
+    </HBox>
+
+    <HBox fx:id="tableHeader"
+          alignment="CENTER_LEFT"
+          styleClass="items-section-header"
+          style="-fx-background-color:#F5F9F6;-fx-border-color:transparent transparent #E8EEEA transparent;-fx-border-width:0 0 1 0;">
+        <padding>
+            <Insets top="11" right="20" bottom="11" left="20"/>
+        </padding>
+        <children>
+            <Label text="MÃƒ HÃ€NG" minWidth="200" prefWidth="200" styleClass="allocation-column-header"/>
+            <Label text="Sá» LÆ¯á»¢NG YÃŠU Cáº¦U" minWidth="170" prefWidth="170" styleClass="allocation-column-header"/>
+            <Label text="NGÃ€Y Cáº¦N GIAO" minWidth="150" prefWidth="150" styleClass="allocation-column-header"/>
+            <Label text="PHÃ‚N Bá»” HIá»†N Táº I" minWidth="180" prefWidth="180" styleClass="allocation-column-header"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label text="Tá»’N KHO SITE" minWidth="160" prefWidth="160" styleClass="allocation-column-header"/>
+        </children>
+    </HBox>
+
+    <VBox fx:id="itemsContainer" spacing="0"/>
+</VBox>
+

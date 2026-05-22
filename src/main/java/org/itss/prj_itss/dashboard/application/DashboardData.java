@@ -1,7 +1,7 @@
 package org.itss.prj_itss.dashboard.application;
 
-import org.itss.prj_itss.order.domain.Order;
-import org.itss.prj_itss.request.domain.request.Request;
+import org.itss.prj_itss.model.order.domain.Order;
+import org.itss.prj_itss.model.request.domain.request.Request;
 
 import java.util.List;
 

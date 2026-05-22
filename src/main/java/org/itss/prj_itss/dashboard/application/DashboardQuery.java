@@ -1,8 +1,8 @@
 package org.itss.prj_itss.dashboard.application;
 
-import org.itss.prj_itss.order.application.OrderUseCase;
-import org.itss.prj_itss.request.application.RequestManagementUseCase;
-import org.itss.prj_itss.site.application.SiteUseCase;
+import org.itss.prj_itss.model.order.application.OrderUseCase;
+import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
+import org.itss.prj_itss.model.site.application.SiteUseCase;
 
 public final class DashboardQuery {
 

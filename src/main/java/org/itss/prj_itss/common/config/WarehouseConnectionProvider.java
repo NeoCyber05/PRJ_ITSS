@@ -1,6 +1,6 @@
 package org.itss.prj_itss.common.config;
 
-import org.itss.prj_itss.db.WarehouseDatabaseConnection;
+import org.itss.prj_itss.model.shared.database.WarehouseDatabaseConnection;
 
 import java.sql.Connection;
 import java.sql.SQLException;

@@ -1,6 +1,6 @@
 package org.itss.prj_itss.common.application;
 
-import org.itss.prj_itss.order.domain.DeliveryMethod;
+import org.itss.prj_itss.model.order.domain.DeliveryMethod;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;

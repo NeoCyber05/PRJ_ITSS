@@ -1,3 +1,0 @@
-TODO:
-- Bo sung logic Java cho UC sua yeu cau dat hang.
-- Co the thay file nay bang cac class service/validator xu ly cap nhat.

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.itss.prj_itss.view.ordering.request.process.site.SiteFilterView"
+      spacing="14"
+      styleClass="forest-card">
+    <padding>
+        <Insets top="20" right="20" bottom="20" left="20"/>
+    </padding>
+    <children>
+        <Button fx:id="toggleButton"
+                alignment="CENTER_LEFT"
+                styleClass="site-filter-toggle-button">
+            <graphic>
+                <HBox fx:id="toggleGraphic" spacing="12" alignment="CENTER_LEFT">
+                    <children>
+                        <VBox spacing="2">
+                            <children>
+                                <Label text="Bá»˜ Lá»ŒC SITE"
+                                       styleClass="site-filter-eyebrow"/>
+                                <Label text="Chá»n site Æ°u tiÃªn hoáº·c loáº¡i bá»"
+                                       styleClass="site-filter-title"/>
+                            </children>
+                        </VBox>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label fx:id="toggleSummaryLabel"
+                               styleClass="site-filter-summary"/>
+                        <Label fx:id="toggleChevronLabel"
+                               styleClass="site-filter-chevron"/>
+                    </children>
+                </HBox>
+            </graphic>
+        </Button>
+        <VBox fx:id="filterContent" spacing="14">
+            <children>
+                <HBox alignment="CENTER_LEFT">
+                    <children>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="clearAllButton"
+                                text="XÃ³a bá»™ lá»c"
+                                styleClass="site-filter-clear-button"/>
+                    </children>
+                </HBox>
+                <TextField fx:id="searchBox"
+                           promptText="TÃ¬m theo tÃªn site, mÃ£ site..."
+                           styleClass="forest-filter-search"/>
+                <HBox spacing="24">
+                    <children>
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label text="SITE Æ¯U TIÃŠN"
+                                       styleClass="site-filter-column-label"/>
+                                <HBox fx:id="priorityTagsBox"
+                                      spacing="8"
+                                      alignment="CENTER_LEFT"/>
+                            </children>
+                        </VBox>
+                        <VBox spacing="6" HBox.hgrow="ALWAYS">
+                            <children>
+                                <Label text="SITE LOáº I Bá»Ž"
+                                       styleClass="site-filter-column-label"/>
+                                <HBox fx:id="excludeTagsBox"
+                                      spacing="8"
+                                      alignment="CENTER_LEFT"/>
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
+                <HBox alignment="CENTER_LEFT">
+                    <children>
+                        <Label fx:id="countLabel"
+                               styleClass="site-filter-count"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Label text="Site Æ°u tiÃªn sáº½ Ä‘Æ°á»£c sáº¯p xáº¿p lÃªn trÃªn"
+                               styleClass="site-filter-hint"/>
+                    </children>
+                </HBox>
+                <VBox fx:id="siteListContainer" spacing="8"/>
+            </children>
+        </VBox>
+    </children>
+</VBox>
+
