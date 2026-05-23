@@ -2,7 +2,9 @@ package org.itss.prj_itss.view.ordering.request.process.shared;
 
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.layout.StackPane;
@@ -10,11 +12,16 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import java.io.IOException;
 import java.util.List;
+import java.util.Objects;
 
 public final class AllocationViewSupport {
 
     static final String MAIN_STYLESHEET = "/org/itss/prj_itss/styles/main-style.css";
+
+    private static final String TOAST_RESOURCE =
+        "/org/itss/prj_itss/ordering/request/process/shared/toast-view.fxml";
 
     public static final List<String> FRACTION_STATE_CLASSES = List.of(
         "allocation-fraction-muted",
@@ -36,11 +43,6 @@ public final class AllocationViewSupport {
         "allocation-eta-late"
     );
 
-    public static final String ITEMS_CARD_STYLE =
-        "-fx-background-color: white; -fx-background-radius: 12;"
-            + "-fx-border-radius: 12; -fx-border-color: #E0EBE4; -fx-border-width: 1;"
-            + "-fx-effect: dropshadow(gaussian, rgba(0,0,0,0.06), 8, 0, 0, 2);";
-
     private AllocationViewSupport() {
     }
 
@@ -59,14 +61,6 @@ public final class AllocationViewSupport {
         }
     }
 
-    public static Label buildColumnHeader(String text, double width) {
-        Label label = new Label(text);
-        label.setMinWidth(width);
-        label.setPrefWidth(width);
-        addStyleClass(label, "allocation-column-header");
-        return label;
-    }
-
     public static void applyMainStylesheet(Scene scene) {
         var stylesheet = AllocationViewSupport.class.getResource(MAIN_STYLESHEET);
         if (stylesheet != null && !scene.getStylesheets().contains(stylesheet.toExternalForm())) {
@@ -75,51 +69,32 @@ public final class AllocationViewSupport {
     }
 
     public static void showToast(String message) {
-        Stage toast = new Stage();
-        toast.setAlwaysOnTop(true);
-        toast.initModality(Modality.NONE);
-
-        Label label = new Label(message);
-        label.setStyle(
-            "-fx-background-color: #253D2C; -fx-text-fill: white;" +
-            "-fx-padding: 14 24; -fx-background-radius: 10;" +
-            "-fx-font-size: 14px; -fx-font-weight: bold;"
-        );
-
-        Scene scene = new Scene(new StackPane(label));
-        scene.setFill(null);
-        toast.setScene(scene);
-        toast.show();
-
-        Timeline timeline = new Timeline(
-            new KeyFrame(Duration.seconds(2.5), event -> toast.close())
-        );
-        timeline.play();
-    }
-
-    public static void applyItemAllocationState(Label label, String statusText, String statusClass) {
-        label.setText(statusText);
-        String bgColor;
-        String textColor;
-        switch (statusClass) {
-            case "allocation-fraction-over" -> {
-                bgColor = "#FEE2E2";
-                textColor = "#B91C1C";
+        try {
+            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
+                AllocationViewSupport.class.getResource(TOAST_RESOURCE),
+                "Missing toast FXML"
+            ));
+            Parent root = loader.load();
+            Label messageLabel = (Label) root.lookup("#messageLabel");
+            if (messageLabel != null) {
+                messageLabel.setText(message);
             }
-            case "allocation-fraction-complete" -> {
-                bgColor = "#E8F5E9";
-                textColor = "#2E7D32";
-            }
-            case "allocation-fraction-partial" -> {
-                bgColor = "#FFF3E0";
-                textColor = "#E65100";
-            }
-            default -> {
-                bgColor = "#F0F4F2";
-                textColor = "#6B7C72";
-            }
+
+            Stage toast = new Stage();
+            toast.setAlwaysOnTop(true);
+            toast.initModality(Modality.NONE);
+
+            Scene scene = new Scene((StackPane) root);
+            scene.setFill(null);
+            toast.setScene(scene);
+            toast.show();
+
+            Timeline timeline = new Timeline(
+                new KeyFrame(Duration.seconds(2.5), event -> toast.close())
+            );
+            timeline.play();
+        } catch (IOException exception) {
+            throw new IllegalStateException("Cannot load toast view", exception);
         }
-        label.setStyle("-fx-background-color:" + bgColor + ";-fx-text-fill:" + textColor + ";-fx-background-radius:10;"
-            + "-fx-padding:3 10;-fx-font-size:11px;-fx-font-weight:bold;");
     }
 }

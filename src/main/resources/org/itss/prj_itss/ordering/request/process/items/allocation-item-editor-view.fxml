@@ -19,7 +19,7 @@
         <children>
             <VBox spacing="4">
                 <children>
-                    <Label text="Tá»’N KHO VÃ€ PHÃ‚N Bá»” THEO SITE" styleClass="allocation-eyebrow-muted"/>
+                    <Label text="TỒN KHO VÀ PHÂN BỔ THEO SITE" styleClass="allocation-eyebrow-muted"/>
                     <Label fx:id="titleLabel" styleClass="allocation-title"/>
                     <Label fx:id="subtitleLabel" styleClass="allocation-subtitle"/>
                 </children>
@@ -30,6 +30,26 @@
         </children>
     </HBox>
 
-    <VBox fx:id="siteTableBox" spacing="0" styleClass="allocation-table"/>
+    <VBox spacing="0" styleClass="allocation-table">
+        <children>
+            <HBox spacing="16" styleClass="allocation-table-header">
+                <padding>
+                    <Insets top="12" right="16" bottom="12" left="16"/>
+                </padding>
+                <children>
+                    <Label text="SITE" minWidth="380" prefWidth="380" styleClass="allocation-column-header"/>
+                    <Label text="TỒN KHO" minWidth="100" prefWidth="100" styleClass="allocation-column-header"/>
+                    <Label text="SL PHÂN BỔ" minWidth="170" prefWidth="170" styleClass="allocation-column-header"/>
+                    <Label text="VẬN CHUYỂN" minWidth="180" prefWidth="180" styleClass="allocation-column-header"/>
+                    <Label text="TRẠNG THÁI" minWidth="120" prefWidth="120" styleClass="allocation-column-header"/>
+                </children>
+            </HBox>
+            <VBox fx:id="siteRowsBox" spacing="0"/>
+            <Label fx:id="emptyLabel"
+                   text="Không có site khả dụng cho mặt hàng này."
+                   visible="false"
+                   managed="false"
+                   styleClass="allocation-empty-label"/>
+        </children>
+    </VBox>
 </VBox>
-

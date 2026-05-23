@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.itss.prj_itss.view.ordering.request.process.preview.PreviewOrderCardView"
+      spacing="12"
+      styleClass="request-preview-card">
+    <padding>
+        <Insets top="16" right="16" bottom="16" left="16"/>
+    </padding>
+    <children>
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <children>
+                <VBox spacing="4">
+                    <children>
+                        <Label fx:id="orderTitleLabel" styleClass="request-preview-card-title"/>
+                        <Label fx:id="siteLabel" styleClass="request-preview-subtitle"/>
+                    </children>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <Label fx:id="qtyBadge" styleClass="request-preview-quantity-badge"/>
+            </children>
+        </HBox>
+        <VBox spacing="0" styleClass="request-preview-table">
+            <children>
+                <HBox alignment="CENTER_LEFT" styleClass="request-preview-table-header">
+                    <padding>
+                        <Insets top="10" right="14" bottom="10" left="14"/>
+                    </padding>
+                    <children>
+                        <Label text="MÃ HÀNG" minWidth="120" prefWidth="120" styleClass="request-preview-header-cell"/>
+                        <Label text="TÊN MẶT HÀNG" minWidth="250" prefWidth="250" styleClass="request-preview-header-cell"/>
+                        <Label text="SỐ LƯỢNG" minWidth="110" prefWidth="110" styleClass="request-preview-header-cell"/>
+                        <Label text="VẬN CHUYỂN" minWidth="150" prefWidth="150" styleClass="request-preview-header-cell"/>
+                        <Label text="DỰ KIẾN NHẬN" minWidth="140" prefWidth="140" styleClass="request-preview-header-cell"/>
+                        <Label text="HẠN NHẬN" minWidth="140" prefWidth="140" styleClass="request-preview-header-cell"/>
+                    </children>
+                </HBox>
+                <VBox fx:id="linesBox" spacing="0"/>
+            </children>
+        </VBox>
+    </children>
+</VBox>

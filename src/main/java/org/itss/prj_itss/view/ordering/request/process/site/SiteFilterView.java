@@ -2,12 +2,10 @@ package org.itss.prj_itss.view.ordering.request.process.site;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 
 import org.itss.prj_itss.model.request.application.processing.ProcessingSiteView;
@@ -18,6 +16,8 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
+import static org.itss.prj_itss.view.ordering.request.process.shared.AllocationViewSupport.setStateClass;
+
 public final class SiteFilterView {
 
     private static final String VIEW_RESOURCE =
@@ -25,14 +25,6 @@ public final class SiteFilterView {
     private static final List<String> TOGGLE_STATE_CLASSES = List.of(
         "site-filter-toggle-collapsed",
         "site-filter-toggle-expanded"
-    );
-    private static final List<String> SITE_CARD_STATE_CLASSES = List.of(
-        "site-filter-site-card-normal",
-        "site-filter-site-card-priority"
-    );
-    private static final List<String> SITE_NAME_STATE_CLASSES = List.of(
-        "site-filter-site-name-normal",
-        "site-filter-site-name-priority"
     );
 
     private final SiteFilterController controller = new SiteFilterController();
@@ -123,19 +115,17 @@ public final class SiteFilterView {
         notifyFiltersChanged();
     }
 
-    private void prioritizeSite(ProcessingSiteView site) {
-        controller.prioritizeSite(site);
+    private void onPriorityToggled(ProcessingSiteView site) {
+        if (controller.isPriority(site)) {
+            controller.unprioritizeSite(site);
+        } else {
+            controller.prioritizeSite(site);
+        }
         renderUi();
         notifyFiltersChanged();
     }
 
-    private void unprioritizeSite(ProcessingSiteView site) {
-        controller.unprioritizeSite(site);
-        renderUi();
-        notifyFiltersChanged();
-    }
-
-    private void excludeSite(ProcessingSiteView site) {
+    private void onExclude(ProcessingSiteView site) {
         controller.excludeSite(site);
         renderUi();
         notifyFiltersChanged();
@@ -156,65 +146,13 @@ public final class SiteFilterView {
 
         siteListContainer.getChildren().clear();
         for (ProcessingSiteView site : controller.visibleSites()) {
-            boolean prioritized = controller.isPriority(site);
-
-            HBox card = new HBox(12);
-            card.setAlignment(Pos.CENTER_LEFT);
-            card.getStyleClass().add("site-filter-site-card");
-            card.getStyleClass().removeAll(SITE_CARD_STATE_CLASSES);
-            card.getStyleClass().add(prioritized ? "site-filter-site-card-priority" : "site-filter-site-card-normal");
-
-            if (prioritized) {
-                Label starLabel = new Label("★");
-                starLabel.getStyleClass().add("site-filter-star");
-                card.getChildren().add(starLabel);
-            }
-
-            VBox infoBox = buildSiteInfo(site, prioritized);
-            Button priorityButton = buildPriorityButton(site, prioritized);
-            Button excludeButton = buildExcludeButton(site);
-
-            card.getChildren().addAll(infoBox, priorityButton, excludeButton);
-            siteListContainer.getChildren().add(card);
+            siteListContainer.getChildren().add(SiteFilterCardView.load(
+                site,
+                controller.isPriority(site),
+                this::onPriorityToggled,
+                this::onExclude
+            ));
         }
-    }
-
-    private VBox buildSiteInfo(ProcessingSiteView site, boolean prioritized) {
-        VBox infoBox = new VBox(2);
-        HBox.setHgrow(infoBox, Priority.ALWAYS);
-
-        Label nameLabel = new Label(siteName(site) + (prioritized ? " - Đang ưu tiên" : ""));
-        nameLabel.getStyleClass().add("site-filter-site-name");
-        nameLabel.getStyleClass().removeAll(SITE_NAME_STATE_CLASSES);
-        nameLabel.getStyleClass().add(prioritized ? "site-filter-site-name-priority" : "site-filter-site-name-normal");
-
-        Label codeLabel = new Label(siteCode(site) + " | Tàu: " + site.shipDays() + " ngày | Bay: " + site.airDays() + " ngày");
-        codeLabel.getStyleClass().add("site-filter-site-code");
-        infoBox.getChildren().addAll(nameLabel, codeLabel);
-        return infoBox;
-    }
-
-    private Button buildPriorityButton(ProcessingSiteView site, boolean prioritized) {
-        Button priorityButton = new Button(prioritized ? "Bỏ ưu tiên" : "Ưu tiên");
-        priorityButton.getStyleClass().addAll(
-            "forest-chip-button",
-            prioritized ? "site-filter-unprioritize-button" : "site-filter-priority-button"
-        );
-        priorityButton.setOnAction(event -> {
-            if (prioritized) {
-                unprioritizeSite(site);
-            } else {
-                prioritizeSite(site);
-            }
-        });
-        return priorityButton;
-    }
-
-    private Button buildExcludeButton(ProcessingSiteView site) {
-        Button excludeButton = new Button("Loại bỏ");
-        excludeButton.getStyleClass().addAll("forest-chip-button", "site-filter-exclude-button");
-        excludeButton.setOnAction(event -> excludeSite(site));
-        return excludeButton;
     }
 
     private void renderPriorityTags() {
@@ -290,8 +228,8 @@ public final class SiteFilterView {
             toggleChevronLabel.setText(expanded ? "▾" : "▸");
         }
         if (toggleButton != null) {
-            toggleButton.getStyleClass().removeAll(TOGGLE_STATE_CLASSES);
-            toggleButton.getStyleClass().add(expanded ? "site-filter-toggle-expanded" : "site-filter-toggle-collapsed");
+            setStateClass(toggleButton, TOGGLE_STATE_CLASSES,
+                expanded ? "site-filter-toggle-expanded" : "site-filter-toggle-collapsed");
         }
     }
 
@@ -301,9 +239,5 @@ public final class SiteFilterView {
 
     private static String siteName(ProcessingSiteView site) {
         return site.name() == null ? "" : site.name();
-    }
-
-    private static String siteCode(ProcessingSiteView site) {
-        return site.siteCode() == null ? "" : site.siteCode();
     }
 }

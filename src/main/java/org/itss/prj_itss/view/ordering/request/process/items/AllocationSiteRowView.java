@@ -1,149 +1,95 @@
 package org.itss.prj_itss.view.ordering.request.process.items;
 
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import org.itss.prj_itss.model.request.application.processing.AllocationChangeCommand;
 import org.itss.prj_itss.model.request.application.processing.AllocationChangeResultView;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingViewModel;
 
+import java.io.IOException;
+import java.util.Objects;
 import java.util.function.Function;
 
 import static org.itss.prj_itss.view.ordering.request.process.shared.AllocationViewSupport.ETA_STATE_CLASSES;
-import static org.itss.prj_itss.view.ordering.request.process.shared.AllocationViewSupport.addStyleClass;
 import static org.itss.prj_itss.view.ordering.request.process.shared.AllocationViewSupport.setStateClass;
 
-final class AllocationSiteRowView {
+public final class AllocationSiteRowView {
 
-    private final Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged;
-    private final Runnable onRowChanged;
+    private static final String VIEW_RESOURCE =
+        "/org/itss/prj_itss/ordering/request/process/items/allocation-site-row.fxml";
 
-    AllocationSiteRowView(
+    @FXML
+    private Label siteNameLabel;
+    @FXML
+    private Label siteDetailLabel;
+    @FXML
+    private Label stockLabel;
+    @FXML
+    private TextField quantityField;
+    @FXML
+    private ComboBox<String> transportBox;
+    @FXML
+    private Label etaBadge;
+    @FXML
+    private Label warningLabel;
+
+    private RequestProcessingViewModel.AllocationSiteRowViewModel siteRow;
+    private Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged;
+    private Runnable onRowChanged;
+
+    public static VBox load(
+        RequestProcessingViewModel.AllocationSiteRowViewModel siteRow,
         Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged,
         Runnable onRowChanged
     ) {
-        this.onAllocationInputChanged = onAllocationInputChanged;
-        this.onRowChanged = onRowChanged;
+        try {
+            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
+                AllocationSiteRowView.class.getResource(VIEW_RESOURCE),
+                "Missing allocation site row FXML"
+            ));
+            Parent root = loader.load();
+            AllocationSiteRowView controller = loader.getController();
+            controller.init(siteRow, onAllocationInputChanged, onRowChanged);
+            return (VBox) root;
+        } catch (IOException exception) {
+            throw new IllegalStateException("Cannot load allocation site row view", exception);
+        }
     }
 
-    VBox build(RequestProcessingViewModel.AllocationSiteRowViewModel siteRow) {
-        VBox rowBox = new VBox(4);
-        rowBox.setPadding(new Insets(0, 0, 0, 0));
-        addStyleClass(rowBox, "allocation-table-row");
-
-        HBox row = new HBox(16);
-        row.setAlignment(Pos.CENTER_LEFT);
-        row.setPadding(new Insets(10, 16, 10, 16));
-
-        VBox siteBox = buildSiteInfoBox(siteRow);
-        Label stockLabel = buildStockLabel(siteRow.stock());
-        TextField quantityField = buildQuantityField(siteRow.quantity());
-        HBox quantityBox = wrapQuantityField(quantityField);
-        ComboBox<String> transportBox = buildTransportBox(siteRow);
-        Label etaBadge = buildEtaBadge(siteRow.deliveryStatusText(), siteRow.deliveryStatusClass());
-        Label warningLabel = buildWarningLabel();
-
-        wireListeners(siteRow, quantityField, transportBox, etaBadge, warningLabel);
-
-        row.getChildren().addAll(siteBox, stockLabel, quantityBox, transportBox, etaBadge);
-        rowBox.getChildren().addAll(row, warningLabel);
-        return rowBox;
-    }
-
-    private void wireListeners(
+    private void init(
         RequestProcessingViewModel.AllocationSiteRowViewModel siteRow,
-        TextField quantityField,
-        ComboBox<String> transportBox,
-        Label etaBadge,
-        Label warningLabel
+        Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged,
+        Runnable onRowChanged
     ) {
-        quantityField.textProperty().addListener((observable, oldValue, newValue) ->
-            applyAllocationChange(siteRow, quantityField, transportBox, etaBadge, warningLabel)
-        );
-        transportBox.valueProperty().addListener((observable, oldValue, newValue) ->
-            applyAllocationChange(siteRow, quantityField, transportBox, etaBadge, warningLabel)
-        );
-    }
+        this.siteRow = Objects.requireNonNull(siteRow, "siteRow");
+        this.onAllocationInputChanged = Objects.requireNonNull(onAllocationInputChanged, "onAllocationInputChanged");
+        this.onRowChanged = onRowChanged == null ? () -> {} : onRowChanged;
 
-    private VBox buildSiteInfoBox(RequestProcessingViewModel.AllocationSiteRowViewModel siteRow) {
-        VBox siteBox = new VBox(4);
-        siteBox.setMinWidth(380);
-        siteBox.setPrefWidth(380);
+        siteNameLabel.setText(siteRow.siteName());
+        siteDetailLabel.setText(siteRow.siteDetail());
+        stockLabel.setText(String.valueOf(siteRow.stock()));
+        quantityField.setText(siteRow.quantity() == 0 ? "0" : String.valueOf(siteRow.quantity()));
 
-        Label siteNameLabel = new Label(siteRow.siteName());
-        addStyleClass(siteNameLabel, "allocation-site-name");
-
-        Label siteDetailLabel = new Label(siteRow.siteDetail());
-        addStyleClass(siteDetailLabel, "allocation-site-detail");
-        siteBox.getChildren().addAll(siteNameLabel, siteDetailLabel);
-        return siteBox;
-    }
-
-    private Label buildStockLabel(int stock) {
-        Label stockLabel = new Label(String.valueOf(stock));
-        stockLabel.setMinWidth(100);
-        stockLabel.setPrefWidth(100);
-        addStyleClass(stockLabel, "allocation-stock-label");
-        return stockLabel;
-    }
-
-    private TextField buildQuantityField(int quantity) {
-        TextField quantityField = new TextField();
-        quantityField.setPrefWidth(110);
-        quantityField.setText(quantity == 0 ? "0" : String.valueOf(quantity));
-        addStyleClass(quantityField, "allocation-quantity-field");
-        return quantityField;
-    }
-
-    private HBox wrapQuantityField(TextField quantityField) {
-        Label unitLabel = new Label("chiếc");
-        addStyleClass(unitLabel, "allocation-unit-label");
-        HBox quantityBox = new HBox(8, quantityField, unitLabel);
-        quantityBox.setAlignment(Pos.CENTER_LEFT);
-        quantityBox.setMinWidth(170);
-        quantityBox.setPrefWidth(170);
-        return quantityBox;
-    }
-
-    private ComboBox<String> buildTransportBox(RequestProcessingViewModel.AllocationSiteRowViewModel siteRow) {
-        ComboBox<String> transportBox = new ComboBox<>();
         transportBox.getItems().addAll(siteRow.transportLabels());
         transportBox.setDisable(siteRow.transportDisabled());
-        transportBox.setValue(siteRow.transportDisabled() ? siteRow.transportLabels().get(0) : siteRow.selectedTransportLabel());
-        transportBox.setPrefWidth(180);
-        transportBox.setMinWidth(180);
-        addStyleClass(transportBox, "allocation-transport-box");
-        return transportBox;
+        transportBox.setValue(siteRow.transportDisabled()
+            ? siteRow.transportLabels().get(0)
+            : siteRow.selectedTransportLabel());
+
+        etaBadge.setText(siteRow.deliveryStatusText());
+        setStateClass(etaBadge, ETA_STATE_CLASSES, siteRow.deliveryStatusClass());
+
+        quantityField.textProperty().addListener((observable, oldValue, newValue) -> applyAllocationChange());
+        transportBox.valueProperty().addListener((observable, oldValue, newValue) -> applyAllocationChange());
     }
 
-    private Label buildEtaBadge(String deliveryStatusText, String deliveryStatusClass) {
-        Label etaBadge = new Label(deliveryStatusText);
-        etaBadge.setMinWidth(120);
-        addStyleClass(etaBadge, "allocation-eta-badge");
-        setStateClass(etaBadge, ETA_STATE_CLASSES, deliveryStatusClass);
-        return etaBadge;
-    }
-
-    private Label buildWarningLabel() {
-        Label warningLabel = new Label();
-        warningLabel.setVisible(false);
-        warningLabel.setManaged(false);
-        addStyleClass(warningLabel, "allocation-warning-label");
-        return warningLabel;
-    }
-
-    private void applyAllocationChange(
-        RequestProcessingViewModel.AllocationSiteRowViewModel siteRow,
-        TextField quantityField,
-        ComboBox<String> transportBox,
-        Label etaBadge,
-        Label warningLabel
-    ) {
+    private void applyAllocationChange() {
         AllocationChangeResultView result = onAllocationInputChanged.apply(new AllocationChangeCommand(
             siteRow.itemMerchandiseId(),
             siteRow.siteId(),
@@ -155,11 +101,11 @@ final class AllocationSiteRowView {
         setStateClass(etaBadge, ETA_STATE_CLASSES, buildDeliveryStatusClass(result));
 
         if (!result.applied()) {
-            showWarning(warningLabel, warningMessage(result));
+            showWarning(warningMessage(result));
             return;
         }
 
-        hideWarning(warningLabel);
+        hideWarning();
         onRowChanged.run();
     }
 
@@ -199,13 +145,13 @@ final class AllocationSiteRowView {
         };
     }
 
-    private void showWarning(Label warningLabel, String message) {
+    private void showWarning(String message) {
         warningLabel.setText(message);
         warningLabel.setVisible(true);
         warningLabel.setManaged(true);
     }
 
-    private void hideWarning(Label warningLabel) {
+    private void hideWarning() {
         warningLabel.setText("");
         warningLabel.setVisible(false);
         warningLabel.setManaged(false);

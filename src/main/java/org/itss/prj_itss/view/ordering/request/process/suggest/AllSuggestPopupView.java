@@ -2,15 +2,10 @@ package org.itss.prj_itss.view.ordering.request.process.suggest;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
@@ -22,7 +17,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import static org.itss.prj_itss.view.ordering.request.process.shared.AllocationViewSupport.addStyleClass;
 import static org.itss.prj_itss.view.ordering.request.process.shared.AllocationViewSupport.applyMainStylesheet;
 import static org.itss.prj_itss.view.ordering.request.process.shared.AllocationViewSupport.showToast;
 
@@ -30,6 +24,8 @@ public final class AllSuggestPopupView {
 
     private static final String POPUP_RESOURCE =
         "/org/itss/prj_itss/ordering/request/process/suggest/all-suggest-popup-view.fxml";
+    private static final String EMPTY_CARD_RESOURCE =
+        "/org/itss/prj_itss/ordering/request/process/suggest/suggest-empty-card.fxml";
 
     @FXML
     private Label titleLabel;
@@ -91,86 +87,30 @@ public final class AllSuggestPopupView {
     private void renderPlans() {
         plansBox.getChildren().clear();
         if (plans.isEmpty()) {
-            plansBox.getChildren().add(buildEmptyCard());
-        } else {
-            for (int index = 0; index < plans.size(); index++) {
-                plansBox.getChildren().add(buildPlanCard(plans.get(index), index + 1));
-            }
+            plansBox.getChildren().add(loadEmptyCard());
+            return;
+        }
+        for (int index = 0; index < plans.size(); index++) {
+            int number = index + 1;
+            plansBox.getChildren().add(SuggestPlanCardView.load(plans.get(index), number, plan -> applyPlan(plan, number)));
         }
     }
 
-    private VBox buildEmptyCard() {
-        VBox emptyCard = new VBox(8);
-        emptyCard.setPadding(new Insets(18));
-        addStyleClass(emptyCard, "allocation-table");
-
-        Label emptyTitle = new Label("Chưa có phương án thỏa mãn");
-        addStyleClass(emptyTitle, "allocation-card-title");
-
-        Label emptyText = new Label("Kiểm tra lại site bị loại bỏ, số lượng tồn kho hoặc ngày giao yêu cầu.");
-        emptyText.setWrapText(true);
-        addStyleClass(emptyText, "allocation-subtitle");
-
-        emptyCard.getChildren().addAll(emptyTitle, emptyText);
-        return emptyCard;
+    private void applyPlan(SuggestedPlanView plan, int number) {
+        onApply.accept(plan);
+        dialog.close();
+        showToast("Đã áp dụng phương án " + number + ".");
     }
 
-    private VBox buildPlanCard(SuggestedPlanView plan, int number) {
-        VBox card = new VBox(14);
-        card.setPadding(new Insets(16));
-        addStyleClass(card, "allocation-plan-card");
-
-        card.getChildren().add(buildPlanHeader(plan, number));
-
-        VBox summaryBox = new VBox(8);
-        summaryBox.getChildren().add(new Label("Tổng: " + plan.totalQuantity() + " chiếc, " + plan.totalLineCount() + " dòng, " + plan.siteCount() + " site"));
-        card.getChildren().add(summaryBox);
-        return card;
-    }
-
-    private HBox buildPlanHeader(SuggestedPlanView plan, int number) {
-        HBox header = new HBox(12);
-        header.setAlignment(Pos.TOP_LEFT);
-
-        VBox titleBox = new VBox(6);
-        Label titleLabel = new Label("Phương án " + String.format("%02d", number));
-        addStyleClass(titleLabel, "allocation-title");
-
-        Label summaryLabel = new Label(
-            plan.siteCount() + " site"
-                + " • " + plan.totalLineCount() + " dòng đặt hàng"
-                + " • " + plan.totalQuantity() + " chiếc"
-        );
-        addStyleClass(summaryLabel, "allocation-subtitle");
-        titleBox.getChildren().addAll(titleLabel, summaryLabel);
-
-        Region spacer = new Region();
-        HBox.setHgrow(spacer, Priority.ALWAYS);
-
-        HBox tagRow = new HBox(8);
-        tagRow.setAlignment(Pos.CENTER_RIGHT);
-        tagRow.getChildren().addAll(
-            buildMetricTag("Đủ số lượng", "allocation-metric-success"),
-            buildMetricTag("Kịp ngày nhận", "allocation-metric-info")
-        );
-
-        Button applyButton = new Button("Áp dụng phương án này");
-        addStyleClass(applyButton, "allocation-apply-plan-button");
-        applyButton.setOnAction(event -> {
-            onApply.accept(plan);
-            dialog.close();
-            showToast("Đã áp dụng phương án " + number + ".");
-        });
-
-        VBox headerRight = new VBox(10, tagRow, applyButton);
-        headerRight.setAlignment(Pos.CENTER_RIGHT);
-        header.getChildren().addAll(titleBox, spacer, headerRight);
-        return header;
-    }
-
-    private Label buildMetricTag(String text, String modifierClass) {
-        Label label = new Label(text);
-        addStyleClass(label, "allocation-metric-tag", modifierClass);
-        return label;
+    private VBox loadEmptyCard() {
+        try {
+            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
+                AllSuggestPopupView.class.getResource(EMPTY_CARD_RESOURCE),
+                "Missing suggest empty card FXML"
+            ));
+            return loader.load();
+        } catch (IOException exception) {
+            throw new IllegalStateException("Cannot load suggest empty card", exception);
+        }
     }
 }

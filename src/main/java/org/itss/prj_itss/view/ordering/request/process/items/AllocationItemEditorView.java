@@ -2,11 +2,8 @@ package org.itss.prj_itss.view.ordering.request.process.items;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
-import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import org.itss.prj_itss.model.request.application.processing.AllocationChangeCommand;
@@ -21,7 +18,6 @@ import java.util.function.IntConsumer;
 
 import static org.itss.prj_itss.view.ordering.request.process.shared.AllocationViewSupport.SUMMARY_STATE_CLASSES;
 import static org.itss.prj_itss.view.ordering.request.process.shared.AllocationViewSupport.addStyleClass;
-import static org.itss.prj_itss.view.ordering.request.process.shared.AllocationViewSupport.buildColumnHeader;
 import static org.itss.prj_itss.view.ordering.request.process.shared.AllocationViewSupport.setStateClass;
 
 public final class AllocationItemEditorView {
@@ -42,7 +38,10 @@ public final class AllocationItemEditorView {
     private Label remainingBadgeLabel;
 
     @FXML
-    private VBox siteTableBox;
+    private VBox siteRowsBox;
+
+    @FXML
+    private Label emptyLabel;
 
     private RequestProcessingViewModel.AllocationItemViewModel item;
     private int itemIndex;
@@ -96,47 +95,28 @@ public final class AllocationItemEditorView {
         titleLabel.setText(item.code() + " - " + item.name());
         subtitleLabel.setText("Có mặt hàng tại " + countAvailableSites() + " site");
         refreshSummaryBadges();
-        renderSiteTable();
+        renderSiteRows();
     }
 
-    private void renderSiteTable() {
-        siteTableBox.getChildren().clear();
-        siteTableBox.getChildren().add(buildTableHeader());
+    private void renderSiteRows() {
+        siteRowsBox.getChildren().clear();
 
         Runnable onRowChanged = () -> {
             refreshSummaryBadges();
             onItemAllocationChanged.accept(itemIndex);
         };
-        AllocationSiteRowView rowView = new AllocationSiteRowView(onAllocationInputChanged, onRowChanged);
 
         boolean hasRows = false;
         for (RequestProcessingViewModel.AllocationSiteRowViewModel siteRow : siteRows) {
             if (siteRow.stock() <= 0) {
                 continue;
             }
-            siteTableBox.getChildren().add(rowView.build(siteRow));
+            siteRowsBox.getChildren().add(AllocationSiteRowView.load(siteRow, onAllocationInputChanged, onRowChanged));
             hasRows = true;
         }
 
-        if (!hasRows) {
-            Label emptyLabel = new Label("Không có site khả dụng cho mặt hàng này.");
-            addStyleClass(emptyLabel, "allocation-empty-label");
-            siteTableBox.getChildren().add(emptyLabel);
-        }
-    }
-
-    private HBox buildTableHeader() {
-        HBox header = new HBox(16);
-        header.setPadding(new Insets(12, 16, 12, 16));
-        addStyleClass(header, "allocation-table-header");
-        header.getChildren().addAll(
-            buildColumnHeader("SITE", 380),
-            buildColumnHeader("TỒN KHO", 100),
-            buildColumnHeader("SL PHÂN BỔ", 170),
-            buildColumnHeader("VẬN CHUYỂN", 180),
-            buildColumnHeader("TRẠNG THÁI", 120)
-        );
-        return header;
+        emptyLabel.setVisible(!hasRows);
+        emptyLabel.setManaged(!hasRows);
     }
 
     private void refreshSummaryBadges() {
