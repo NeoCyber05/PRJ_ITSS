@@ -9,8 +9,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import org.itss.prj_itss.App;
-import org.itss.prj_itss.bootstrap.ControllerRegistry;
-import org.itss.prj_itss.bootstrap.ModelContext;
+import org.itss.prj_itss.bootstrap.AppContainer;
 import org.itss.prj_itss.controller.navigation.Navigator;
 import org.itss.prj_itss.model.auth.domain.AuthenticatedUser;
 import org.itss.prj_itss.model.auth.application.RoleAccessPolicy;
@@ -45,8 +44,7 @@ public class MainLayoutView implements Navigator {
     private final Map<String, Button> navButtons = new LinkedHashMap<>();
     private final Map<String, LoadedView> cachedViews = new HashMap<>();
     
-    private ModelContext modelContext;
-    private ControllerRegistry controllerRegistry;
+    private AppContainer container;
     private AuthenticatedUser currentUser;
     private Runnable logoutHandler;
     private String activeViewId;
@@ -96,15 +94,14 @@ public class MainLayoutView implements Navigator {
         registerNavButton("sales-requests", salesRequestsButton);
     }
 
-    public void init(ModelContext modelContext, ControllerRegistry controllerRegistry) {
-        this.modelContext = modelContext;
-        this.controllerRegistry = controllerRegistry;
+    public void init(AppContainer container) {
+        this.container = container;
     }
 
     public void setUser(AuthenticatedUser user) {
         this.currentUser = user;
-        if (modelContext != null) {
-            modelContext.setAuthenticatedUser(user);
+        if (container != null) {
+            container.setAuthenticatedUser(user);
         }
         updateUIForUser();
         showView(RoleAccessPolicy.defaultViewId(currentUser));
@@ -135,7 +132,6 @@ public class MainLayoutView implements Navigator {
 
     @Override
     public void showViewWithData(String viewId, Object data) {
-        // Hỗ trợ truyền dữ liệu động qua showView
         showView(viewId);
     }
 
@@ -194,9 +190,9 @@ public class MainLayoutView implements Navigator {
             String orderId = viewId.substring(ORDER_DETAIL_PREFIX.length());
             OrderDetailView detailView = new OrderDetailView();
             detailView.init(
-                this, 
-                controllerRegistry.orderDetailController(), 
-                controllerRegistry.orderManagementController(), 
+                this,
+                container.orderControllers().orderDetailController(),
+                container.orderControllers().orderManagementController(),
                 orderId
             );
             return new LoadedView(detailView.getView(), detailView);
@@ -238,7 +234,7 @@ public class MainLayoutView implements Navigator {
             "/org/itss/prj_itss/ordering/request/process/layout/request-processing-view.fxml",
             viewInstance -> {
                 if (viewInstance instanceof RequestProcessingLayoutView requestProcessingView) {
-                    requestProcessingView.init(modelContext.requestProcessingUseCase(), this::showView);
+                    requestProcessingView.init(container.requestProcessingUseCase(), this::showView);
                     requestProcessingView.setRequestId(requestId);
                 }
             }
@@ -271,33 +267,33 @@ public class MainLayoutView implements Navigator {
 
     private void initializeView(Object viewInstance) {
         if (viewInstance instanceof HomeView homeView) {
-            homeView.setController(controllerRegistry.homeController());
+            homeView.setController(container.homeControllers().homeController());
         } else if (viewInstance instanceof SiteManagementView siteManagementView) {
-            siteManagementView.init(this, controllerRegistry.siteManagementController());
+            siteManagementView.init(this, container.siteControllers().siteManagementController());
         } else if (viewInstance instanceof ReceivedRequestsView receivedRequestsView) {
             receivedRequestsView.init(
-                this, 
-                controllerRegistry.receivedRequestsController(),
-                controllerRegistry.requestDetailPopupController(),
-                controllerRegistry.orderDetailController(),
-                controllerRegistry.orderManagementController()
+                this,
+                container.requestControllers().receivedRequestsController(),
+                container.requestControllers().requestDetailPopupController(),
+                container.orderControllers().orderDetailController(),
+                container.orderControllers().orderManagementController()
             );
         } else if (viewInstance instanceof OrderManagementView orderManagementView) {
-            orderManagementView.init(this, controllerRegistry.orderManagementController());
+            orderManagementView.init(this, container.orderControllers().orderManagementController());
         } else if (viewInstance instanceof OrderCancellationView orderCancellationView) {
-            orderCancellationView.init(this, controllerRegistry.orderCancellationController());
+            orderCancellationView.init(this, container.orderControllers().orderCancellationController());
         } else if (viewInstance instanceof SalesRequestListView salesRequestListView) {
             salesRequestListView.init(
                 this,
-                controllerRegistry.salesRequestListController(),
-                controllerRegistry.createOrderRequestController(),
-                controllerRegistry.updateOrderRequestController(),
-                controllerRegistry.viewOrderRequestController()
+                container.salesRequestControllers().salesRequestListController(),
+                container.salesRequestControllers().createOrderRequestController(),
+                container.salesRequestControllers().updateOrderRequestController(),
+                container.salesRequestControllers().viewOrderRequestController()
             );
         } else if (viewInstance instanceof ConfirmOrderArrivalView confirmOrderArrivalView) {
-            confirmOrderArrivalView.setController(controllerRegistry.confirmOrderArrivalController());
+            confirmOrderArrivalView.setController(container.warehouseControllers().confirmOrderArrivalController());
         } else if (viewInstance instanceof RoleWorkspaceView roleWorkspaceView) {
-            roleWorkspaceView.setController(controllerRegistry.roleWorkspaceController());
+            roleWorkspaceView.setController(container.authControllers().roleWorkspaceController());
             roleWorkspaceView.setUser(currentUser);
         }
     }
@@ -341,8 +337,8 @@ public class MainLayoutView implements Navigator {
     private void handleLogout() {
         cachedViews.clear();
         activeViewId = null;
-        if (modelContext != null) {
-            modelContext.setAuthenticatedUser(null);
+        if (container != null) {
+            container.setAuthenticatedUser(null);
         }
         if (logoutHandler != null) {
             logoutHandler.run();

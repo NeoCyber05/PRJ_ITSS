@@ -8,7 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import org.itss.prj_itss.dashboard.application.DashboardData;
+import org.itss.prj_itss.model.dashboard.application.DashboardData;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.controller.home.HomeController;

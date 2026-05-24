@@ -28,38 +28,35 @@
 - Nếu dùng phần kho, cấu hình thêm các biến `WAREHOUSE_DB_*` hoặc file `warehouse-db.properties`.
 - Mã nguồn giao diện nằm trong `src/main/java` và `src/main/resources`.
 
-## Package dependency diagram - Clean Architecture
+## Package dependency diagram - MVC
 
 ```mermaid
 flowchart LR
-    Config["common.config\nApplicationContext"]
+    App["App\nJavaFX entrypoint"]
+    Bootstrap["bootstrap\nAppFactory / ModelContext / ControllerRegistry"]
     CommonData["common.data\nJDBC support"]
-    Db["db\nDatabaseConnection"]
+    Config["common.config\nDatabase / transaction config"]
 
-    subgraph Features["feature modules"]
-        Presentation["*.presentation\nJavaFX controllers / popups"]
-        Application["*.application\nuse cases / queries / view models"]
-        Domain["*.domain\nentities / policies / domain services"]
-        Ports["*.application.port\nrepository / gateway ports"]
-        Persistence["*.infrastructure.persistence\nJDBC adapters"]
+    subgraph MVC["MVC packages"]
+        View["view\nFXML controllers / UI rendering"]
+        Controller["controller\nuser actions / navigation flow"]
+        Model["model\napplication services / domain / persistence"]
     end
 
-    Presentation --> Application
-    Application --> Domain
-    Application --> Ports
-    Persistence -. implements .-> Ports
-    Persistence --> Domain
-    Persistence --> CommonData
+    App --> Bootstrap
+    Bootstrap --> View
+    Bootstrap --> Controller
+    Bootstrap --> Model
+    View --> Controller
+    Controller --> Model
+    Model --> CommonData
     CommonData --> Config
-    Config --> Db
-    Config -. wires .-> Application
-    Config -. wires .-> Persistence
 ```
 
-Quy tac kien truc hien tai:
+Quy tắc kiến trúc hiện tại:
 
-- `domain` khong phu thuoc JavaFX, SQL, `application`, `presentation`, hoac `infrastructure`.
-- `application` khong phu thuoc JavaFX, SQL, `presentation`, hoac concrete adapter trong `infrastructure`.
-- `presentation` khong import truc tiep persistence adapter.
-- Repository/gateway interface nam trong `*.application.port`; JDBC adapter nam trong `*.infrastructure.persistence`.
-- `ApplicationContext` la composition root: tao adapter, tao use case, va wire dependency.
+- `view` chịu trách nhiệm hiển thị giao diện JavaFX, nhận FXML controller và chuyển thao tác người dùng sang `controller`.
+- `controller` điều phối luồng xử lý, gọi use case hoặc service trong `model`, đồng thời điều hướng màn hình khi cần.
+- `model` chứa nghiệp vụ chính: application service/use case, domain object, port và JDBC adapter.
+- `bootstrap` là nơi lắp ghép ứng dụng: `AppFactory` tải view, `ControllerRegistry` tạo controller, `ModelContext` tạo model service và repository.
+- `common.config` và `common.data` chỉ cung cấp hạ tầng dùng chung như kết nối database, transaction và JDBC helper.

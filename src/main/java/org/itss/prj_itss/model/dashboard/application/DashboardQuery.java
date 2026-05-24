@@ -1,4 +1,4 @@
-package org.itss.prj_itss.dashboard.application;
+package org.itss.prj_itss.model.dashboard.application;
 
 import org.itss.prj_itss.model.order.application.OrderUseCase;
 import org.itss.prj_itss.model.request.application.RequestManagementUseCase;

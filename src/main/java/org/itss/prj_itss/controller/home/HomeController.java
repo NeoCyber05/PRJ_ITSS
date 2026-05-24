@@ -1,8 +1,8 @@
 package org.itss.prj_itss.controller.home;
 
 import org.itss.prj_itss.controller.navigation.Navigator;
-import org.itss.prj_itss.dashboard.application.DashboardData;
-import org.itss.prj_itss.dashboard.application.DashboardQuery;
+import org.itss.prj_itss.model.dashboard.application.DashboardData;
+import org.itss.prj_itss.model.dashboard.application.DashboardQuery;
 import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
 
 import java.time.LocalDate;

@@ -57,7 +57,7 @@ public class App extends Application {
         Task<Void> warmUpTask = new Task<>() {
             @Override
             protected Void call() {
-                appFactory.modelContext().warmUpDatabaseConnection();
+                appFactory.appContainer().warmUpDatabaseConnection();
                 return null;
             }
         };

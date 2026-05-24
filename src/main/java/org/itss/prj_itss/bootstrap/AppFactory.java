@@ -14,20 +14,14 @@ import java.util.function.Consumer;
 
 public final class AppFactory {
 
-    private final ModelContext modelContext;
-    private final ControllerRegistry controllerRegistry;
+    private final AppContainer appContainer;
 
     public AppFactory() {
-        this.modelContext = new ModelContext();
-        this.controllerRegistry = new ControllerRegistry(modelContext);
+        this.appContainer = new AppContainer();
     }
 
-    public ModelContext modelContext() {
-        return modelContext;
-    }
-
-    public ControllerRegistry controllerRegistry() {
-        return controllerRegistry;
+    public AppContainer appContainer() {
+        return appContainer;
     }
 
     public Parent loadLoginView(Consumer<AuthenticatedUser> loginHandler, LoginViewWarmingListener listener) throws IOException {
@@ -38,8 +32,7 @@ public final class AppFactory {
         Parent root = loader.load();
         LoginView view = loader.getController();
 
-        // Tạo login controller động
-        LoginController loginController = new LoginController(modelContext.authenticationService(), loginHandler);
+        LoginController loginController = new LoginController(appContainer.authenticationService(), loginHandler);
         view.setController(loginController);
 
         if (listener != null) {
@@ -57,8 +50,8 @@ public final class AppFactory {
         Parent root = loader.load();
         MainLayoutView view = loader.getController();
 
-        view.init(modelContext, controllerRegistry);
-        controllerRegistry.navigator().setDelegate(view);
+        view.init(appContainer);
+        appContainer.navigator().setDelegate(view);
         view.setUser(user);
         view.setLogoutHandler(logoutHandler);
 
