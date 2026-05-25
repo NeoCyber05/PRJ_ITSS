@@ -9,7 +9,7 @@ import javafx.scene.layout.VBox;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingViewModel;
 import org.itss.prj_itss.model.request.application.processing.SuggestedPlanView;
 import org.itss.prj_itss.model.request.application.processing.ProcessingPreviewOrderView;
-import org.itss.prj_itss.controller.ordering.request.RequestProcessingController;
+import org.itss.prj_itss.controller.ordering.request.process.RequestProcessingController;
 import org.itss.prj_itss.view.ordering.request.process.items.ItemsSectionView;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
 import org.itss.prj_itss.view.ordering.request.process.preview.RequestProcessingPreviewDialog;

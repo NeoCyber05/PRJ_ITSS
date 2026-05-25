@@ -1,6 +1,6 @@
 package org.itss.prj_itss.controller.ordering.request.process.preview;
 
-import org.itss.prj_itss.controller.ordering.request.RequestProcessingController;
+import org.itss.prj_itss.controller.ordering.request.process.RequestProcessingController;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingException;
 import org.itss.prj_itss.model.request.application.processing.ProcessingPreviewOrderView;
 
