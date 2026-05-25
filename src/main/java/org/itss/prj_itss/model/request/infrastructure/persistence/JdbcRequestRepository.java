@@ -1,6 +1,6 @@
 package org.itss.prj_itss.model.request.infrastructure.persistence;
 
-import org.itss.prj_itss.common.data.JdbcRepositorySupport;
+import org.itss.prj_itss.model.shared.database.JdbcRepositorySupport;
 
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
@@ -13,7 +13,7 @@ import java.util.List;
 
 public class JdbcRequestRepository extends JdbcRepositorySupport implements RequestRepository {
 
-    public JdbcRequestRepository(org.itss.prj_itss.common.config.IConnectionProvider connectionProvider) {
+    public JdbcRequestRepository(org.itss.prj_itss.model.shared.database.ConnectionProvider connectionProvider) {
         super(connectionProvider);
     }
 

@@ -1,6 +1,7 @@
 package org.itss.prj_itss.controller.ordering.request;
 
-import org.itss.prj_itss.common.config.ITransactionRunner;
+import org.itss.prj_itss.model.shared.database.TransactionException;
+import org.itss.prj_itss.model.shared.database.TransactionRunner;
 import org.itss.prj_itss.model.catalog.domain.Merchandise;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
@@ -23,7 +24,6 @@ import org.itss.prj_itss.model.site.application.port.SiteRepository;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -170,9 +170,9 @@ class RequestProcessingControllerTest {
         private LocalDate desiredDeliveryDate;
     }
 
-    private static final class RecordingTransactionRunner implements ITransactionRunner {
+    private static final class RecordingTransactionRunner implements TransactionRunner {
         @Override
-        public void execute(ITransactionCallback callback) throws SQLException {
+        public void execute(TransactionCallback callback) throws TransactionException {
             callback.execute();
         }
     }

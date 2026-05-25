@@ -1,6 +1,7 @@
 package org.itss.prj_itss.model.request;
 
-import org.itss.prj_itss.common.config.SharedInfrastructure;
+import org.itss.prj_itss.model.shared.database.ConnectionProvider;
+import org.itss.prj_itss.model.shared.database.TransactionRunner;
 import org.itss.prj_itss.model.catalog.CatalogModule;
 import org.itss.prj_itss.model.order.OrderModule;
 import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
@@ -23,12 +24,13 @@ public final class RequestModule {
     private final RequestSalesApplicationService requestSalesApplicationService;
 
     public RequestModule(
-        SharedInfrastructure infrastructure,
+        ConnectionProvider connectionProvider,
+        TransactionRunner transactionRunner,
         OrderModule orderModule,
         SiteModule siteModule,
         CatalogModule catalogModule
     ) {
-        this.requestRepository = new JdbcRequestRepository(infrastructure.connectionProvider());
+        this.requestRepository = new JdbcRequestRepository(connectionProvider);
         this.requestManagementUseCase = new RequestManagementUseCase(requestRepository);
         this.requestProcessingUseCase = new RequestProcessingUseCase(
             new JdbcRequestProcessingGateway(
@@ -37,7 +39,7 @@ public final class RequestModule {
                 siteModule.siteRepository(),
                 siteModule.inventoryRepository(),
                 catalogModule.merchandiseRepository(),
-                infrastructure.transactionManager()
+                transactionRunner
             )
         );
         this.receivedRequestsApplicationService =

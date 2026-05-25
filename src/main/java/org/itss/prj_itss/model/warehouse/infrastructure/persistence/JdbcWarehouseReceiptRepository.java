@@ -1,8 +1,8 @@
 package org.itss.prj_itss.model.warehouse.infrastructure.persistence;
 
-import org.itss.prj_itss.common.data.JdbcRepositorySupport;
+import org.itss.prj_itss.model.shared.database.JdbcRepositorySupport;
 
-import org.itss.prj_itss.common.config.IConnectionProvider;
+import org.itss.prj_itss.model.shared.database.ConnectionProvider;
 import org.itss.prj_itss.model.warehouse.domain.WarehouseReceipt;
 import org.itss.prj_itss.model.warehouse.domain.WarehouseReceiptItem;
 import org.itss.prj_itss.model.warehouse.application.port.WarehouseReceiptRepository;
@@ -15,7 +15,7 @@ import java.sql.Types;
 
 public class JdbcWarehouseReceiptRepository extends JdbcRepositorySupport implements WarehouseReceiptRepository {
 
-    public JdbcWarehouseReceiptRepository(IConnectionProvider connectionProvider) {
+    public JdbcWarehouseReceiptRepository(ConnectionProvider connectionProvider) {
         super(connectionProvider);
     }
 

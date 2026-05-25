@@ -1,4 +1,4 @@
-package org.itss.prj_itss.common.application.port;
+package org.itss.prj_itss.model.shared.database;
 
 public final class TransactionException extends Exception {
 

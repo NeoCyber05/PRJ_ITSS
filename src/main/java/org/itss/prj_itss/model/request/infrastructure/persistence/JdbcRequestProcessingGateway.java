@@ -1,6 +1,7 @@
 package org.itss.prj_itss.model.request.infrastructure.persistence;
 
-import org.itss.prj_itss.common.config.ITransactionRunner;
+import org.itss.prj_itss.model.shared.database.TransactionException;
+import org.itss.prj_itss.model.shared.database.TransactionRunner;
 import org.itss.prj_itss.model.catalog.domain.Merchandise;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
@@ -21,7 +22,6 @@ import org.itss.prj_itss.model.request.application.port.RequestRepository;
 import org.itss.prj_itss.model.site.application.port.SiteRepository;
 
 import java.math.BigDecimal;
-import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -36,7 +36,7 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
     private final SiteRepository siteRepository;
     private final InventoryRepository inventoryRepository;
     private final MerchandiseRepository merchandiseRepository;
-    private final ITransactionRunner transactionRunner;
+    private final TransactionRunner transactionRunner;
 
     public JdbcRequestProcessingGateway(
         RequestRepository requestRepository,
@@ -44,7 +44,7 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
         SiteRepository siteRepository,
         InventoryRepository inventoryRepository,
         MerchandiseRepository merchandiseRepository,
-        ITransactionRunner transactionRunner
+        TransactionRunner transactionRunner
     ) {
         this.requestRepository = requestRepository;
         this.orderRepository = orderRepository;
@@ -115,7 +115,7 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
 
                     int orderId = orderRepository.create(order);
                     if (orderId <= 0) {
-                        throw new SQLException("Cannot create order for site " + siteEntry.getKey());
+                        throw new TransactionException("Cannot create order for site " + siteEntry.getKey());
                     }
 
                     for (Allocation allocation : siteEntry.getValue()) {
@@ -126,16 +126,16 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
                             toStoredDeliveryMethod(allocation.transport)
                         );
                         if (!orderRepository.addItem(orderItem)) {
-                            throw new SQLException("Cannot create order line for order " + orderId);
+                            throw new TransactionException("Cannot create order line for order " + orderId);
                         }
                     }
                 }
 
                 if (!requestRepository.updateStatus(requestId, "processing")) {
-                    throw new SQLException("Cannot update request status " + requestId);
+                    throw new TransactionException("Cannot update request status " + requestId);
                 }
             });
-        } catch (SQLException exception) {
+        } catch (TransactionException exception) {
             throw new RequestProcessingGatewayException(
                 "Cannot create allocated orders for request " + requestId,
                 exception

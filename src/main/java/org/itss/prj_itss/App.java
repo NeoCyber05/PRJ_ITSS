@@ -8,7 +8,6 @@ import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
 import org.itss.prj_itss.model.auth.domain.AuthenticatedUser;
-import org.itss.prj_itss.controller.auth.LoginController;
 import org.itss.prj_itss.bootstrap.ViewLoader;
 import org.itss.prj_itss.view.auth.LoginView;
 
@@ -57,7 +56,7 @@ public class App extends Application {
         Task<Void> warmUpTask = new Task<>() {
             @Override
             protected Void call() {
-                viewLoader.mvcContext().warmUpDatabaseConnection();
+                viewLoader.warmUpDatabaseConnection();
                 return null;
             }
         };

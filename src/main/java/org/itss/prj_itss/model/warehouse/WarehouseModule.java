@@ -1,7 +1,7 @@
 package org.itss.prj_itss.model.warehouse;
 
-import org.itss.prj_itss.common.config.SharedInfrastructure;
-import org.itss.prj_itss.common.config.TransactionRunnerAdapter;
+import org.itss.prj_itss.model.shared.database.ConnectionProvider;
+import org.itss.prj_itss.model.shared.database.TransactionRunner;
 import org.itss.prj_itss.model.auth.AuthModule;
 import org.itss.prj_itss.model.catalog.CatalogModule;
 import org.itss.prj_itss.model.order.OrderModule;
@@ -16,19 +16,20 @@ public final class WarehouseModule {
     private final WarehouseReceivingUseCase warehouseReceivingUseCase;
 
     public WarehouseModule(
-        SharedInfrastructure infrastructure,
+        ConnectionProvider warehouseConnectionProvider,
+        TransactionRunner warehouseTransactionRunner,
         AuthModule authModule,
         OrderModule orderModule,
         SiteModule siteModule,
         CatalogModule catalogModule
     ) {
-        this.warehouseReceiptRepository = new JdbcWarehouseReceiptRepository(infrastructure.warehouseConnectionProvider());
+        this.warehouseReceiptRepository = new JdbcWarehouseReceiptRepository(warehouseConnectionProvider);
         this.warehouseReceivingUseCase = new WarehouseReceivingUseCase(
             orderModule.orderUseCase(),
             siteModule.siteUseCase(),
             catalogModule.catalogUseCase(),
             warehouseReceiptRepository,
-            new TransactionRunnerAdapter(infrastructure.warehouseTransactionManager()),
+            warehouseTransactionRunner,
             authModule.currentUserSupplier()
         );
     }

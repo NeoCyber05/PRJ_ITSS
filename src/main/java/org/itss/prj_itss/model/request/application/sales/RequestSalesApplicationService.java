@@ -2,7 +2,7 @@ package org.itss.prj_itss.model.request.application.sales;
 
 import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
 import org.itss.prj_itss.model.catalog.domain.Merchandise;
-import org.itss.prj_itss.common.application.OrderingFormatters;
+import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;

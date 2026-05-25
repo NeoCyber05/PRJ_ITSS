@@ -1,6 +1,6 @@
 package org.itss.prj_itss.model.request.application.listing;
 
-import org.itss.prj_itss.common.application.OrderingFormatters;
+import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 
 import java.util.Locale;
 

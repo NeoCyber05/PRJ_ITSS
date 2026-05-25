@@ -1,15 +1,13 @@
-package org.itss.prj_itss.common.config;
-
-import org.itss.prj_itss.model.shared.database.DatabaseConnection;
+package org.itss.prj_itss.model.shared.database;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public final class DatabaseConnectionProvider implements IConnectionProvider {
+public final class WarehouseConnectionProvider implements ConnectionProvider {
 
-    private final TransactionManager transactionManager;
+    private final WarehouseTransactionManager transactionManager;
 
-    public DatabaseConnectionProvider(TransactionManager transactionManager) {
+    public WarehouseConnectionProvider(WarehouseTransactionManager transactionManager) {
         this.transactionManager = transactionManager;
     }
 
@@ -19,6 +17,6 @@ public final class DatabaseConnectionProvider implements IConnectionProvider {
         if (transactionalConnection != null) {
             return transactionalConnection;
         }
-        return DatabaseConnection.getInstance().getConnection();
+        return WarehouseDatabaseConnection.getInstance().getConnection();
     }
 }

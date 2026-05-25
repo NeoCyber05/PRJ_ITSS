@@ -1,6 +1,6 @@
 package org.itss.prj_itss.model.site;
 
-import org.itss.prj_itss.common.config.SharedInfrastructure;
+import org.itss.prj_itss.model.shared.database.ConnectionProvider;
 import org.itss.prj_itss.model.catalog.CatalogModule;
 import org.itss.prj_itss.model.site.application.SiteManagementApplicationService;
 import org.itss.prj_itss.model.site.application.SiteUseCase;
@@ -14,8 +14,8 @@ public final class SiteModule {
     private final SiteUseCase siteUseCase;
     private final SiteManagementApplicationService siteManagementApplicationService;
 
-    public SiteModule(SharedInfrastructure infrastructure, CatalogModule catalogModule) {
-        this.siteRepository = new JdbcSiteRepository(infrastructure.connectionProvider());
+    public SiteModule(ConnectionProvider connectionProvider, CatalogModule catalogModule) {
+        this.siteRepository = new JdbcSiteRepository(connectionProvider);
         this.siteUseCase = new SiteUseCase(siteRepository, siteRepository);
         this.siteManagementApplicationService =
             new SiteManagementApplicationService(siteUseCase, catalogModule.catalogUseCase());

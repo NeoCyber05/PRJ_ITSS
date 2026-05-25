@@ -1,6 +1,6 @@
 package org.itss.prj_itss.model.auth;
 
-import org.itss.prj_itss.common.config.SharedInfrastructure;
+import org.itss.prj_itss.model.shared.database.ConnectionProvider;
 import org.itss.prj_itss.model.auth.application.AuthSession;
 import org.itss.prj_itss.model.auth.application.AuthenticationService;
 import org.itss.prj_itss.model.auth.application.port.AccountRepository;
@@ -15,8 +15,8 @@ public final class AuthModule {
     private final AuthenticationService authenticationService;
     private final AuthSession authSession = new AuthSession();
 
-    public AuthModule(SharedInfrastructure infrastructure) {
-        this.accountRepository = new JdbcAccountRepository(infrastructure.connectionProvider());
+    public AuthModule(ConnectionProvider connectionProvider) {
+        this.accountRepository = new JdbcAccountRepository(connectionProvider);
         this.authenticationService = new AuthenticationService(accountRepository);
     }
 

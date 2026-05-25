@@ -1,4 +1,4 @@
-package org.itss.prj_itss.common.application;
+package org.itss.prj_itss.model.shared.formatting;
 
 import org.itss.prj_itss.model.order.domain.DeliveryMethod;
 

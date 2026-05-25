@@ -1,6 +1,6 @@
 package org.itss.prj_itss.model.request.application.processing;
 
-import org.itss.prj_itss.common.application.OrderingFormatters;
+import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 import org.itss.prj_itss.model.request.domain.allocation.AllocationControl;
 import org.itss.prj_itss.model.request.domain.allocation.model.Allocation;
 import org.itss.prj_itss.model.request.domain.allocation.model.AllocationPlan;

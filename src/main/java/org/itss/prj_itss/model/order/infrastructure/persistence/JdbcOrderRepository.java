@@ -1,6 +1,6 @@
 package org.itss.prj_itss.model.order.infrastructure.persistence;
 
-import org.itss.prj_itss.common.data.JdbcRepositorySupport;
+import org.itss.prj_itss.model.shared.database.JdbcRepositorySupport;
 
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
@@ -12,7 +12,7 @@ import java.util.List;
 
 public class JdbcOrderRepository extends JdbcRepositorySupport implements OrderRepository {
 
-    public JdbcOrderRepository(org.itss.prj_itss.common.config.IConnectionProvider connectionProvider) {
+    public JdbcOrderRepository(org.itss.prj_itss.model.shared.database.ConnectionProvider connectionProvider) {
         super(connectionProvider);
     }
 

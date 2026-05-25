@@ -1,8 +1,8 @@
-package org.itss.prj_itss.common.config;
+package org.itss.prj_itss.model.shared.database;
 
 import java.sql.Connection;
 import java.sql.SQLException;
 
-public interface IConnectionProvider {
+public interface ConnectionProvider {
     Connection getConnection() throws SQLException;
 }

@@ -4,7 +4,7 @@ import org.itss.prj_itss.model.auth.application.port.AccountRepository;
 import org.itss.prj_itss.model.auth.domain.Account;
 import org.itss.prj_itss.model.auth.domain.AuthenticatedUser;
 import org.itss.prj_itss.model.auth.domain.Role;
-import org.itss.prj_itss.common.config.IConnectionProvider;
+import org.itss.prj_itss.model.shared.database.ConnectionProvider;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -30,9 +30,9 @@ public class JdbcAccountRepository implements AccountRepository {
         LIMIT 1
         """;
 
-    private final IConnectionProvider connectionProvider;
+    private final ConnectionProvider connectionProvider;
 
-    public JdbcAccountRepository(IConnectionProvider connectionProvider) {
+    public JdbcAccountRepository(ConnectionProvider connectionProvider) {
         this.connectionProvider = connectionProvider;
     }
 

@@ -11,9 +11,9 @@ import javafx.scene.layout.HBox;
 import org.itss.prj_itss.controller.navigation.Navigator;
 import org.itss.prj_itss.controller.ordering.order.OrderManagementController;
 import org.itss.prj_itss.model.order.application.OrderRow;
-import org.itss.prj_itss.common.application.OrderingFormatters;
-import org.itss.prj_itss.common.presentation.ui.StatusBadgeFactory;
-import org.itss.prj_itss.common.presentation.ui.TableViewSupport;
+import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
+import org.itss.prj_itss.view.shared.ui.StatusBadgeFactory;
+import org.itss.prj_itss.view.shared.ui.TableViewSupport;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 
 import java.util.Locale;

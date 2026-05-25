@@ -1,11 +1,11 @@
-package org.itss.prj_itss.common.presentation.ui;
+package org.itss.prj_itss.view.shared.ui;
 
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
-import org.itss.prj_itss.common.application.OrderingFormatters;
+import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 
 public final class StatusBadgeFactory {
 

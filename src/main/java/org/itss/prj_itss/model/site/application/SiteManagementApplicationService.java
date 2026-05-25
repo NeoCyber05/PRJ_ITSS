@@ -1,7 +1,7 @@
 package org.itss.prj_itss.model.site.application;
 
 import org.itss.prj_itss.model.site.domain.Site;
-import org.itss.prj_itss.common.application.OrderingFormatters;
+import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 import org.itss.prj_itss.model.site.application.SiteRow;
 import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
 import org.itss.prj_itss.model.site.application.SiteUseCase;

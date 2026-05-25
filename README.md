@@ -33,14 +33,14 @@
 ```mermaid
 flowchart LR
     App["App\nJavaFX entrypoint"]
-    Bootstrap["bootstrap\nViewLoader / MvcContext"]
-    CommonData["common.data\nJDBC support"]
-    Config["common.config\nDatabase / transaction config"]
+    Bootstrap["bootstrap\nViewLoader / MvcContext / RouteRegistry"]
 
     subgraph MVC["MVC packages"]
         View["view\nFXML controllers / UI rendering"]
         Controller["controller\nuser actions / navigation flow"]
         Model["model\napplication services / domain / persistence"]
+        SharedDb["model.shared.database\nconnection / transaction / JDBC support"]
+        SharedUi["view.shared.ui\nJavaFX UI helpers"]
     end
 
     App --> Bootstrap
@@ -48,15 +48,15 @@ flowchart LR
     Bootstrap --> Controller
     Bootstrap --> Model
     View --> Controller
+    View --> SharedUi
     Controller --> Model
-    Model --> CommonData
-    CommonData --> Config
+    Model --> SharedDb
 ```
 
-Quy tắc kiến trúc hiện tại:
+Quy tac kien truc hien tai:
 
-- `view` chịu trách nhiệm hiển thị giao diện JavaFX, nhận FXML controller và chuyển thao tác người dùng sang `controller`.
-- `controller` điều phối luồng xử lý, gọi use case hoặc service trong `model`, đồng thời điều hướng màn hình khi cần.
-- `model` chứa nghiệp vụ chính: application service/use case, domain object, port và JDBC adapter.
-- `bootstrap` là nơi lắp ghép ứng dụng: `ViewLoader` tải view và kết hợp chúng với các flow controller và module dịch vụ được quản lý tập trung trong `MvcContext`.
-- `common.config` và `common.data` chỉ cung cấp hạ tầng dùng chung như kết nối database, transaction và JDBC helper.
+- `view` hien thi JavaFX, giu UI state, va chuyen thao tac nguoi dung sang `controller` da duoc inject.
+- `controller` dieu phoi flow, goi use case/service trong `model`, va dieu huong qua `Navigator`; controller khong import `view` hoac JavaFX.
+- `model` chua nghiep vu chinh: application service/use case, domain object, port, JDBC adapter, va `model.shared.database` cho database/transaction.
+- `bootstrap` la composition root: `MvcContext` lap ghep module/controller/route, `RouteRegistry` load va wire man hinh, `ViewLoader` chi load shell login/main layout.
+- `common` top-level da duoc tach vao `model.shared.*` va `view.shared.ui` de giu cohesion theo MVC.

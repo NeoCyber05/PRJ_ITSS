@@ -1,6 +1,6 @@
 package org.itss.prj_itss.model.site.infrastructure.persistence;
 
-import org.itss.prj_itss.common.data.JdbcRepositorySupport;
+import org.itss.prj_itss.model.shared.database.JdbcRepositorySupport;
 
 import org.itss.prj_itss.model.site.domain.Site;
 import org.itss.prj_itss.model.site.application.port.InventoryRepository;
@@ -14,7 +14,7 @@ import java.util.Map;
 
 public class JdbcSiteRepository extends JdbcRepositorySupport implements SiteRepository, InventoryRepository {
 
-    public JdbcSiteRepository(org.itss.prj_itss.common.config.IConnectionProvider connectionProvider) {
+    public JdbcSiteRepository(org.itss.prj_itss.model.shared.database.ConnectionProvider connectionProvider) {
         super(connectionProvider);
     }
 

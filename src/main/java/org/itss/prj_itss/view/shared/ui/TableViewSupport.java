@@ -1,4 +1,4 @@
-package org.itss.prj_itss.common.presentation.ui;
+package org.itss.prj_itss.view.shared.ui;
 
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectWrapper;

@@ -20,8 +20,8 @@ public final class ViewLoader {
         this.mvcContext = new MvcContext();
     }
 
-    public MvcContext mvcContext() {
-        return mvcContext;
+    public void warmUpDatabaseConnection() {
+        mvcContext.warmUpDatabaseConnection();
     }
 
     public Parent loadLoginView(Consumer<AuthenticatedUser> loginHandler, LoginViewWarmingListener listener) throws IOException {
@@ -50,7 +50,7 @@ public final class ViewLoader {
         Parent root = loader.load();
         MainLayoutView view = loader.getController();
 
-        view.init(mvcContext);
+        view.init(mvcContext.routeRegistry(), mvcContext::setAuthenticatedUser);
         mvcContext.navigator().setDelegate(view);
         view.setUser(user);
         view.setLogoutHandler(logoutHandler);

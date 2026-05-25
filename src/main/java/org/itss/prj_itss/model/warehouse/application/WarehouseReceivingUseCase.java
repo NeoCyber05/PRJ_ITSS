@@ -1,8 +1,8 @@
 package org.itss.prj_itss.model.warehouse.application;
 
 import org.itss.prj_itss.model.auth.domain.AuthenticatedUser;
-import org.itss.prj_itss.common.application.port.TransactionException;
-import org.itss.prj_itss.common.application.port.TransactionRunner;
+import org.itss.prj_itss.model.shared.database.TransactionException;
+import org.itss.prj_itss.model.shared.database.TransactionRunner;
 import org.itss.prj_itss.model.catalog.domain.Merchandise;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;

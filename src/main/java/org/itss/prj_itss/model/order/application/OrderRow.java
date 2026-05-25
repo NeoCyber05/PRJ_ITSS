@@ -1,7 +1,7 @@
 package org.itss.prj_itss.model.order.application;
 
 import org.itss.prj_itss.model.order.domain.Order;
-import org.itss.prj_itss.common.application.OrderingFormatters;
+import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 
 import java.util.Locale;
 

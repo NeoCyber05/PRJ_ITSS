@@ -1,6 +1,6 @@
 package org.itss.prj_itss.model.catalog.infrastructure.persistence;
 
-import org.itss.prj_itss.common.data.JdbcRepositorySupport;
+import org.itss.prj_itss.model.shared.database.JdbcRepositorySupport;
 
 import org.itss.prj_itss.model.catalog.domain.Merchandise;
 import org.itss.prj_itss.model.catalog.application.port.MerchandiseRepository;
@@ -11,7 +11,7 @@ import java.util.List;
 
 public class JdbcMerchandiseRepository extends JdbcRepositorySupport implements MerchandiseRepository {
 
-    public JdbcMerchandiseRepository(org.itss.prj_itss.common.config.IConnectionProvider connectionProvider) {
+    public JdbcMerchandiseRepository(org.itss.prj_itss.model.shared.database.ConnectionProvider connectionProvider) {
         super(connectionProvider);
     }
 
