@@ -1,8 +1,8 @@
 package org.itss.prj_itss.model.request.application.sales.update;
 
 import org.itss.prj_itss.common.application.OrderingFormatters;
-import org.itss.prj_itss.model.request.application.sales.RequestFormView;
-import org.itss.prj_itss.model.request.application.sales.RequestItemInput;
+import org.itss.prj_itss.model.request.application.sales.shared.RequestFormView;
+import org.itss.prj_itss.model.request.application.sales.create.RequestItemInput;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

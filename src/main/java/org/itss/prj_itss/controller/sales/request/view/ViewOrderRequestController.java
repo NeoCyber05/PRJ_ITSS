@@ -1,6 +1,6 @@
-package org.itss.prj_itss.controller.sales.request;
+package org.itss.prj_itss.controller.sales.request.view;
 
-import org.itss.prj_itss.model.request.application.sales.RequestReadOnlyView;
+import org.itss.prj_itss.model.request.application.sales.view.RequestReadOnlyView;
 import org.itss.prj_itss.model.request.application.sales.RequestSalesApplicationService;
 
 public final class ViewOrderRequestController {

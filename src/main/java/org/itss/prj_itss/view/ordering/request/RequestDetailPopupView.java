@@ -18,9 +18,9 @@ import org.itss.prj_itss.controller.ordering.order.OrderDetailController;
 import org.itss.prj_itss.controller.ordering.order.OrderManagementController;
 import org.itss.prj_itss.controller.ordering.request.RequestDetailPopupController;
 import org.itss.prj_itss.model.order.application.OrderCancellationApplicationService;
-import org.itss.prj_itss.model.request.application.sales.AllocatedOrderRow;
-import org.itss.prj_itss.model.request.application.sales.RequestDetailItemRow;
-import org.itss.prj_itss.model.request.application.sales.RequestDetailViewModel;
+import org.itss.prj_itss.model.request.application.sales.detail.AllocatedOrderRow;
+import org.itss.prj_itss.model.request.application.sales.view.RequestDetailItemRow;
+import org.itss.prj_itss.model.request.application.sales.detail.RequestDetailViewModel;
 import org.itss.prj_itss.view.ordering.order.OrderDetailView;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 

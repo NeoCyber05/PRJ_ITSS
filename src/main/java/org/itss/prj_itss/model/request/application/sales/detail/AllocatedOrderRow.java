@@ -1,4 +1,4 @@
-package org.itss.prj_itss.model.request.application.sales;
+package org.itss.prj_itss.model.request.application.sales.detail;
 
 public record AllocatedOrderRow(
     int orderId,

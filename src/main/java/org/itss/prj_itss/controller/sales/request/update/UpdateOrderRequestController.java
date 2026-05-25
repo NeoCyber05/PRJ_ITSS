@@ -1,9 +1,11 @@
-package org.itss.prj_itss.controller.sales.request;
+package org.itss.prj_itss.controller.sales.request.update;
 
 import org.itss.prj_itss.controller.shared.ActionResult;
-import org.itss.prj_itss.model.request.application.sales.MerchandiseOption;
-import org.itss.prj_itss.model.request.application.sales.RequestFormView;
-import org.itss.prj_itss.model.request.application.sales.RequestItemInput;
+import org.itss.prj_itss.controller.sales.request.shared.OrderRequestDialogListener;
+import org.itss.prj_itss.controller.sales.request.shared.OrderRequestUpdatedEvent;
+import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
+import org.itss.prj_itss.model.request.application.sales.shared.RequestFormView;
+import org.itss.prj_itss.model.request.application.sales.create.RequestItemInput;
 import org.itss.prj_itss.model.request.application.sales.RequestSalesApplicationService;
 import org.itss.prj_itss.model.request.application.sales.update.UpdateOrderRequestDraft;
 import org.itss.prj_itss.model.request.application.sales.update.UpdateOrderRequestFormMapper;

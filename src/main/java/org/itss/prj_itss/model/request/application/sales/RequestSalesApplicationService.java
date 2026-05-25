@@ -6,6 +6,11 @@ import org.itss.prj_itss.common.application.OrderingFormatters;
 import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
+import org.itss.prj_itss.model.request.application.sales.create.RequestItemInput;
+import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
+import org.itss.prj_itss.model.request.application.sales.shared.RequestFormView;
+import org.itss.prj_itss.model.request.application.sales.view.RequestDetailItemRow;
+import org.itss.prj_itss.model.request.application.sales.view.RequestReadOnlyView;
 
 import java.math.BigDecimal;
 import java.util.List;

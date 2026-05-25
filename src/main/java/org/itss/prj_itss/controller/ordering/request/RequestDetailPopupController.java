@@ -1,9 +1,9 @@
 package org.itss.prj_itss.controller.ordering.request;
 
 import org.itss.prj_itss.model.order.application.OrderCancellationApplicationService;
-import org.itss.prj_itss.model.request.application.sales.AllocatedOrderRow;
-import org.itss.prj_itss.model.request.application.sales.RequestDetailApplicationService;
-import org.itss.prj_itss.model.request.application.sales.RequestDetailViewModel;
+import org.itss.prj_itss.model.request.application.sales.detail.AllocatedOrderRow;
+import org.itss.prj_itss.model.request.application.sales.detail.RequestDetailApplicationService;
+import org.itss.prj_itss.model.request.application.sales.detail.RequestDetailViewModel;
 
 public final class RequestDetailPopupController {
 

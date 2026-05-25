@@ -1,4 +1,4 @@
-package org.itss.prj_itss.controller.sales.request;
+package org.itss.prj_itss.controller.sales.request.update;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

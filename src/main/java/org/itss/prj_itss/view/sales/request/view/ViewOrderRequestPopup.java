@@ -8,7 +8,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
-import org.itss.prj_itss.controller.sales.request.ViewOrderRequestController;
+import org.itss.prj_itss.controller.sales.request.view.ViewOrderRequestController;
 import org.itss.prj_itss.view.sales.request.shared.PopupOverlayHelper;
 
 import java.io.IOException;
@@ -16,7 +16,7 @@ import java.util.Objects;
 
 public final class ViewOrderRequestPopup {
 
-    private static final String VIEW_RESOURCE = "/org/itss/prj_itss/sales/request/view/view-order-request-view.fxml";
+    private static final String VIEW_RESOURCE = "/org/itss/prj_itss/view/sales/request/view/view-order-request-view.fxml";
     private static final String MAIN_STYLESHEET = "/org/itss/prj_itss/styles/main-style.css";
 
     private ViewOrderRequestPopup() {

@@ -1,6 +1,10 @@
 package org.itss.prj_itss.controller.sales.request;
 
 import org.itss.prj_itss.model.request.RequestModule;
+import org.itss.prj_itss.controller.sales.request.list.SalesRequestListController;
+import org.itss.prj_itss.controller.sales.request.create.CreateOrderRequestController;
+import org.itss.prj_itss.controller.sales.request.update.UpdateOrderRequestController;
+import org.itss.prj_itss.controller.sales.request.view.ViewOrderRequestController;
 
 public final class SalesRequestControllerModule {
 

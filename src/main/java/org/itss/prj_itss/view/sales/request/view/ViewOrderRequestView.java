@@ -9,9 +9,9 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
-import org.itss.prj_itss.controller.sales.request.ViewOrderRequestController;
-import org.itss.prj_itss.model.request.application.sales.RequestDetailItemRow;
-import org.itss.prj_itss.model.request.application.sales.RequestReadOnlyView;
+import org.itss.prj_itss.controller.sales.request.view.ViewOrderRequestController;
+import org.itss.prj_itss.model.request.application.sales.view.RequestDetailItemRow;
+import org.itss.prj_itss.model.request.application.sales.view.RequestReadOnlyView;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 
 import java.util.Locale;

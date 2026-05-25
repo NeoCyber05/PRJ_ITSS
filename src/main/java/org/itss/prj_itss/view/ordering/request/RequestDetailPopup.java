@@ -12,7 +12,7 @@ import org.itss.prj_itss.controller.navigation.Navigator;
 import org.itss.prj_itss.controller.ordering.order.OrderDetailController;
 import org.itss.prj_itss.controller.ordering.order.OrderManagementController;
 import org.itss.prj_itss.controller.ordering.request.RequestDetailPopupController;
-import org.itss.prj_itss.model.request.application.sales.RequestDetailViewModel;
+import org.itss.prj_itss.model.request.application.sales.detail.RequestDetailViewModel;
 
 import java.io.IOException;
 import java.util.Objects;

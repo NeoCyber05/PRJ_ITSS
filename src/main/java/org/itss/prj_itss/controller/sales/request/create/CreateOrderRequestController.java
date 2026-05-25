@@ -1,8 +1,8 @@
-package org.itss.prj_itss.controller.sales.request;
+package org.itss.prj_itss.controller.sales.request.create;
 
 import org.itss.prj_itss.controller.shared.ActionResult;
-import org.itss.prj_itss.model.request.application.sales.MerchandiseOption;
-import org.itss.prj_itss.model.request.application.sales.RequestItemInput;
+import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
+import org.itss.prj_itss.model.request.application.sales.create.RequestItemInput;
 import org.itss.prj_itss.model.request.application.sales.RequestSalesApplicationService;
 
 import java.util.List;

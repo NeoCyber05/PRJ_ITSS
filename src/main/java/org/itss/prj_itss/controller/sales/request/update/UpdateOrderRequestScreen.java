@@ -1,4 +1,4 @@
-package org.itss.prj_itss.controller.sales.request;
+package org.itss.prj_itss.controller.sales.request.update;
 
 import org.itss.prj_itss.model.request.application.sales.update.FieldViolation;
 import org.itss.prj_itss.model.request.application.sales.update.UpdateOrderRequestItemDraft;

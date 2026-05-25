@@ -205,7 +205,7 @@ public class MainLayoutView implements Navigator {
         }
 
         if (viewId.startsWith(SALES_REQUEST_DETAIL_PREFIX)) {
-            return getOrLoadCachedView("sales-requests", "/org/itss/prj_itss/sales/request/sales-request-list-view.fxml");
+            return getOrLoadCachedView("sales-requests", "/org/itss/prj_itss/view/sales/request/list/sales-request-list-view.fxml");
         }
 
         return switch (viewId) {
@@ -213,7 +213,7 @@ public class MainLayoutView implements Navigator {
             case "site-management" -> getOrLoadCachedView("site-management", "/org/itss/prj_itss/ordering/site/site-management-view.fxml");
             case "received-requests" -> getOrLoadCachedView("received-requests", "/org/itss/prj_itss/ordering/request/received/received-requests-view.fxml");
             case "orders" -> getOrLoadCachedView("orders", "/org/itss/prj_itss/ordering/order/order-management-view.fxml");
-            case "sales-requests" -> getOrLoadCachedView("sales-requests", "/org/itss/prj_itss/sales/request/sales-request-list-view.fxml");
+            case "sales-requests" -> getOrLoadCachedView("sales-requests", "/org/itss/prj_itss/view/sales/request/list/sales-request-list-view.fxml");
             case "warehouse-order-confirm-arrival" -> getOrLoadCachedView("warehouse-order-confirm-arrival", "/org/itss/prj_itss/warehouse/order/confirm_arrival/confirm-order-arrival-view.fxml");
             case "ordering-order-handle-cancellation" -> getOrLoadCachedView("ordering-order-handle-cancellation", "/org/itss/prj_itss/ordering/order/handle_cancellation/handle-order-cancellation-view.fxml");
             case "role-workspace" -> getOrLoadCachedView("role-workspace", "/org/itss/prj_itss/auth/workspace/role-workspace-view.fxml");

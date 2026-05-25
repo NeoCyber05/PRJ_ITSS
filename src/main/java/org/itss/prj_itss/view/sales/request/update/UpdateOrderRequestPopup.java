@@ -8,9 +8,9 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
-import org.itss.prj_itss.controller.sales.request.OrderRequestDialogListener;
-import org.itss.prj_itss.controller.sales.request.UpdateOrderRequestController;
-import org.itss.prj_itss.controller.sales.request.UpdateOrderRequestDialogInput;
+import org.itss.prj_itss.controller.sales.request.shared.OrderRequestDialogListener;
+import org.itss.prj_itss.controller.sales.request.update.UpdateOrderRequestController;
+import org.itss.prj_itss.controller.sales.request.update.UpdateOrderRequestDialogInput;
 import org.itss.prj_itss.view.sales.request.shared.OrderRequestDialogLauncher;
 import org.itss.prj_itss.view.sales.request.shared.PopupOverlayHelper;
 
@@ -19,7 +19,7 @@ import java.util.Objects;
 
 public final class UpdateOrderRequestPopup implements OrderRequestDialogLauncher {
 
-    private static final String VIEW_RESOURCE = "/org/itss/prj_itss/sales/request/update/update-order-request-view.fxml";
+    private static final String VIEW_RESOURCE = "/org/itss/prj_itss/view/sales/request/update/update-order-request-view.fxml";
     private static final String MAIN_STYLESHEET = "/org/itss/prj_itss/styles/main-style.css";
 
     private final UpdateOrderRequestController controller;

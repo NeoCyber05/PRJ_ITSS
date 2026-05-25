@@ -5,10 +5,10 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import org.itss.prj_itss.controller.sales.request.CreateOrderRequestController;
+import org.itss.prj_itss.controller.sales.request.create.CreateOrderRequestController;
 import org.itss.prj_itss.controller.shared.ActionResult;
-import org.itss.prj_itss.model.request.application.sales.MerchandiseOption;
-import org.itss.prj_itss.model.request.application.sales.RequestItemInput;
+import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
+import org.itss.prj_itss.model.request.application.sales.create.RequestItemInput;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 
 import java.util.ArrayList;

@@ -1,4 +1,4 @@
-package org.itss.prj_itss.model.request.application.sales;
+package org.itss.prj_itss.model.request.application.sales.create;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;

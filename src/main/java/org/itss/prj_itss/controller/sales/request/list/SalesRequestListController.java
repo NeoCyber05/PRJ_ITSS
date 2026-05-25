@@ -1,4 +1,4 @@
-package org.itss.prj_itss.controller.sales.request;
+package org.itss.prj_itss.controller.sales.request.list;
 
 import org.itss.prj_itss.model.request.application.listing.ReceivedRequestsApplicationService;
 import org.itss.prj_itss.model.request.application.listing.RequestRow;

@@ -1,4 +1,6 @@
-package org.itss.prj_itss.model.request.application.sales;
+package org.itss.prj_itss.model.request.application.sales.detail;
+
+import org.itss.prj_itss.model.request.application.sales.view.RequestDetailItemRow;
 
 import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
 import org.itss.prj_itss.model.catalog.domain.Merchandise;
