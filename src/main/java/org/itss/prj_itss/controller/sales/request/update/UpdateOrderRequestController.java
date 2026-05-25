@@ -25,11 +25,7 @@ public final class UpdateOrderRequestController {
     private final UpdateOrderRequestFormMapper formMapper;
     private final UpdateOrderRequestValidator validator;
 
-    public UpdateOrderRequestController(RequestSalesApplicationService salesService) {
-        this(salesService, new UpdateOrderRequestFormMapper(), new UpdateOrderRequestValidator());
-    }
-
-    UpdateOrderRequestController(
+    public UpdateOrderRequestController(
             RequestSalesApplicationService salesService,
             UpdateOrderRequestFormMapper formMapper,
             UpdateOrderRequestValidator validator
