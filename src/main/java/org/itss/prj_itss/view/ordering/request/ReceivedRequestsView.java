@@ -136,7 +136,7 @@ public final class ReceivedRequestsView implements ViewLifecycle {
 
                 if ("pending".equals(OrderingFormatters.normalizeStatusKey(row.status()))) {
                     Button processButton = new Button("Xử lý");
-                    processButton.setStyle("-fx-background-color: #253D2C; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 6 14;");
+                    processButton.getStyleClass().add("forest-dark-button");
                     processButton.setOnAction(event -> {
                         if (navigator != null) {
                             navigator.showView("request-processing:" + row.requestId());

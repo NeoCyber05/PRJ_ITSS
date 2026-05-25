@@ -13,6 +13,8 @@ import org.itss.prj_itss.controller.ordering.order.OrderDetailController;
 import org.itss.prj_itss.controller.ordering.order.OrderManagementController;
 import org.itss.prj_itss.controller.ordering.request.RequestDetailPopupController;
 import org.itss.prj_itss.model.request.application.sales.RequestDetailViewModel;
+import org.itss.prj_itss.view.ordering.request.detail.RequestDetailPopupView;
+import org.itss.prj_itss.view.ordering.request.process.shared.AllocationViewSupport;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -20,7 +22,6 @@ import java.util.Objects;
 public final class RequestDetailPopup {
 
     private static final String VIEW_RESOURCE = "/org/itss/prj_itss/ordering/request/detail/request-detail-popup.fxml";
-    private static final String MAIN_STYLESHEET = "/org/itss/prj_itss/styles/main-style.css";
 
     private RequestDetailPopup() {
     }
@@ -58,7 +59,7 @@ public final class RequestDetailPopup {
 
         Scene scene = new Scene(root, sceneWidth, sceneHeight);
         scene.setFill(Color.TRANSPARENT);
-        applyMainStylesheet(scene);
+        AllocationViewSupport.applyMainStylesheet(scene);
         dialog.setScene(scene);
 
         if (owner != null) {
@@ -112,13 +113,6 @@ public final class RequestDetailPopup {
             return root;
         } catch (IOException exception) {
             throw new IllegalStateException("Cannot load request detail popup", exception);
-        }
-    }
-
-    private static void applyMainStylesheet(Scene scene) {
-        var stylesheet = RequestDetailPopup.class.getResource(MAIN_STYLESHEET);
-        if (stylesheet != null && !scene.getStylesheets().contains(stylesheet.toExternalForm())) {
-            scene.getStylesheets().add(stylesheet.toExternalForm());
         }
     }
 }

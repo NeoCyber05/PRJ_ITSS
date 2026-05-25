@@ -6,6 +6,8 @@ public record AllocationChangeResultView(
     int stock,
     int deliveryDays,
     int dayDelta,
-    boolean deliveryAvailable
+    boolean deliveryAvailable,
+    String deliveryStatusText,
+    String deliveryStatusClass
 ) {
 }

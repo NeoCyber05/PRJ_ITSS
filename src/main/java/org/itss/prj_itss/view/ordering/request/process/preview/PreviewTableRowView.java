@@ -6,6 +6,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 
 import org.itss.prj_itss.model.request.application.processing.ProcessingPreviewOrderView;
+import org.itss.prj_itss.view.shared.ui.StatusBadgeFactory;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -47,36 +48,8 @@ public final class PreviewTableRowView {
         codeCell.setText(line.merchandiseCode());
         nameCell.setText(line.merchandiseName());
         quantityCell.setText(String.valueOf(line.quantity()));
-        transportBox.getChildren().setAll(buildTransportBadge(line.transport()));
+        transportBox.getChildren().setAll(StatusBadgeFactory.transportBadge(line.transport()));
         estimatedCell.setText(line.estimatedDate() != null ? line.estimatedDate() : "N/A");
         desiredCell.setText(line.desiredDate() != null ? line.desiredDate() : "N/A");
-    }
-
-    private Label buildTransportBadge(String transport) {
-        boolean seaTransport = isSeaTransport(transport);
-        String icon = seaTransport ? "🚢 " : "✈ ";
-        String background = seaTransport ? "#E8F1FF" : "#FFF4E5";
-        String foreground = seaTransport ? "#2563EB" : "#D97706";
-
-        Label badge = new Label(icon + transport);
-        badge.setStyle(
-            "-fx-background-color: " + background + ";"
-                + "-fx-text-fill: " + foreground + ";"
-                + "-fx-background-radius: 999;"
-                + "-fx-padding: 5 10;"
-                + "-fx-font-size: 11px;"
-                + "-fx-font-weight: bold;"
-        );
-        return badge;
-    }
-
-    private boolean isSeaTransport(String transport) {
-        if (transport == null) {
-            return false;
-        }
-        return switch (transport.trim()) {
-            case "Duong bien", "Tau", "Đường biển", "Tàu" -> true;
-            default -> false;
-        };
     }
 }

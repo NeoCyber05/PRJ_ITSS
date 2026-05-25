@@ -47,3 +47,5 @@ warehouse-db.properties
 src/main/resources/warehouse-db.properties
 
 implementation_plan.md
+.understand-anything
+refactor_PLAN.md

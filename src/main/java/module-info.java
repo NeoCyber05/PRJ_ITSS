@@ -20,6 +20,7 @@ module org.itss.prj_itss {
     opens org.itss.prj_itss.view.ordering.site to javafx.fxml;
     opens org.itss.prj_itss.view.ordering.order to javafx.fxml;
     opens org.itss.prj_itss.view.ordering.request to javafx.fxml;
+    opens org.itss.prj_itss.view.ordering.request.detail to javafx.fxml;
     opens org.itss.prj_itss.view.ordering.request.process.layout to javafx.fxml;
     opens org.itss.prj_itss.view.ordering.request.process.items to javafx.fxml;
     opens org.itss.prj_itss.view.ordering.request.process.suggest to javafx.fxml;

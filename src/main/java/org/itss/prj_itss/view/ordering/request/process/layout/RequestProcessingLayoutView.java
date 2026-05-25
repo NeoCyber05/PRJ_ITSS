@@ -167,6 +167,7 @@ public final class RequestProcessingLayoutView {
 
     private void styleDialog(Alert alert) {
         DialogPane dialogPane = alert.getDialogPane();
-        dialogPane.setStyle("-fx-background-color: white; -fx-font-size: 13px;");
+        dialogPane.getStylesheets().add(getClass().getResource("/org/itss/prj_itss/styles/main-style.css").toExternalForm());
+        dialogPane.getStyleClass().add("alert-dialog-custom");
     }
 }

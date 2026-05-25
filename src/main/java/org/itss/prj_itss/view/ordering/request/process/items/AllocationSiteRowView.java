@@ -97,8 +97,8 @@ public final class AllocationSiteRowView {
             transportBox.getValue()
         ));
 
-        etaBadge.setText(buildDeliveryStatusText(result));
-        setStateClass(etaBadge, ETA_STATE_CLASSES, buildDeliveryStatusClass(result));
+        etaBadge.setText(result.deliveryStatusText());
+        setStateClass(etaBadge, ETA_STATE_CLASSES, result.deliveryStatusClass());
 
         if (!result.applied()) {
             showWarning(warningMessage(result));
@@ -107,32 +107,6 @@ public final class AllocationSiteRowView {
 
         hideWarning();
         onRowChanged.run();
-    }
-
-    private String buildDeliveryStatusText(AllocationChangeResultView result) {
-        if (!result.deliveryAvailable()) {
-            return "Không khả dụng";
-        }
-        if (result.dayDelta() > 0) {
-            return "Sớm " + result.dayDelta() + " ngày";
-        } else if (result.dayDelta() == 0) {
-            return "Kịp hạn";
-        } else {
-            return "Trễ " + Math.abs(result.dayDelta()) + " ngày";
-        }
-    }
-
-    private String buildDeliveryStatusClass(AllocationChangeResultView result) {
-        if (!result.deliveryAvailable()) {
-            return "allocation-eta-unavailable";
-        }
-        if (result.dayDelta() > 0) {
-            return "allocation-eta-early";
-        } else if (result.dayDelta() == 0) {
-            return "allocation-eta-on-time";
-        } else {
-            return "allocation-eta-late";
-        }
     }
 
     private String warningMessage(AllocationChangeResultView result) {
