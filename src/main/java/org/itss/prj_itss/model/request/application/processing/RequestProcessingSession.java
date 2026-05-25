@@ -1,6 +1,7 @@
 package org.itss.prj_itss.model.request.application.processing;
 
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
+import org.itss.prj_itss.model.shared.formatting.DeliveryStatusFormatter;
 import org.itss.prj_itss.model.request.domain.allocation.AllocationControl;
 import org.itss.prj_itss.model.request.domain.allocation.model.Allocation;
 import org.itss.prj_itss.model.request.domain.allocation.model.AllocationPlan;
@@ -100,6 +101,7 @@ public final class RequestProcessingSession {
                     if (excludedSiteIds.contains(site.id)) continue;
                     if (site.stock.getOrDefault(item.merchandiseId, 0) <= 0) continue;
                     AllocationControl.AllocationSiteRowState stateRow = allocationControl.siteRowState(item, site);
+                    var deliveryView = DeliveryStatusFormatter.format(stateRow.deliveryStatus().dayDelta(), stateRow.deliveryStatus().available());
                     siteRows.add(new RequestProcessingViewModel.AllocationSiteRowViewModel(
                         item.merchandiseId,
                         site.id,
@@ -110,8 +112,8 @@ public final class RequestProcessingSession {
                         stateRow.selectedTransportLabel(),
                         stateRow.transportLabels(),
                         stateRow.transportDisabled(),
-                        buildDeliveryStatusText(stateRow.deliveryStatus()),
-                        buildDeliveryStatusClass(stateRow.deliveryStatus())
+                        deliveryView.text(),
+                        deliveryView.styleClass()
                     ));
                 }
             }
@@ -210,13 +212,16 @@ public final class RequestProcessingSession {
                 case NONE -> null;
             };
 
+        var deliveryView = DeliveryStatusFormatter.format(result.deliveryStatus().dayDelta(), result.deliveryStatus().available());
         return new AllocationChangeResultView(
             result.applied(),
             errorType,
             result.stock(),
             result.deliveryStatus().deliveryDays(),
             result.deliveryStatus().dayDelta(),
-            result.deliveryStatus().available()
+            result.deliveryStatus().available(),
+            deliveryView.text(),
+            deliveryView.styleClass()
         );
     }
 
@@ -333,31 +338,7 @@ public final class RequestProcessingSession {
             .sum();
     }
 
-    private String buildDeliveryStatusText(AllocationControl.DeliveryStatus deliveryStatus) {
-        if (!deliveryStatus.available()) {
-            return "Khng khá dng";
-        }
-        if (deliveryStatus.dayDelta() > 0) {
-            return "Sm " + deliveryStatus.dayDelta() + " ngày";
-        } else if (deliveryStatus.dayDelta() == 0) {
-            return "Kp hn";
-        } else {
-            return "Tr " + Math.abs(deliveryStatus.dayDelta()) + " ngày";
-        }
-    }
 
-    private String buildDeliveryStatusClass(AllocationControl.DeliveryStatus deliveryStatus) {
-        if (!deliveryStatus.available()) {
-            return "allocation-eta-unavailable";
-        }
-        if (deliveryStatus.dayDelta() > 0) {
-            return "allocation-eta-early";
-        } else if (deliveryStatus.dayDelta() == 0) {
-            return "allocation-eta-on-time";
-        } else {
-            return "allocation-eta-late";
-        }
-    }
 
     private Set<Integer> copyIds(Set<Integer> ids) {
         return ids == null ? new LinkedHashSet<>() : new LinkedHashSet<>(ids);

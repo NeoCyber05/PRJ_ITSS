@@ -1887,3 +1887,56 @@
     -fx-pref-width: 160;
     -fx-min-width: 150;
 }
+
+/* === Status Badge Base === */
+.status-badge {
+    -fx-background-radius: 999;
+    -fx-padding: 7 12;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+.status-badge-top {
+    -fx-background-radius: 12;
+    -fx-padding: 10 16;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+.status-badge-dot-label {
+    -fx-font-size: 13px;
+}
+.transport-badge {
+    -fx-background-radius: 999;
+    -fx-padding: 5 10;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+/* === Status Badge Variants (color by status key) === */
+.status-badge-pending { -fx-background-color: #FFF4E5; -fx-text-fill: #D97706; }
+.status-badge-processing { -fx-background-color: #E8F1FF; -fx-text-fill: #2563EB; }
+.status-badge-shipping { -fx-background-color: #F2EAFF; -fx-text-fill: #7C3AED; }
+.status-badge-completed { -fx-background-color: #EAF8EF; -fx-text-fill: #15803D; }
+.status-badge-cancelled { -fx-background-color: #FEE2E2; -fx-text-fill: #B91C1C; }
+.status-badge-default { -fx-background-color: #F3F4F6; -fx-text-fill: #6B7280; }
+
+/* === Transport Badge Variants === */
+.transport-badge-sea { -fx-background-color: #E8F1FF; -fx-text-fill: #2563EB; }
+.transport-badge-air { -fx-background-color: #FFF4E5; -fx-text-fill: #D97706; }
+
+.forest-dark-button {
+    -fx-background-color: #253D2C;
+    -fx-text-fill: white;
+    -fx-background-radius: 6;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+    -fx-padding: 6 14;
+    -fx-cursor: hand;
+}
+.forest-dark-button:hover {
+    -fx-background-color: #1c2e22;
+}
+
+.alert-dialog-custom {
+    -fx-background-color: white;
+    -fx-font-size: 13px;
+}

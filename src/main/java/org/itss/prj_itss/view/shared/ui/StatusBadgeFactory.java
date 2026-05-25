@@ -21,16 +21,8 @@ public final class StatusBadgeFactory {
     }
 
     public static Label statusBadge(String status, StatusKind kind) {
-        BadgeColors colors = colorsFor(status);
         Label badge = new Label("\u25cf " + statusText(status, kind));
-        badge.setStyle(
-            "-fx-background-color: " + colors.background() + ";" +
-                "-fx-text-fill: " + colors.foreground() + ";" +
-                "-fx-background-radius: 999;" +
-                "-fx-padding: 7 12;" +
-                "-fx-font-size: 11px;" +
-                "-fx-font-weight: bold;"
-        );
+        badge.getStyleClass().addAll("status-badge", statusCssClass(status));
         return badge;
     }
 
@@ -39,16 +31,8 @@ public final class StatusBadgeFactory {
     }
 
     public static Label topStatusBadge(String status, StatusKind kind) {
-        BadgeColors colors = colorsFor(status);
         Label badge = new Label(statusText(status, kind));
-        badge.setStyle(
-            "-fx-background-color: " + colors.background() + ";" +
-                "-fx-text-fill: " + colors.foreground() + ";" +
-                "-fx-background-radius: 12;" +
-                "-fx-padding: 10 16;" +
-                "-fx-font-size: 13px;" +
-                "-fx-font-weight: bold;"
-        );
+        badge.getStyleClass().addAll("status-badge-top", statusCssClass(status));
         return badge;
     }
 
@@ -72,25 +56,15 @@ public final class StatusBadgeFactory {
         dot.setFill(Color.web(colors.accent()));
 
         Label label = new Label(statusText(status, kind));
-        label.setStyle("-fx-font-size: 13px; -fx-text-fill: " + colors.foreground() + ";");
+        label.getStyleClass().addAll("status-badge-dot-label", statusCssClass(status));
         box.getChildren().addAll(dot, label);
         return box;
     }
 
     public static Label transportBadge(String deliveryMethod) {
         boolean seaTransport = OrderingFormatters.isSeaTransport(deliveryMethod);
-        String background = seaTransport ? "#E8F1FF" : "#FFF4E5";
-        String foreground = seaTransport ? "#2563EB" : "#D97706";
-
         Label badge = new Label(OrderingFormatters.deliveryMethodText(deliveryMethod));
-        badge.setStyle(
-            "-fx-background-color: " + background + ";" +
-                "-fx-text-fill: " + foreground + ";" +
-                "-fx-background-radius: 999;" +
-                "-fx-padding: 5 10;" +
-                "-fx-font-size: 11px;" +
-                "-fx-font-weight: bold;"
-        );
+        badge.getStyleClass().addAll("transport-badge", seaTransport ? "transport-badge-sea" : "transport-badge-air");
         return badge;
     }
 
@@ -102,6 +76,17 @@ public final class StatusBadgeFactory {
             case OrderingFormatters.STATUS_COMPLETED -> new BadgeColors("#EAF8EF", "#15803D", "#22C55E");
             case OrderingFormatters.STATUS_CANCELLED -> new BadgeColors("#FEE2E2", "#B91C1C", "#EF4444");
             default -> new BadgeColors("#F3F4F6", "#6B7280", "#9CA3AF");
+        };
+    }
+
+    private static String statusCssClass(String status) {
+        return switch (OrderingFormatters.normalizeStatusKey(status)) {
+            case OrderingFormatters.STATUS_PENDING -> "status-badge-pending";
+            case OrderingFormatters.STATUS_PROCESSING -> "status-badge-processing";
+            case OrderingFormatters.STATUS_SHIPPING -> "status-badge-shipping";
+            case OrderingFormatters.STATUS_COMPLETED -> "status-badge-completed";
+            case OrderingFormatters.STATUS_CANCELLED -> "status-badge-cancelled";
+            default -> "status-badge-default";
         };
     }
 

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+
+<HBox alignment="CENTER_LEFT" spacing="0.0" styleClass="request-detail-table-row" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.itss.prj_itss.view.ordering.request.detail.RequestItemRowView">
+    <padding>
+        <Insets bottom="14.0" left="18.0" right="18.0" top="14.0" />
+    </padding>
+    <children>
+        <Label fx:id="codeCell" minWidth="120.0" prefWidth="120.0" styleClass="request-detail-table-cell, request-detail-table-cell-strong" wrapText="true" />
+        <Label fx:id="nameCell" minWidth="200.0" prefWidth="200.0" styleClass="request-detail-table-cell" wrapText="true" />
+        <Label fx:id="quantityCell" minWidth="100.0" prefWidth="100.0" styleClass="request-detail-table-cell" wrapText="true" />
+        <Label fx:id="unitCell" minWidth="90.0" prefWidth="90.0" styleClass="request-detail-table-cell" wrapText="true" />
+        <Label fx:id="desiredDateCell" minWidth="130.0" prefWidth="130.0" styleClass="request-detail-table-cell" wrapText="true" />
+    </children>
+</HBox>

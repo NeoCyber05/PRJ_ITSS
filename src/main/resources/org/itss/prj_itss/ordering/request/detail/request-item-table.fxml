@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox spacing="0.0" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.itss.prj_itss.view.ordering.request.detail.RequestItemTableView">
+    <children>
+        <!-- Table Header -->
+        <HBox alignment="CENTER_LEFT" spacing="0.0" styleClass="request-detail-table-header">
+            <padding>
+                <Insets bottom="12.0" left="18.0" right="18.0" top="12.0" />
+            </padding>
+            <children>
+                <Label minWidth="120.0" prefWidth="120.0" styleClass="request-detail-table-header-cell" text="MÃ HÀNG" wrapText="true" />
+                <Label minWidth="200.0" prefWidth="200.0" styleClass="request-detail-table-header-cell" text="TÊN" wrapText="true" />
+                <Label minWidth="100.0" prefWidth="100.0" styleClass="request-detail-table-header-cell" text="SỐ LƯỢNG" wrapText="true" />
+                <Label minWidth="90.0" prefWidth="90.0" styleClass="request-detail-table-header-cell" text="ĐƠN VỊ" wrapText="true" />
+                <Label minWidth="130.0" prefWidth="130.0" styleClass="request-detail-table-header-cell" text="NGÀY NHẬN RIÊNG" wrapText="true" />
+            </children>
+        </HBox>
+        
+        <!-- Rows Container -->
+        <VBox fx:id="rowsContainer" spacing="0.0" />
+    </children>
+</VBox>

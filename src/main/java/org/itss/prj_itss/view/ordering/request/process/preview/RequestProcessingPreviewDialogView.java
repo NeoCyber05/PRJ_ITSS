@@ -86,7 +86,8 @@ public final class RequestProcessingPreviewDialogView {
         errorAlert.setHeaderText(null);
         errorAlert.setContentText("Không thể tạo các đơn hàng đã phân bổ.");
         DialogPane dialogPane = errorAlert.getDialogPane();
-        dialogPane.setStyle("-fx-background-color: white; -fx-font-size: 13px;");
+        dialogPane.getStylesheets().add(getClass().getResource("/org/itss/prj_itss/styles/main-style.css").toExternalForm());
+        dialogPane.getStyleClass().add("alert-dialog-custom");
         errorAlert.showAndWait();
     }
 }
