@@ -85,7 +85,7 @@ public final class RequestDetailApplicationService {
         return new RequestDetailItemRow(
             m != null ? m.getCode() : "N/A",
             m != null ? m.getName() : "N/A",
-            item.getQuantityOrdered() != null ? item.getQuantityOrdered().toPlainString() : "0",
+            item.getQuantityOrdered() != null ? OrderingFormatters.formatQuantity(item.getQuantityOrdered()) : "0",
             m != null ? m.getUnit() : "N/A",
             OrderingFormatters.formatDate(item.getDesiredDeliveryDate())
         );

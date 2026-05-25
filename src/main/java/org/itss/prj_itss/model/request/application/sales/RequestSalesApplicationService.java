@@ -66,7 +66,7 @@ public final class RequestSalesApplicationService {
                 MerchandiseOption m = findMerchandiseOptionById(item.getMerchandiseId());
                 return new RequestFormView.RequestItemFormRow(
                     m,
-                    item.getQuantityOrdered() != null ? item.getQuantityOrdered().toPlainString() : "0",
+                    item.getQuantityOrdered() != null ? OrderingFormatters.formatQuantity(item.getQuantityOrdered()) : "0",
                     OrderingFormatters.formatDate(item.getDesiredDeliveryDate())
                 );
             })
@@ -106,7 +106,7 @@ public final class RequestSalesApplicationService {
         return new RequestDetailItemRow(
             m != null ? m.code() : "N/A",
             m != null ? m.name() : "N/A",
-            item.getQuantityOrdered() != null ? item.getQuantityOrdered().toPlainString() : "0",
+            item.getQuantityOrdered() != null ? OrderingFormatters.formatQuantity(item.getQuantityOrdered()) : "0",
             m != null ? m.unit() : "N/A",
             OrderingFormatters.formatDate(item.getDesiredDeliveryDate())
         );

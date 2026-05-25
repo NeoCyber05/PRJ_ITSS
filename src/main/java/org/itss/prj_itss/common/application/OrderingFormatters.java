@@ -51,6 +51,12 @@ public final class OrderingFormatters {
         return parsed > 0 ? parsed : fallback;
     }
 
+    public static String formatQuantity(java.math.BigDecimal qty) {
+        if (qty == null) return "0";
+        java.math.BigDecimal stripped = qty.stripTrailingZeros();
+        return (stripped.scale() < 0) ? stripped.setScale(0).toPlainString() : stripped.toPlainString();
+    }
+
     public static String formatDate(LocalDate date) {
         return date == null ? "N/A" : date.format(DATE_FORMAT);
     }

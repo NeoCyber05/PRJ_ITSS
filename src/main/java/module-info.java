@@ -25,7 +25,11 @@ module org.itss.prj_itss {
     opens org.itss.prj_itss.view.ordering.request.process.suggest to javafx.fxml;
     opens org.itss.prj_itss.view.ordering.request.process.preview to javafx.fxml;
     opens org.itss.prj_itss.view.ordering.request.process.site to javafx.fxml;
-    opens org.itss.prj_itss.view.sales.request to javafx.fxml;
+    opens org.itss.prj_itss.view.sales.request.list to javafx.fxml;
+    opens org.itss.prj_itss.view.sales.request.create to javafx.fxml;
+    opens org.itss.prj_itss.view.sales.request.update to javafx.fxml;
+    opens org.itss.prj_itss.view.sales.request.view to javafx.fxml;
+    opens org.itss.prj_itss.view.sales.request.shared to javafx.fxml;
     opens org.itss.prj_itss.view.warehouse to javafx.fxml;
 
     exports org.itss.prj_itss;
