@@ -24,7 +24,8 @@ import org.itss.prj_itss.view.ordering.order.OrderCancellationView;
 import org.itss.prj_itss.view.ordering.site.SiteManagementView;
 import org.itss.prj_itss.view.ordering.request.ReceivedRequestsView;
 import org.itss.prj_itss.view.ordering.request.process.layout.RequestProcessingLayoutView;
-import org.itss.prj_itss.view.sales.request.SalesRequestListView;
+import org.itss.prj_itss.view.sales.request.list.SalesRequestListView;
+import org.itss.prj_itss.view.sales.request.update.UpdateOrderRequestPopup;
 import org.itss.prj_itss.view.warehouse.ConfirmOrderArrivalView;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 
@@ -287,7 +288,7 @@ public class MainLayoutView implements Navigator {
                 this,
                 mvcContext.salesRequestControllers().salesRequestListController(),
                 mvcContext.salesRequestControllers().createOrderRequestController(),
-                mvcContext.salesRequestControllers().updateOrderRequestController(),
+                new UpdateOrderRequestPopup(mvcContext.salesRequestControllers().updateOrderRequestController()),
                 mvcContext.salesRequestControllers().viewOrderRequestController()
             );
         } else if (viewInstance instanceof ConfirmOrderArrivalView confirmOrderArrivalView) {

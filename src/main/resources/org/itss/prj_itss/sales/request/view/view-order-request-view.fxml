@@ -11,7 +11,7 @@
 
 <BorderPane xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="org.itss.prj_itss.view.sales.request.ViewOrderRequestView"
+            fx:controller="org.itss.prj_itss.view.sales.request.view.ViewOrderRequestView"
             styleClass="sr-edit-root">
 
     <!-- ── Header ── -->
