@@ -1,6 +1,12 @@
 package org.itss.prj_itss.controller.sales.request;
 
 import org.itss.prj_itss.model.request.RequestModule;
+import org.itss.prj_itss.controller.sales.request.list.SalesRequestListController;
+import org.itss.prj_itss.controller.sales.request.create.CreateOrderRequestController;
+import org.itss.prj_itss.controller.sales.request.update.UpdateOrderRequestController;
+import org.itss.prj_itss.controller.sales.request.view.ViewOrderRequestController;
+import org.itss.prj_itss.model.request.application.sales.update.UpdateOrderRequestFormMapper;
+import org.itss.prj_itss.model.request.application.sales.update.UpdateOrderRequestValidator;
 
 public final class SalesRequestControllerModule {
 
@@ -15,7 +21,11 @@ public final class SalesRequestControllerModule {
         this.createOrderRequestController =
             new CreateOrderRequestController(requestModule.requestSalesApplicationService());
         this.updateOrderRequestController =
-            new UpdateOrderRequestController(requestModule.requestSalesApplicationService());
+            new UpdateOrderRequestController(
+                requestModule.requestSalesApplicationService(),
+                new UpdateOrderRequestFormMapper(),
+                new UpdateOrderRequestValidator()
+            );
         this.viewOrderRequestController =
             new ViewOrderRequestController(requestModule.requestSalesApplicationService());
     }

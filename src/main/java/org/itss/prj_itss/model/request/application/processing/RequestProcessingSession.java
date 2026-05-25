@@ -197,7 +197,17 @@ public final class RequestProcessingSession {
             .findFirst()
             .orElse(null);
         if (item == null || site == null) {
-            return new AllocationChangeResultView(false, "INVALID", 0, 0, 0, false);
+            var deliveryView = DeliveryStatusFormatter.format(0, false);
+            return new AllocationChangeResultView(
+                false,
+                "INVALID",
+                0,
+                0,
+                0,
+                false,
+                deliveryView.text(),
+                deliveryView.styleClass()
+            );
         }
 
         AllocationControl.AllocationChangeResult result = allocationControl.applyAllocationChange(

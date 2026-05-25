@@ -9,7 +9,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import org.itss.prj_itss.controller.ordering.request.RequestDetailPopupController;
 import org.itss.prj_itss.model.order.application.OrderCancellationApplicationService;
-import org.itss.prj_itss.model.request.application.sales.AllocatedOrderRow;
+import org.itss.prj_itss.model.request.application.sales.detail.AllocatedOrderRow;
 import org.itss.prj_itss.view.shared.ui.StatusBadgeFactory;
 
 import java.io.IOException;

@@ -6,6 +6,11 @@ import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
+import org.itss.prj_itss.model.request.application.sales.create.RequestItemInput;
+import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
+import org.itss.prj_itss.model.request.application.sales.shared.RequestFormView;
+import org.itss.prj_itss.model.request.application.sales.view.RequestDetailItemRow;
+import org.itss.prj_itss.model.request.application.sales.view.RequestReadOnlyView;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -66,7 +71,7 @@ public final class RequestSalesApplicationService {
                 MerchandiseOption m = findMerchandiseOptionById(item.getMerchandiseId());
                 return new RequestFormView.RequestItemFormRow(
                     m,
-                    item.getQuantityOrdered() != null ? item.getQuantityOrdered().toPlainString() : "0",
+                    item.getQuantityOrdered() != null ? OrderingFormatters.formatQuantity(item.getQuantityOrdered()) : "0",
                     OrderingFormatters.formatDate(item.getDesiredDeliveryDate())
                 );
             })
@@ -106,7 +111,7 @@ public final class RequestSalesApplicationService {
         return new RequestDetailItemRow(
             m != null ? m.code() : "N/A",
             m != null ? m.name() : "N/A",
-            item.getQuantityOrdered() != null ? item.getQuantityOrdered().toPlainString() : "0",
+            item.getQuantityOrdered() != null ? OrderingFormatters.formatQuantity(item.getQuantityOrdered()) : "0",
             m != null ? m.unit() : "N/A",
             OrderingFormatters.formatDate(item.getDesiredDeliveryDate())
         );

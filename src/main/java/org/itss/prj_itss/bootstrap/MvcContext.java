@@ -34,7 +34,8 @@ import org.itss.prj_itss.view.ordering.order.OrderManagementView;
 import org.itss.prj_itss.view.ordering.request.ReceivedRequestsView;
 import org.itss.prj_itss.view.ordering.request.process.layout.RequestProcessingLayoutView;
 import org.itss.prj_itss.view.ordering.site.SiteManagementView;
-import org.itss.prj_itss.view.sales.request.SalesRequestListView;
+import org.itss.prj_itss.view.sales.request.list.SalesRequestListView;
+import org.itss.prj_itss.view.sales.request.update.UpdateOrderRequestPopup;
 import org.itss.prj_itss.view.warehouse.ConfirmOrderArrivalView;
 
 import java.util.List;
@@ -136,7 +137,7 @@ public final class MvcContext {
         ),
         RouteRegistry.fxml(
             "sales-requests",
-            "/org/itss/prj_itss/sales/request/sales-request-list-view.fxml",
+            "/org/itss/prj_itss/view/sales/request/list/sales-request-list-view.fxml",
             this::configureSalesRequestList
         ),
         RouteRegistry.dynamic(
@@ -145,7 +146,7 @@ public final class MvcContext {
             viewId -> "sales-requests",
             true,
             (viewId, navigator) -> RouteRegistry.loadFxml(
-                "/org/itss/prj_itss/sales/request/sales-request-list-view.fxml",
+                "/org/itss/prj_itss/view/sales/request/list/sales-request-list-view.fxml",
                 viewId,
                 navigator,
                 this::configureSalesRequestList
@@ -155,14 +156,14 @@ public final class MvcContext {
             SALES_REQUEST_UPDATE_PREFIX,
             "sales-requests",
             "sales-requests",
-            "/org/itss/prj_itss/sales/request/sales-request-list-view.fxml",
+            "/org/itss/prj_itss/view/sales/request/list/sales-request-list-view.fxml",
             this::configureSalesRequestList
         ),
         RouteRegistry.prefixedFxml(
             SALES_REQUEST_DETAIL_PREFIX,
             "sales-requests",
             "sales-requests",
-            "/org/itss/prj_itss/sales/request/sales-request-list-view.fxml",
+            "/org/itss/prj_itss/view/sales/request/list/sales-request-list-view.fxml",
             this::configureSalesRequestList
         ),
         RouteRegistry.fxml(
@@ -276,7 +277,7 @@ public final class MvcContext {
             navigator,
             salesRequestControllers.salesRequestListController(),
             salesRequestControllers.createOrderRequestController(),
-            salesRequestControllers.updateOrderRequestController(),
+            new UpdateOrderRequestPopup(salesRequestControllers.updateOrderRequestController()),
             salesRequestControllers.viewOrderRequestController()
         );
     }

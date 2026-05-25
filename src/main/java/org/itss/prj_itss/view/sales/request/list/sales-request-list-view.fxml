@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.itss.prj_itss.view.sales.request.list.SalesRequestListView"
+            styleClass="content-area">
+    <top>
+        <VBox spacing="6" style="-fx-background-color: #EDFAF2; -fx-padding: 28 32 24 32; -fx-border-color: transparent transparent #D4EDE0 transparent; -fx-border-width: 0 0 1 0;">
+            <children>
+                <HBox alignment="CENTER_LEFT">
+                    <children>
+                        <Label text="Yêu cầu đặt hàng"
+                               style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1a2e22;"/>
+                        <Region HBox.hgrow="ALWAYS"/>
+                        <Button fx:id="createRequestButton"
+                                text="+ Tạo yêu cầu"
+                                styleClass="sales-create-button"/>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </top>
+
+    <center>
+        <VBox style="-fx-background-color: white;">
+            <children>
+                <HBox alignment="CENTER_LEFT"
+                      spacing="12"
+                      style="-fx-background-color: white; -fx-border-color: transparent transparent #EEF3EF transparent; -fx-border-width: 0 0 1 0;">
+                    <padding>
+                        <Insets top="20" right="32" bottom="20" left="32"/>
+                    </padding>
+                    <children>
+                        <TextField fx:id="searchField"
+                                   promptText="Tìm theo mã YC..."
+                                   prefWidth="280"
+                                   styleClass="search-field"/>
+                        <ComboBox fx:id="statusFilter" prefWidth="180"/>
+                    </children>
+                </HBox>
+
+                <TableView fx:id="requestTable" VBox.vgrow="ALWAYS">
+                    <columns>
+                        <TableColumn fx:id="requestCodeColumn" text="MÃ YC" prefWidth="120"/>
+                        <TableColumn fx:id="createdAtColumn" text="NGÀY TẠO" prefWidth="120"/>
+                        <TableColumn fx:id="itemCountColumn" text="SỐ LOẠI HÀNG" prefWidth="120"/>
+                        <TableColumn fx:id="deadlineColumn" text="NGÀY CẦN GẤP NHẤT" prefWidth="170"/>
+                        <TableColumn fx:id="statusColumn" text="TRẠNG THÁI" prefWidth="160"/>
+                        <TableColumn fx:id="actionsColumn" text="THAO TÁC" prefWidth="260"/>
+                    </columns>
+                </TableView>
+
+                <VBox alignment="CENTER" spacing="12" style="-fx-background-color: white;">
+                    <padding>
+                        <Insets top="20" right="32" bottom="24" left="32"/>
+                    </padding>
+                    <children>
+                        <Label fx:id="paginationInfoLabel"
+                               style="-fx-font-size: 13px; -fx-text-fill: #6B7C72;"/>
+                        <HBox fx:id="paginationBox" alignment="CENTER" spacing="4"/>
+                    </children>
+                </VBox>
+            </children>
+        </VBox>
+    </center>
+</BorderPane>

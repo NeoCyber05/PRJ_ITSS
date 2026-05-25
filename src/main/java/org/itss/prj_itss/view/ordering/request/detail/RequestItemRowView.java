@@ -4,7 +4,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import org.itss.prj_itss.model.request.application.sales.RequestDetailItemRow;
+import org.itss.prj_itss.model.request.application.sales.view.RequestDetailItemRow;
 
 import java.io.IOException;
 import java.util.Objects;
