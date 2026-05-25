@@ -33,7 +33,7 @@
 ```mermaid
 flowchart LR
     App["App\nJavaFX entrypoint"]
-    Bootstrap["bootstrap\nAppFactory / ModelContext / ControllerRegistry"]
+    Bootstrap["bootstrap\nViewLoader / MvcContext"]
     CommonData["common.data\nJDBC support"]
     Config["common.config\nDatabase / transaction config"]
 
@@ -58,5 +58,5 @@ Quy tắc kiến trúc hiện tại:
 - `view` chịu trách nhiệm hiển thị giao diện JavaFX, nhận FXML controller và chuyển thao tác người dùng sang `controller`.
 - `controller` điều phối luồng xử lý, gọi use case hoặc service trong `model`, đồng thời điều hướng màn hình khi cần.
 - `model` chứa nghiệp vụ chính: application service/use case, domain object, port và JDBC adapter.
-- `bootstrap` là nơi lắp ghép ứng dụng: `AppFactory` tải view, `ControllerRegistry` tạo controller, `ModelContext` tạo model service và repository.
+- `bootstrap` là nơi lắp ghép ứng dụng: `ViewLoader` tải view và kết hợp chúng với các flow controller và module dịch vụ được quản lý tập trung trong `MvcContext`.
 - `common.config` và `common.data` chỉ cung cấp hạ tầng dùng chung như kết nối database, transaction và JDBC helper.

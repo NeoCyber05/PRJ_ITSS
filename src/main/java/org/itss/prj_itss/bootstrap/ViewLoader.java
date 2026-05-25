@@ -12,16 +12,16 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-public final class AppFactory {
+public final class ViewLoader {
 
-    private final AppContainer appContainer;
+    private final MvcContext mvcContext;
 
-    public AppFactory() {
-        this.appContainer = new AppContainer();
+    public ViewLoader() {
+        this.mvcContext = new MvcContext();
     }
 
-    public AppContainer appContainer() {
-        return appContainer;
+    public MvcContext mvcContext() {
+        return mvcContext;
     }
 
     public Parent loadLoginView(Consumer<AuthenticatedUser> loginHandler, LoginViewWarmingListener listener) throws IOException {
@@ -32,7 +32,7 @@ public final class AppFactory {
         Parent root = loader.load();
         LoginView view = loader.getController();
 
-        LoginController loginController = new LoginController(appContainer.authenticationService(), loginHandler);
+        LoginController loginController = new LoginController(mvcContext.authenticationService(), loginHandler);
         view.setController(loginController);
 
         if (listener != null) {
@@ -50,8 +50,8 @@ public final class AppFactory {
         Parent root = loader.load();
         MainLayoutView view = loader.getController();
 
-        view.init(appContainer);
-        appContainer.navigator().setDelegate(view);
+        view.init(mvcContext);
+        mvcContext.navigator().setDelegate(view);
         view.setUser(user);
         view.setLogoutHandler(logoutHandler);
 

@@ -20,7 +20,7 @@ import org.itss.prj_itss.model.request.application.processing.RequestProcessingU
 import org.itss.prj_itss.model.site.SiteModule;
 import org.itss.prj_itss.model.warehouse.WarehouseModule;
 
-public final class AppContainer {
+public final class MvcContext {
 
     private final SharedInfrastructure infrastructure = new SharedInfrastructure();
 

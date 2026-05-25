@@ -39,7 +39,7 @@ Strict MVC layering enforced by `src/test/java/org/itss/prj_itss/architecture/Mv
 Top-level packages under `org.itss.prj_itss`:
 
 - `App.java` — JavaFX entrypoint. Owns the `Stage`, swaps scenes between login and main layout, runs DB warm-up off the FX thread.
-- `bootstrap/` — composition root. `ModelContext` wires all repositories + use cases + application services (manual DI, no framework). `ControllerRegistry` wires all controllers against `ModelContext`. `AppFactory` loads FXML and connects views to controllers. **All new use cases / controllers must be registered here**, not constructed ad-hoc inside views.
+- `bootstrap/` — composition root. `MvcContext` wires all modules, repositories, use cases, and flow controllers (manual DI, no framework). `ViewLoader` loads FXML and connects views to controllers using `MvcContext`. **All new use cases / controllers must be registered here**, not constructed ad-hoc inside views.
 - `model/` — business logic, organized per bounded context (`auth`, `catalog`, `order`, `request`, `site`, `warehouse`, `shared`). Each context follows hexagonal layout: `domain/` (entities + value objects), `application/` (use cases, ports, application services), `infrastructure/persistence/` (JDBC repository adapters implementing the ports). The core allocation algorithm lives under `model/request/domain/allocation/` (split into `algo`, `model`, `policy`, `suggester`, `validator`).
 - `controller/` — flow controllers grouped by area (`auth`, `home`, `ordering`, `sales`, `warehouse`, `navigation`, `shared`). They orchestrate use cases from `model` and call the navigator to switch screens. No JavaFX types here.
 - `view/` — JavaFX FXML controllers (the *view-side* controllers loaded by `FXMLLoader`). They hold UI state and forward user actions to a flow controller injected via `setController(...)`. Each view package is opened to `javafx.fxml` in `module-info.java` — **adding a new view subpackage requires an `opens ... to javafx.fxml;` line there**.
@@ -54,7 +54,7 @@ FXML, CSS, and images live under `src/main/resources/org/itss/prj_itss/`, mirror
 
 ## Conventions
 
-- **Wiring**: add new repositories / use cases as fields in `ModelContext`, then expose them through accessor methods; add new controllers in `ControllerRegistry`. Don't `new` services from inside views or controllers.
+- **Wiring**: add new modules, repositories, use cases, or flow controllers in `MvcContext`, then expose them through accessor methods if needed. Don't `new` services from inside views or controllers.
 - **Module system**: this is a JPMS module (`module org.itss.prj_itss`). New FXML-bound view packages need an `opens` directive in `module-info.java`.
 - **Transactions**: use `TransactionManager.run(...)` (or the warehouse equivalent via `TransactionRunnerAdapter`) instead of calling `Connection.setAutoCommit`/`commit` directly. Repositories obtain connections through `IConnectionProvider` so the same connection is reused inside a transaction.
 - **Cross-database operations**: warehouse receiving uses `WarehouseReceivingUseCase`, which composes use cases from the main DB (`orderUseCase`, `siteUseCase`, `catalogUseCase`) with the warehouse repository and a `WarehouseTransactionManager`-backed runner. Don't share the two `TransactionManager`s.

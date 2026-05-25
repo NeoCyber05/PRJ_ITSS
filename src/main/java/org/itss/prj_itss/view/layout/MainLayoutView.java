@@ -9,7 +9,7 @@ import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 
 import org.itss.prj_itss.App;
-import org.itss.prj_itss.bootstrap.AppContainer;
+import org.itss.prj_itss.bootstrap.MvcContext;
 import org.itss.prj_itss.controller.navigation.Navigator;
 import org.itss.prj_itss.model.auth.domain.AuthenticatedUser;
 import org.itss.prj_itss.model.auth.application.RoleAccessPolicy;
@@ -44,7 +44,7 @@ public class MainLayoutView implements Navigator {
     private final Map<String, Button> navButtons = new LinkedHashMap<>();
     private final Map<String, LoadedView> cachedViews = new HashMap<>();
     
-    private AppContainer container;
+    private MvcContext mvcContext;
     private AuthenticatedUser currentUser;
     private Runnable logoutHandler;
     private String activeViewId;
@@ -94,14 +94,14 @@ public class MainLayoutView implements Navigator {
         registerNavButton("sales-requests", salesRequestsButton);
     }
 
-    public void init(AppContainer container) {
-        this.container = container;
+    public void init(MvcContext mvcContext) {
+        this.mvcContext = mvcContext;
     }
 
     public void setUser(AuthenticatedUser user) {
         this.currentUser = user;
-        if (container != null) {
-            container.setAuthenticatedUser(user);
+        if (mvcContext != null) {
+            mvcContext.setAuthenticatedUser(user);
         }
         updateUIForUser();
         showView(RoleAccessPolicy.defaultViewId(currentUser));
@@ -191,8 +191,8 @@ public class MainLayoutView implements Navigator {
             OrderDetailView detailView = new OrderDetailView();
             detailView.init(
                 this,
-                container.orderControllers().orderDetailController(),
-                container.orderControllers().orderManagementController(),
+                mvcContext.orderControllers().orderDetailController(),
+                mvcContext.orderControllers().orderManagementController(),
                 orderId
             );
             return new LoadedView(detailView.getView(), detailView);
@@ -234,7 +234,7 @@ public class MainLayoutView implements Navigator {
             "/org/itss/prj_itss/ordering/request/process/layout/request-processing-view.fxml",
             viewInstance -> {
                 if (viewInstance instanceof RequestProcessingLayoutView requestProcessingView) {
-                    requestProcessingView.init(container.requestProcessingUseCase(), this::showView);
+                    requestProcessingView.init(mvcContext.requestProcessingUseCase(), this::showView);
                     requestProcessingView.setRequestId(requestId);
                 }
             }
@@ -267,33 +267,33 @@ public class MainLayoutView implements Navigator {
 
     private void initializeView(Object viewInstance) {
         if (viewInstance instanceof HomeView homeView) {
-            homeView.setController(container.homeControllers().homeController());
+            homeView.setController(mvcContext.homeControllers().homeController());
         } else if (viewInstance instanceof SiteManagementView siteManagementView) {
-            siteManagementView.init(this, container.siteControllers().siteManagementController());
+            siteManagementView.init(this, mvcContext.siteControllers().siteManagementController());
         } else if (viewInstance instanceof ReceivedRequestsView receivedRequestsView) {
             receivedRequestsView.init(
                 this,
-                container.requestControllers().receivedRequestsController(),
-                container.requestControllers().requestDetailPopupController(),
-                container.orderControllers().orderDetailController(),
-                container.orderControllers().orderManagementController()
+                mvcContext.requestControllers().receivedRequestsController(),
+                mvcContext.requestControllers().requestDetailPopupController(),
+                mvcContext.orderControllers().orderDetailController(),
+                mvcContext.orderControllers().orderManagementController()
             );
         } else if (viewInstance instanceof OrderManagementView orderManagementView) {
-            orderManagementView.init(this, container.orderControllers().orderManagementController());
+            orderManagementView.init(this, mvcContext.orderControllers().orderManagementController());
         } else if (viewInstance instanceof OrderCancellationView orderCancellationView) {
-            orderCancellationView.init(this, container.orderControllers().orderCancellationController());
+            orderCancellationView.init(this, mvcContext.orderControllers().orderCancellationController());
         } else if (viewInstance instanceof SalesRequestListView salesRequestListView) {
             salesRequestListView.init(
                 this,
-                container.salesRequestControllers().salesRequestListController(),
-                container.salesRequestControllers().createOrderRequestController(),
-                container.salesRequestControllers().updateOrderRequestController(),
-                container.salesRequestControllers().viewOrderRequestController()
+                mvcContext.salesRequestControllers().salesRequestListController(),
+                mvcContext.salesRequestControllers().createOrderRequestController(),
+                mvcContext.salesRequestControllers().updateOrderRequestController(),
+                mvcContext.salesRequestControllers().viewOrderRequestController()
             );
         } else if (viewInstance instanceof ConfirmOrderArrivalView confirmOrderArrivalView) {
-            confirmOrderArrivalView.setController(container.warehouseControllers().confirmOrderArrivalController());
+            confirmOrderArrivalView.setController(mvcContext.warehouseControllers().confirmOrderArrivalController());
         } else if (viewInstance instanceof RoleWorkspaceView roleWorkspaceView) {
-            roleWorkspaceView.setController(container.authControllers().roleWorkspaceController());
+            roleWorkspaceView.setController(mvcContext.authControllers().roleWorkspaceController());
             roleWorkspaceView.setUser(currentUser);
         }
     }
@@ -337,8 +337,8 @@ public class MainLayoutView implements Navigator {
     private void handleLogout() {
         cachedViews.clear();
         activeViewId = null;
-        if (container != null) {
-            container.setAuthenticatedUser(null);
+        if (mvcContext != null) {
+            mvcContext.setAuthenticatedUser(null);
         }
         if (logoutHandler != null) {
             logoutHandler.run();

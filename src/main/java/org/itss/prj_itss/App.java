@@ -9,7 +9,7 @@ import javafx.stage.Stage;
 
 import org.itss.prj_itss.model.auth.domain.AuthenticatedUser;
 import org.itss.prj_itss.controller.auth.LoginController;
-import org.itss.prj_itss.bootstrap.AppFactory;
+import org.itss.prj_itss.bootstrap.ViewLoader;
 import org.itss.prj_itss.view.auth.LoginView;
 
 import java.io.IOException;
@@ -17,7 +17,7 @@ import java.util.Objects;
 
 public class App extends Application {
 
-    private final AppFactory appFactory = new AppFactory();
+    private final ViewLoader viewLoader = new ViewLoader();
     private Stage primaryStage;
     private String mainStylesheet;
 
@@ -41,7 +41,7 @@ public class App extends Application {
 
     private void showLogin() {
         try {
-            Parent root = appFactory.loadLoginView(
+            Parent root = viewLoader.loadLoginView(
                 this::showMainLayout,
                 this::warmUpDatabaseConnection
             );
@@ -57,7 +57,7 @@ public class App extends Application {
         Task<Void> warmUpTask = new Task<>() {
             @Override
             protected Void call() {
-                appFactory.appContainer().warmUpDatabaseConnection();
+                viewLoader.mvcContext().warmUpDatabaseConnection();
                 return null;
             }
         };
@@ -72,7 +72,7 @@ public class App extends Application {
 
     private void showMainLayout(AuthenticatedUser user) {
         try {
-            Parent root = appFactory.loadMainLayout(user, this::showLogin);
+            Parent root = viewLoader.loadMainLayout(user, this::showLogin);
             setScene(root);
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to load application layout", exception);
