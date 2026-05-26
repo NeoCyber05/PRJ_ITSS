@@ -2,15 +2,15 @@ package org.itss.prj_itss.model.request.application.sales.update;
 
 import java.util.List;
 
-public record UpdateOrderRequestDraft(
+public record SalesRequestEditDraft(
         int requestId,
         String requestCode,
         String createdAt,
         String status,
-        List<UpdateOrderRequestItemDraft> items
+        List<SalesRequestEditItemDraft> items
 ) {
 
-    public UpdateOrderRequestDraft {
+    public SalesRequestEditDraft {
         items = List.copyOf(items);
     }
 }

@@ -8,37 +8,37 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public final class UpdateOrderRequestFormState {
+public final class SalesRequestEditState {
 
     private final int requestId;
     private final String requestCode;
     private final String createdAt;
     private final String status;
-    private final List<UpdateOrderRequestItemDraft> items = new ArrayList<>();
+    private final List<SalesRequestEditItemDraft> items = new ArrayList<>();
     private int nextLineId = 1;
 
-    public UpdateOrderRequestFormState(int requestId, String requestCode, String createdAt, String status) {
+    public SalesRequestEditState(int requestId, String requestCode, String createdAt, String status) {
         this.requestId = requestId;
         this.requestCode = requestCode;
         this.createdAt = createdAt;
         this.status = status;
     }
 
-    public void replaceItems(List<UpdateOrderRequestItemDraft> newItems) {
+    public void replaceItems(List<SalesRequestEditItemDraft> newItems) {
         items.clear();
         items.addAll(newItems);
         nextLineId = items.stream()
-            .mapToInt(UpdateOrderRequestItemDraft::lineId)
+            .mapToInt(SalesRequestEditItemDraft::lineId)
             .max()
             .orElse(0) + 1;
     }
 
-    public UpdateOrderRequestDraft snapshot() {
-        return new UpdateOrderRequestDraft(requestId, requestCode, createdAt, status, items);
+    public SalesRequestEditDraft snapshot() {
+        return new SalesRequestEditDraft(requestId, requestCode, createdAt, status, items);
     }
 
     public void addBlankItem() {
-        items.add(new UpdateOrderRequestItemDraft(nextLineId++, null, null, null));
+        items.add(new SalesRequestEditItemDraft(nextLineId++, null, null, null));
     }
 
     public void removeItem(int lineId) {
@@ -50,7 +50,7 @@ public final class UpdateOrderRequestFormState {
     }
 
     public void changeMerchandise(int lineId, MerchandiseOption merchandise) {
-        replace(lineId, item -> new UpdateOrderRequestItemDraft(
+        replace(lineId, item -> new SalesRequestEditItemDraft(
             item.lineId(),
             merchandise,
             item.quantity(),
@@ -59,7 +59,7 @@ public final class UpdateOrderRequestFormState {
     }
 
     public void changeQuantity(int lineId, BigDecimal quantity) {
-        replace(lineId, item -> new UpdateOrderRequestItemDraft(
+        replace(lineId, item -> new SalesRequestEditItemDraft(
             item.lineId(),
             item.merchandise(),
             quantity,
@@ -68,7 +68,7 @@ public final class UpdateOrderRequestFormState {
     }
 
     public void changeDesiredDate(int lineId, LocalDate desiredDate) {
-        replace(lineId, item -> new UpdateOrderRequestItemDraft(
+        replace(lineId, item -> new SalesRequestEditItemDraft(
             item.lineId(),
             item.merchandise(),
             item.quantity(),
@@ -78,7 +78,7 @@ public final class UpdateOrderRequestFormState {
 
     private void replace(int lineId, ItemReplacement replacement) {
         for (int index = 0; index < items.size(); index++) {
-            UpdateOrderRequestItemDraft item = items.get(index);
+            SalesRequestEditItemDraft item = items.get(index);
             if (item.lineId() == lineId) {
                 items.set(index, replacement.replace(item));
                 return;
@@ -87,6 +87,6 @@ public final class UpdateOrderRequestFormState {
     }
 
     private interface ItemReplacement {
-        UpdateOrderRequestItemDraft replace(UpdateOrderRequestItemDraft item);
+        SalesRequestEditItemDraft replace(SalesRequestEditItemDraft item);
     }
 }

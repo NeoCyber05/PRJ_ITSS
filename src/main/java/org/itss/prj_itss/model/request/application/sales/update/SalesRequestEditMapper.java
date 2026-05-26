@@ -2,30 +2,30 @@ package org.itss.prj_itss.model.request.application.sales.update;
 
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 import org.itss.prj_itss.model.request.application.sales.shared.RequestFormView;
-import org.itss.prj_itss.model.request.application.sales.create.RequestItemInput;
+import org.itss.prj_itss.model.request.application.sales.shared.SalesRequestItemSubmission;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-public final class UpdateOrderRequestFormMapper {
+public final class SalesRequestEditMapper {
 
-    public UpdateOrderRequestFormState toState(RequestFormView form) {
-        UpdateOrderRequestFormState state = new UpdateOrderRequestFormState(
+    public SalesRequestEditState toState(RequestFormView form) {
+        SalesRequestEditState state = new SalesRequestEditState(
             form.id(),
             form.requestCode(),
             form.createdAt(),
             form.status()
         );
 
-        List<UpdateOrderRequestItemDraft> items = new ArrayList<>();
+        List<SalesRequestEditItemDraft> items = new ArrayList<>();
         int lineId = 1;
         for (RequestFormView.RequestItemFormRow row : form.items()) {
             if (row.merchandise() == null) {
                 continue;
             }
-            items.add(new UpdateOrderRequestItemDraft(
+            items.add(new SalesRequestEditItemDraft(
                 lineId++,
                 row.merchandise(),
                 parseQuantity(row.quantity()),
@@ -36,9 +36,9 @@ public final class UpdateOrderRequestFormMapper {
         return state;
     }
 
-    public List<RequestItemInput> toInput(UpdateOrderRequestDraft draft) {
+    public List<SalesRequestItemSubmission> toInput(SalesRequestEditDraft draft) {
         return draft.items().stream()
-            .map(item -> new RequestItemInput(
+            .map(item -> new SalesRequestItemSubmission(
                 item.merchandise().id(),
                 item.quantity(),
                 item.desiredDate()

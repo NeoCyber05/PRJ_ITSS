@@ -6,7 +6,7 @@ import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
-import org.itss.prj_itss.model.request.application.sales.create.RequestItemInput;
+import org.itss.prj_itss.model.request.application.sales.shared.SalesRequestItemSubmission;
 import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
 import org.itss.prj_itss.model.request.application.sales.shared.RequestFormView;
 import org.itss.prj_itss.model.request.application.sales.view.RequestDetailItemRow;
@@ -88,14 +88,14 @@ public final class RequestSalesApplicationService {
         );
     }
 
-    public int createRequest(List<RequestItemInput> items, String note) throws Exception {
+    public int createRequest(List<SalesRequestItemSubmission> items, String note) throws Exception {
         List<RequestMerchandise> domainItems = items.stream()
             .map(i -> new RequestMerchandise(0, i.merchandiseId(), i.quantityOrdered(), i.desiredDeliveryDate()))
             .toList();
         return requestService.createRequest(domainItems, note);
     }
 
-    public void updateRequest(int requestId, List<RequestItemInput> items, String note) throws Exception {
+    public void updateRequest(int requestId, List<SalesRequestItemSubmission> items, String note) throws Exception {
         List<RequestMerchandise> domainItems = items.stream()
             .map(i -> new RequestMerchandise(requestId, i.merchandiseId(), i.quantityOrdered(), i.desiredDeliveryDate()))
             .toList();

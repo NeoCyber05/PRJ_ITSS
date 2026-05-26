@@ -8,31 +8,31 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
-import org.itss.prj_itss.controller.sales.request.shared.OrderRequestDialogListener;
-import org.itss.prj_itss.controller.sales.request.update.UpdateOrderRequestController;
-import org.itss.prj_itss.controller.sales.request.update.UpdateOrderRequestDialogInput;
-import org.itss.prj_itss.view.sales.request.shared.OrderRequestDialogLauncher;
+import org.itss.prj_itss.controller.sales.request.shared.SalesRequestDialogListener;
+import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditController;
+import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditDialogInput;
+import org.itss.prj_itss.view.sales.request.shared.SalesRequestEditDialogLauncher;
 import org.itss.prj_itss.view.sales.request.shared.PopupOverlayHelper;
 
 import java.io.IOException;
 import java.util.Objects;
 
-public final class UpdateOrderRequestPopup implements OrderRequestDialogLauncher {
+public final class SalesRequestEditDialog implements SalesRequestEditDialogLauncher {
 
-    private static final String VIEW_RESOURCE = "/org/itss/prj_itss/view/sales/request/update/update-order-request-view.fxml";
+    private static final String VIEW_RESOURCE = "/org/itss/prj_itss/view/sales/request/update/sales-request-edit-view.fxml";
     private static final String MAIN_STYLESHEET = "/org/itss/prj_itss/styles/main-style.css";
 
-    private final UpdateOrderRequestController controller;
+    private final SalesRequestEditController controller;
 
-    public UpdateOrderRequestPopup(UpdateOrderRequestController controller) {
+    public SalesRequestEditDialog(SalesRequestEditController controller) {
         this.controller = Objects.requireNonNull(controller, "controller");
     }
 
     @Override
-    public void showUpdate(
+    public void showEdit(
             Window owner,
-            UpdateOrderRequestDialogInput input,
-            OrderRequestDialogListener listener
+            SalesRequestEditDialogInput input,
+            SalesRequestDialogListener listener
     ) {
         Stage dialog = createDialog(owner);
         BorderPane root = loadRoot(dialog, input, listener);
@@ -55,16 +55,16 @@ public final class UpdateOrderRequestPopup implements OrderRequestDialogLauncher
 
     private BorderPane loadRoot(
             Stage dialog,
-            UpdateOrderRequestDialogInput input,
-            OrderRequestDialogListener listener
+            SalesRequestEditDialogInput input,
+            SalesRequestDialogListener listener
     ) {
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
-                UpdateOrderRequestPopup.class.getResource(VIEW_RESOURCE),
+                SalesRequestEditDialog.class.getResource(VIEW_RESOURCE),
                 "Missing update order request FXML"
             ));
             BorderPane root = loader.load();
-            UpdateOrderRequestView view = loader.getController();
+            SalesRequestEditView view = loader.getController();
             view.setCloseHandler(dialog::close);
             controller.start(view, input, listener);
             root.setMaxWidth(1000);
@@ -87,7 +87,7 @@ public final class UpdateOrderRequestPopup implements OrderRequestDialogLauncher
     }
 
     private static void applyMainStylesheet(Scene scene) {
-        var stylesheet = UpdateOrderRequestPopup.class.getResource(MAIN_STYLESHEET);
+        var stylesheet = SalesRequestEditDialog.class.getResource(MAIN_STYLESHEET);
         if (stylesheet != null && !scene.getStylesheets().contains(stylesheet.toExternalForm())) {
             scene.getStylesheets().add(stylesheet.toExternalForm());
         }

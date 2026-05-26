@@ -11,17 +11,17 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-class UpdateOrderRequestFormStateTest {
+class SalesRequestEditStateTest {
 
     @Test
     void stateChangesItemsThroughFocusedMethods() {
-        UpdateOrderRequestFormState state = new UpdateOrderRequestFormState(
+        SalesRequestEditState state = new SalesRequestEditState(
             1,
             "YC-2026-001",
             "25/05/2026",
             "pending"
         );
-        state.replaceItems(List.of(new UpdateOrderRequestItemDraft(
+        state.replaceItems(List.of(new SalesRequestEditItemDraft(
             1,
             null,
             null,
@@ -34,7 +34,7 @@ class UpdateOrderRequestFormStateTest {
         state.changeQuantity(1, new BigDecimal("3"));
         state.changeDesiredDate(1, desiredDate);
 
-        UpdateOrderRequestItemDraft item = state.snapshot().items().get(0);
+        SalesRequestEditItemDraft item = state.snapshot().items().get(0);
         assertEquals(option, item.merchandise());
         assertEquals(new BigDecimal("3"), item.quantity());
         assertEquals(desiredDate, item.desiredDate());
@@ -42,7 +42,7 @@ class UpdateOrderRequestFormStateTest {
 
     @Test
     void addedItemsReceiveStableLineIdsAndCanBeRemovedById() {
-        UpdateOrderRequestFormState state = new UpdateOrderRequestFormState(
+        SalesRequestEditState state = new SalesRequestEditState(
             1,
             "YC-2026-001",
             "25/05/2026",
@@ -53,7 +53,7 @@ class UpdateOrderRequestFormStateTest {
         state.addBlankItem();
         state.removeItems(Set.of(1));
 
-        UpdateOrderRequestDraft draft = state.snapshot();
+        SalesRequestEditDraft draft = state.snapshot();
         assertEquals(1, draft.items().size());
         assertEquals(2, draft.items().get(0).lineId());
         assertNull(draft.items().get(0).merchandise());
