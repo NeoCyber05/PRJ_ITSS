@@ -5,21 +5,21 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import org.itss.prj_itss.controller.sales.request.create.CreateOrderRequestController;
+import org.itss.prj_itss.controller.sales.request.create.SalesRequestCreationController;
 import org.itss.prj_itss.controller.shared.ActionResult;
 import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
-import org.itss.prj_itss.model.request.application.sales.create.RequestItemInput;
+import org.itss.prj_itss.model.request.application.sales.shared.SalesRequestItemSubmission;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public final class CreateOrderRequestView implements ViewLifecycle {
+public final class SalesRequestCreationView implements ViewLifecycle {
 
-    private final List<CreateRequestItemRowView> itemRows = new ArrayList<>();
+    private final List<SalesRequestCreationItemRow> itemRows = new ArrayList<>();
 
     private Stage dialog;
-    private CreateOrderRequestController controller;
+    private SalesRequestCreationController controller;
     private Runnable onSaveCallback;
 
     @FXML private Button closeButton;
@@ -28,7 +28,7 @@ public final class CreateOrderRequestView implements ViewLifecycle {
     @FXML private Button addItemButton;
     @FXML private Button submitButton;
 
-    public void init(Stage dialog, CreateOrderRequestController controller) {
+    public void init(Stage dialog, SalesRequestCreationController controller) {
         this.dialog = dialog;
         this.controller = controller;
 
@@ -51,9 +51,9 @@ public final class CreateOrderRequestView implements ViewLifecycle {
             return;
         }
 
-        List<RequestItemInput> items = new ArrayList<>();
-        for (CreateRequestItemRowView row : itemRows) {
-            CreateRequestItemInputCandidate candidate = row.inputCandidate().orElseThrow();
+        List<SalesRequestItemSubmission> items = new ArrayList<>();
+        for (SalesRequestCreationItemRow row : itemRows) {
+            SalesRequestCreationItemCandidate candidate = row.inputCandidate().orElseThrow();
             if (!candidate.complete()) {
                 showError("Vui lòng điền đầy đủ thông tin hợp lệ cho tất cả các mặt hàng.");
                 return;
@@ -65,7 +65,7 @@ public final class CreateOrderRequestView implements ViewLifecycle {
                 return;
             }
 
-            items.add(new RequestItemInput(
+            items.add(new SalesRequestItemSubmission(
                 merchandise.id(),
                 candidate.quantity(),
                 candidate.desiredDate()
@@ -97,7 +97,7 @@ public final class CreateOrderRequestView implements ViewLifecycle {
     }
 
     private void addNewRow() {
-        CreateRequestItemRowView row = new CreateRequestItemRowView(
+        SalesRequestCreationItemRow row = new SalesRequestCreationItemRow(
             itemRows.size() + 1,
             this::findMerchandiseByCode,
             this::removeRow
@@ -106,7 +106,7 @@ public final class CreateOrderRequestView implements ViewLifecycle {
         itemsContainer.getChildren().add(row);
     }
 
-    private void removeRow(CreateRequestItemRowView row) {
+    private void removeRow(SalesRequestCreationItemRow row) {
         if (itemRows.size() <= 1) {
             Alert alert = new Alert(Alert.AlertType.WARNING);
             alert.initOwner(dialog);

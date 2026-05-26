@@ -1,21 +1,21 @@
 package org.itss.prj_itss.controller.sales.request.update;
 
 import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
-import org.itss.prj_itss.model.request.application.sales.update.UpdateOrderRequestDraft;
-import org.itss.prj_itss.model.request.application.sales.update.ValidationResult;
+import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditDraft;
+import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidationResult;
 
 import java.util.List;
 
-public record UpdateOrderRequestViewModel(
+public record SalesRequestEditViewState(
         String requestCode,
         String createdAt,
         String status,
         List<MerchandiseOption> merchandiseOptions,
-        UpdateOrderRequestDraft draft,
-        ValidationResult validationResult
+        SalesRequestEditDraft draft,
+        SalesRequestEditValidationResult validationResult
 ) {
 
-    public UpdateOrderRequestViewModel {
+    public SalesRequestEditViewState {
         merchandiseOptions = List.copyOf(merchandiseOptions);
     }
 }

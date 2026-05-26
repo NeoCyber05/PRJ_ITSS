@@ -12,15 +12,15 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import org.itss.prj_itss.controller.navigation.Navigator;
-import org.itss.prj_itss.controller.sales.request.shared.OrderRequestDialogListener;
-import org.itss.prj_itss.controller.sales.request.shared.OrderRequestUpdatedEvent;
+import org.itss.prj_itss.controller.sales.request.shared.SalesRequestDialogListener;
+import org.itss.prj_itss.controller.sales.request.shared.SalesRequestSavedEvent;
 import org.itss.prj_itss.controller.sales.request.list.SalesRequestListController;
-import org.itss.prj_itss.controller.sales.request.create.CreateOrderRequestController;
-import org.itss.prj_itss.controller.sales.request.update.UpdateOrderRequestDialogInput;
+import org.itss.prj_itss.controller.sales.request.create.SalesRequestCreationController;
+import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditDialogInput;
 import org.itss.prj_itss.controller.sales.request.view.ViewOrderRequestController;
 import org.itss.prj_itss.model.request.application.listing.RequestRow;
-import org.itss.prj_itss.view.sales.request.create.CreateOrderRequestPopup;
-import org.itss.prj_itss.view.sales.request.shared.OrderRequestDialogLauncher;
+import org.itss.prj_itss.view.sales.request.create.SalesRequestCreationDialog;
+import org.itss.prj_itss.view.sales.request.shared.SalesRequestEditDialogLauncher;
 import org.itss.prj_itss.view.sales.request.view.ViewOrderRequestPopup;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 
@@ -46,8 +46,8 @@ public final class SalesRequestListView implements ViewLifecycle {
 
     private Navigator navigator;
     private SalesRequestListController controller;
-    private CreateOrderRequestController createController;
-    private OrderRequestDialogLauncher updateDialogLauncher;
+    private SalesRequestCreationController createController;
+    private SalesRequestEditDialogLauncher editDialogLauncher;
     private ViewOrderRequestController viewController;
     private int currentPage = 1;
 
@@ -112,21 +112,21 @@ public final class SalesRequestListView implements ViewLifecycle {
 
         createRequestButton.getStyleClass().add("btn-create-request");
         createRequestButton.setOnAction(event ->
-            CreateOrderRequestPopup.show(requestTable.getScene().getWindow(), createController, this::reload)
+            SalesRequestCreationDialog.show(requestTable.getScene().getWindow(), createController, this::reload)
         );
     }
 
     public void init(
             Navigator navigator,
             SalesRequestListController controller,
-            CreateOrderRequestController createController,
-            OrderRequestDialogLauncher updateDialogLauncher,
+            SalesRequestCreationController createController,
+            SalesRequestEditDialogLauncher editDialogLauncher,
             ViewOrderRequestController viewController
     ) {
         this.navigator = navigator;
         this.controller = controller;
         this.createController = createController;
-        this.updateDialogLauncher = updateDialogLauncher;
+        this.editDialogLauncher = editDialogLauncher;
         this.viewController = viewController;
         reload();
     }
@@ -291,12 +291,12 @@ public final class SalesRequestListView implements ViewLifecycle {
             Button editBtn = new Button("Sửa");
             editBtn.setStyle("-fx-background-color: #253D2C; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 6 14; -fx-cursor: hand;");
             editBtn.setOnAction(event -> {
-                updateDialogLauncher.showUpdate(
+                editDialogLauncher.showEdit(
                     requestTable.getScene().getWindow(),
-                    new UpdateOrderRequestDialogInput(row.requestId()),
-                    new OrderRequestDialogListener() {
+                    new SalesRequestEditDialogInput(row.requestId()),
+                    new SalesRequestDialogListener() {
                         @Override
-                        public void onOrderRequestUpdated(OrderRequestUpdatedEvent event) {
+                        public void onSalesRequestSaved(SalesRequestSavedEvent event) {
                             reload();
                         }
                     }

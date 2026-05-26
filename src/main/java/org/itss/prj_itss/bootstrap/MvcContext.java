@@ -35,7 +35,7 @@ import org.itss.prj_itss.view.ordering.request.ReceivedRequestsView;
 import org.itss.prj_itss.view.ordering.request.process.layout.RequestProcessingLayoutView;
 import org.itss.prj_itss.view.ordering.site.SiteManagementView;
 import org.itss.prj_itss.view.sales.request.list.SalesRequestListView;
-import org.itss.prj_itss.view.sales.request.update.UpdateOrderRequestPopup;
+import org.itss.prj_itss.view.sales.request.update.SalesRequestEditDialog;
 import org.itss.prj_itss.view.warehouse.ConfirmOrderArrivalView;
 
 import java.util.List;
@@ -276,8 +276,8 @@ public final class MvcContext {
         ((SalesRequestListView) viewInstance).init(
             navigator,
             salesRequestControllers.salesRequestListController(),
-            salesRequestControllers.createOrderRequestController(),
-            new UpdateOrderRequestPopup(salesRequestControllers.updateOrderRequestController()),
+            salesRequestControllers.salesRequestCreationController(),
+            new SalesRequestEditDialog(salesRequestControllers.salesRequestEditController()),
             salesRequestControllers.viewOrderRequestController()
         );
     }
