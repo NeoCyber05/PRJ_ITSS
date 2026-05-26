@@ -19,7 +19,7 @@
         <Insets top="24" right="24" bottom="24" left="24"/>
     </padding>
     <children>
-        <Label text="Chi tiáº¿t phÃ¢n bá»• Ä‘Æ¡n hÃ ng"
+        <Label text="Chi tiết phân bổ đơn hàng"
                styleClass="request-preview-title"/>
         <Label fx:id="subtitleLabel"
                styleClass="request-preview-subtitle"/>
@@ -34,10 +34,10 @@
             <children>
                 <Region HBox.hgrow="ALWAYS"/>
                 <Button fx:id="backButton"
-                        text="Quay láº¡i"
+                        text="Quay lại"
                         styleClass="forest-secondary-button"/>
                 <Button fx:id="sendButton"
-                        text="Gá»­i Ä‘Æ¡n hÃ ng"
+                        text="Gửi đơn hàng"
                         styleClass="request-confirm-button"/>
             </children>
         </HBox>

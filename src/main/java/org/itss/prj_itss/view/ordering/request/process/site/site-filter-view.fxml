@@ -25,9 +25,9 @@
                     <children>
                         <VBox spacing="2">
                             <children>
-                                <Label text="Bá»˜ Lá»ŒC SITE"
+                                <Label text="BỘ LỌC SITE"
                                        styleClass="site-filter-eyebrow"/>
-                                <Label text="Chá»n site Æ°u tiÃªn hoáº·c loáº¡i bá»"
+                                <Label text="Chọn site ưu tiên hoặc loại bỏ"
                                        styleClass="site-filter-title"/>
                             </children>
                         </VBox>
@@ -46,18 +46,18 @@
                     <children>
                         <Region HBox.hgrow="ALWAYS"/>
                         <Button fx:id="clearAllButton"
-                                text="XÃ³a bá»™ lá»c"
+                                text="Xóa bộ lọc"
                                 styleClass="site-filter-clear-button"/>
                     </children>
                 </HBox>
                 <TextField fx:id="searchBox"
-                           promptText="TÃ¬m theo tÃªn site, mÃ£ site..."
+                           promptText="Tìm theo tên site, mã site..."
                            styleClass="forest-filter-search"/>
                 <HBox spacing="24">
                     <children>
                         <VBox spacing="6" HBox.hgrow="ALWAYS">
                             <children>
-                                <Label text="SITE Æ¯U TIÃŠN"
+                                <Label text="SITE ƯU TIÊN"
                                        styleClass="site-filter-column-label"/>
                                 <HBox fx:id="priorityTagsBox"
                                       spacing="8"
@@ -66,7 +66,7 @@
                         </VBox>
                         <VBox spacing="6" HBox.hgrow="ALWAYS">
                             <children>
-                                <Label text="SITE LOáº I Bá»Ž"
+                                <Label text="SITE LOẠI BỎ"
                                        styleClass="site-filter-column-label"/>
                                 <HBox fx:id="excludeTagsBox"
                                       spacing="8"
@@ -80,7 +80,7 @@
                         <Label fx:id="countLabel"
                                styleClass="site-filter-count"/>
                         <Region HBox.hgrow="ALWAYS"/>
-                        <Label text="Site Æ°u tiÃªn sáº½ Ä‘Æ°á»£c sáº¯p xáº¿p lÃªn trÃªn"
+                        <Label text="Site ưu tiên sẽ được sắp xếp lên trên"
                                styleClass="site-filter-hint"/>
                     </children>
                 </HBox>

@@ -21,7 +21,7 @@
             <children>
                 <VBox spacing="3">
                     <children>
-                        <Label text="Xá»¬ LÃ YÃŠU Cáº¦U"
+                        <Label text="XỬ LÝ YÊU CẦU"
                                style="-fx-font-size:11px; -fx-font-weight:bold; -fx-text-fill:#2E6F40;"/>
                         <Label fx:id="requestCodeLabel"
                                style="-fx-font-size:20px; -fx-font-weight:bold; -fx-text-fill:#1a2e22;"/>
@@ -61,11 +61,11 @@
                 <Insets top="16" right="28" bottom="16" left="28"/>
             </padding>
             <children>
-                <Button text="Danh sÃ¡ch yÃªu cáº§u"
+                <Button text="Danh sách yêu cầu"
                         onAction="#goBack"
                         style="-fx-background-color: white; -fx-text-fill: #2E6F40; -fx-background-radius: 7; -fx-border-color: #2E6F40; -fx-border-radius: 7; -fx-border-width: 1.5; -fx-cursor: hand; -fx-font-size: 13px; -fx-font-weight: bold; -fx-padding: 9 20;"/>
                 <Region HBox.hgrow="ALWAYS"/>
-                <Button text="XÃ¡c nháº­n vÃ  gá»­i"
+                <Button text="Xác nhận và gửi"
                         onAction="#handleConfirm"
                         style="-fx-background-color:#253D2C; -fx-text-fill:white; -fx-background-radius:8; -fx-font-size:14px; -fx-font-weight:bold; -fx-cursor:hand; -fx-padding:12 32;"/>
             </children>
