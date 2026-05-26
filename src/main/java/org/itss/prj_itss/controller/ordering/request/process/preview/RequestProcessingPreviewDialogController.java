@@ -1,6 +1,6 @@
 package org.itss.prj_itss.controller.ordering.request.process.preview;
 
-import org.itss.prj_itss.controller.ordering.request.process.RequestProcessingController;
+import org.itss.prj_itss.controller.ordering.request.process.RequestProcessingLayoutController;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingException;
 import org.itss.prj_itss.model.request.application.processing.ProcessingPreviewOrderView;
 
@@ -9,16 +9,16 @@ import java.util.Objects;
 
 public final class RequestProcessingPreviewDialogController {
 
-    private final RequestProcessingController requestProcessingController;
+    private final RequestProcessingLayoutController requestProcessingLayoutController;
     private final List<ProcessingPreviewOrderView> previewOrders;
 
     public RequestProcessingPreviewDialogController(
-        RequestProcessingController requestProcessingController,
+        RequestProcessingLayoutController requestProcessingLayoutController,
         List<ProcessingPreviewOrderView> previewOrders
     ) {
-        this.requestProcessingController = Objects.requireNonNull(
-            requestProcessingController,
-            "requestProcessingController"
+        this.requestProcessingLayoutController = Objects.requireNonNull(
+            requestProcessingLayoutController,
+            "requestProcessingLayoutController"
         );
         this.previewOrders = previewOrders == null ? List.of() : List.copyOf(previewOrders);
     }
@@ -29,7 +29,7 @@ public final class RequestProcessingPreviewDialogController {
 
     public SubmitResult submit() {
         try {
-            requestProcessingController.submitAllocatedOrders();
+            requestProcessingLayoutController.submitAllocatedOrders();
             return SubmitResult.succeeded();
         } catch (RequestProcessingException exception) {
             return SubmitResult.failed();

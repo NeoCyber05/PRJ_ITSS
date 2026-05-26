@@ -34,11 +34,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class RequestProcessingControllerTest {
+class RequestProcessingLayoutControllerTest {
 
     @Test
     void loadRequestInitializesProcessingState() {
-        RequestProcessingController controller = controllerWith(defaultScenario());
+        RequestProcessingLayoutController controller = controllerWith(defaultScenario());
 
         controller.setRequestId(99);
 
@@ -52,7 +52,7 @@ class RequestProcessingControllerTest {
 
     @Test
     void excludedSiteRemovesMatchingAllocation() {
-        RequestProcessingController controller = controllerWith(defaultScenario());
+        RequestProcessingLayoutController controller = controllerWith(defaultScenario());
         controller.setRequestId(99);
         RequestProcessingViewModel vm = controller.snapshot();
         ProcessingItemView item = vm.items().get(0);
@@ -74,7 +74,7 @@ class RequestProcessingControllerTest {
 
     @Test
     void optimalAndSuggestedPlansApplyAllocations() {
-        RequestProcessingController controller = controllerWith(defaultScenario());
+        RequestProcessingLayoutController controller = controllerWith(defaultScenario());
         controller.setRequestId(99);
 
         controller.handleOptimizeAllocation();
@@ -93,15 +93,15 @@ class RequestProcessingControllerTest {
 
     @Test
     void confirmReturnsValidationBeforePreview() {
-        RequestProcessingController controller = controllerWith(defaultScenario());
+        RequestProcessingLayoutController controller = controllerWith(defaultScenario());
         controller.setRequestId(99);
 
-        RequestProcessingController.ConfirmResult missing = controller.handleConfirm();
+        RequestProcessingLayoutController.ConfirmResult missing = controller.handleConfirm();
 
         assertFalse(missing.valid());
 
         controller.handleOptimizeAllocation();
-        RequestProcessingController.ConfirmResult valid = controller.handleConfirm();
+        RequestProcessingLayoutController.ConfirmResult valid = controller.handleConfirm();
 
         assertTrue(valid.valid());
         assertFalse(valid.previewOrders().isEmpty());
@@ -117,7 +117,7 @@ class RequestProcessingControllerTest {
         );
         scenario.sites = List.of(new Site(1, "S1", "Site 1", "", 6, 999));
 
-        RequestProcessingController controller = controllerWith(scenario);
+        RequestProcessingLayoutController controller = controllerWith(scenario);
         controller.setRequestId(99);
         RequestProcessingViewModel vm = controller.snapshot();
         ProcessingItemView item = vm.items().get(0);
@@ -127,12 +127,12 @@ class RequestProcessingControllerTest {
             new AllocationChangeCommand(item.merchandiseId(), site.id(), "5", "Tàu")
         );
 
-        RequestProcessingController.ConfirmResult result = controller.handleConfirm();
+        RequestProcessingLayoutController.ConfirmResult result = controller.handleConfirm();
 
         assertFalse(result.valid());
     }
 
-    private RequestProcessingController controllerWith(Scenario scenario) {
+    private RequestProcessingLayoutController controllerWith(Scenario scenario) {
         RequestProcessingUseCase useCase = new RequestProcessingUseCase(
             new JdbcRequestProcessingGateway(
                 new FakeRequestRepository(scenario),
@@ -143,7 +143,7 @@ class RequestProcessingControllerTest {
                 new RecordingTransactionRunner()
             )
         );
-        return new RequestProcessingController(useCase);
+        return new RequestProcessingLayoutController(useCase);
     }
 
     private Scenario defaultScenario() {

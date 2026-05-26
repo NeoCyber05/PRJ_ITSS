@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public final class RequestProcessingController {
+public final class RequestProcessingLayoutController {
 
     private final RequestProcessingSession session;
 
-    public RequestProcessingController(RequestProcessingUseCase requestProcessingUseCase) {
+    public RequestProcessingLayoutController(RequestProcessingUseCase requestProcessingUseCase) {
         this.session = new RequestProcessingSession(Objects.requireNonNull(requestProcessingUseCase, "requestProcessingUseCase"));
     }
 

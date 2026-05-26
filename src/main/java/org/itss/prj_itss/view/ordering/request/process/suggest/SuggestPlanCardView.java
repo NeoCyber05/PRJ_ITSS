@@ -15,7 +15,7 @@ import java.util.function.Consumer;
 public final class SuggestPlanCardView {
 
     private static final String VIEW_RESOURCE =
-        "/org/itss/prj_itss/view/ordering/request/process/suggest/suggest-plan-card.fxml";
+        "/org/itss/prj_itss/view/ordering/request/process/suggest/suggest-plan-card-view.fxml";
 
     @FXML
     private Label planTitleLabel;

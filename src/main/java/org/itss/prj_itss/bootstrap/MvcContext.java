@@ -261,7 +261,7 @@ public final class MvcContext {
             ? parsePositiveInt(viewId.substring(REQUEST_PROCESSING_PREFIX.length()), 1)
             : 1;
         return RouteRegistry.loadFxml(
-            "/org/itss/prj_itss/view/ordering/request/process/layout/request-processing-view.fxml",
+            "/org/itss/prj_itss/view/ordering/request/process/layout/request-processing-layout-view.fxml",
             viewId,
             navigator,
             (requestedViewId, viewInstance, routeNavigator) -> {

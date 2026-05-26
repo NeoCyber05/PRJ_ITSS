@@ -17,7 +17,7 @@ import java.util.Objects;
 public final class RequestProcessingPreviewDialog {
 
     private static final String VIEW_RESOURCE =
-        "/org/itss/prj_itss/view/ordering/request/process/preview/request-processing-preview-dialog.fxml";
+        "/org/itss/prj_itss/view/ordering/request/process/preview/request-processing-preview-dialog-view.fxml";
 
     private final Runnable onOrdersRequested;
     private final RequestProcessingPreviewDialogController controller;

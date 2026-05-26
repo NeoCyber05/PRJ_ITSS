@@ -9,7 +9,7 @@ import javafx.scene.layout.VBox;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingViewModel;
 import org.itss.prj_itss.model.request.application.processing.SuggestedPlanView;
 import org.itss.prj_itss.model.request.application.processing.ProcessingPreviewOrderView;
-import org.itss.prj_itss.controller.ordering.request.process.RequestProcessingController;
+import org.itss.prj_itss.controller.ordering.request.process.RequestProcessingLayoutController;
 import org.itss.prj_itss.view.ordering.request.process.items.ItemsSectionView;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
 import org.itss.prj_itss.view.ordering.request.process.preview.RequestProcessingPreviewDialog;
@@ -23,7 +23,7 @@ import java.util.function.Consumer;
 
 public final class RequestProcessingLayoutView {
 
-    private RequestProcessingController controller;
+    private RequestProcessingLayoutController controller;
     private SiteFilterView siteFilterView;
     private Consumer<String> navigateToView = viewId -> {};
 
@@ -46,7 +46,7 @@ public final class RequestProcessingLayoutView {
     private VBox allocationContainer;
 
     public void init(RequestProcessingUseCase requestProcessingUseCase, Consumer<String> navigateToView) {
-        this.controller = new RequestProcessingController(
+        this.controller = new RequestProcessingLayoutController(
             Objects.requireNonNull(requestProcessingUseCase, "requestProcessingUseCase")
         );
         this.navigateToView = navigateToView == null ? viewId -> {} : navigateToView;
@@ -64,7 +64,7 @@ public final class RequestProcessingLayoutView {
 
     @FXML
     private void handleConfirm() {
-        RequestProcessingController.ConfirmResult result = controller.handleConfirm();
+        RequestProcessingLayoutController.ConfirmResult result = controller.handleConfirm();
         if (!result.valid()) {
             showValidationError(result.validationMessage());
             return;

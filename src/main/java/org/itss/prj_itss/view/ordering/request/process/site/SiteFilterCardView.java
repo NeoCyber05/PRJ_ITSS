@@ -18,7 +18,7 @@ import static org.itss.prj_itss.view.ordering.request.process.shared.AllocationV
 public final class SiteFilterCardView {
 
     private static final String VIEW_RESOURCE =
-        "/org/itss/prj_itss/view/ordering/request/process/site/site-filter-card.fxml";
+        "/org/itss/prj_itss/view/ordering/request/process/site/site-filter-card-view.fxml";
 
     private static final List<String> SITE_CARD_STATE_CLASSES = List.of(
         "site-filter-site-card-normal",
