@@ -21,7 +21,7 @@ public final class AllocationViewSupport {
     static final String MAIN_STYLESHEET = "/org/itss/prj_itss/styles/main-style.css";
 
     private static final String TOAST_RESOURCE =
-        "/org/itss/prj_itss/ordering/request/process/shared/toast-view.fxml";
+        "/org/itss/prj_itss/view/ordering/request/process/shared/toast-view.fxml";
 
     public static final List<String> FRACTION_STATE_CLASSES = List.of(
         "allocation-fraction-muted",

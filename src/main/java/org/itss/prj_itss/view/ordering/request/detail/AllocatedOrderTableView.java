@@ -16,7 +16,7 @@ import java.util.function.BiConsumer;
 public final class AllocatedOrderTableView {
 
     private static final String VIEW_RESOURCE =
-        "/org/itss/prj_itss/ordering/request/detail/allocated-order-table.fxml";
+        "/org/itss/prj_itss/view/ordering/request/detail/allocated-order-table.fxml";
 
     @FXML
     private VBox rowsContainer;

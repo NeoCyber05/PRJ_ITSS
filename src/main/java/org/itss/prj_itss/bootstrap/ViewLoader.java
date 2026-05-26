@@ -26,7 +26,7 @@ public final class ViewLoader {
 
     public Parent loadLoginView(Consumer<AuthenticatedUser> loginHandler, LoginViewWarmingListener listener) throws IOException {
         FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
-            App.class.getResource("/org/itss/prj_itss/auth/login/login-view.fxml"),
+            App.class.getResource("/org/itss/prj_itss/view/auth/login-view.fxml"),
             "Missing login view"
         ));
         Parent root = loader.load();
@@ -44,7 +44,7 @@ public final class ViewLoader {
 
     public Parent loadMainLayout(AuthenticatedUser user, Runnable logoutHandler) throws IOException {
         FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
-            App.class.getResource("/org/itss/prj_itss/layout/main-layout.fxml"),
+            App.class.getResource("/org/itss/prj_itss/view/layout/main-layout.fxml"),
             "Missing main layout FXML"
         ));
         Parent root = loader.load();

@@ -23,9 +23,9 @@ import static org.itss.prj_itss.view.ordering.request.process.shared.AllocationV
 public final class AllSuggestPopupView {
 
     private static final String POPUP_RESOURCE =
-        "/org/itss/prj_itss/ordering/request/process/suggest/all-suggest-popup-view.fxml";
+        "/org/itss/prj_itss/view/ordering/request/process/suggest/all-suggest-popup-view.fxml";
     private static final String EMPTY_CARD_RESOURCE =
-        "/org/itss/prj_itss/ordering/request/process/suggest/suggest-empty-card.fxml";
+        "/org/itss/prj_itss/view/ordering/request/process/suggest/suggest-empty-card.fxml";
 
     @FXML
     private Label titleLabel;

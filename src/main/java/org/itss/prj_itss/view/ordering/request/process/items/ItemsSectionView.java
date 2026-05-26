@@ -19,7 +19,7 @@ import java.util.function.IntConsumer;
 public final class ItemsSectionView {
 
     private static final String VIEW_RESOURCE =
-        "/org/itss/prj_itss/ordering/request/process/items/items-section-view.fxml";
+        "/org/itss/prj_itss/view/ordering/request/process/items/items-section-view.fxml";
 
     @FXML
     private Button optimizeButton;

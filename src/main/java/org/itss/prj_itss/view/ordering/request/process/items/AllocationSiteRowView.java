@@ -22,7 +22,7 @@ import static org.itss.prj_itss.view.ordering.request.process.shared.AllocationV
 public final class AllocationSiteRowView {
 
     private static final String VIEW_RESOURCE =
-        "/org/itss/prj_itss/ordering/request/process/items/allocation-site-row.fxml";
+        "/org/itss/prj_itss/view/ordering/request/process/items/allocation-site-row.fxml";
 
     @FXML
     private Label siteNameLabel;

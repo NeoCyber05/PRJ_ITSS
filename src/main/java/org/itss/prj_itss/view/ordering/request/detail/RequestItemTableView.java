@@ -13,7 +13,7 @@ import java.util.Objects;
 public final class RequestItemTableView {
 
     private static final String VIEW_RESOURCE =
-        "/org/itss/prj_itss/ordering/request/detail/request-item-table.fxml";
+        "/org/itss/prj_itss/view/ordering/request/detail/request-item-table.fxml";
 
     @FXML
     private VBox rowsContainer;

@@ -87,19 +87,19 @@ public final class MvcContext {
     private final RouteRegistry routeRegistry = new RouteRegistry(List.of(
         RouteRegistry.fxml(
             "home",
-            "/org/itss/prj_itss/home/home-view.fxml",
+            "/org/itss/prj_itss/view/home/home-view.fxml",
             (viewId, viewInstance, navigator) ->
                 ((HomeView) viewInstance).setController(homeControllers.homeController())
         ),
         RouteRegistry.fxml(
             "site-management",
-            "/org/itss/prj_itss/ordering/site/site-management-view.fxml",
+            "/org/itss/prj_itss/view/ordering/site/site-management-view.fxml",
             (viewId, viewInstance, navigator) ->
                 ((SiteManagementView) viewInstance).init(navigator, siteControllers.siteManagementController())
         ),
         RouteRegistry.fxml(
             "received-requests",
-            "/org/itss/prj_itss/ordering/request/received/received-requests-view.fxml",
+            "/org/itss/prj_itss/view/ordering/request/received-requests-view.fxml",
             (viewId, viewInstance, navigator) ->
                 ((ReceivedRequestsView) viewInstance).init(
                     navigator,
@@ -111,7 +111,7 @@ public final class MvcContext {
         ),
         RouteRegistry.fxml(
             "orders",
-            "/org/itss/prj_itss/ordering/order/order-management-view.fxml",
+            "/org/itss/prj_itss/view/ordering/order/order-management-view.fxml",
             (viewId, viewInstance, navigator) ->
                 ((OrderManagementView) viewInstance).init(navigator, orderControllers.orderManagementController())
         ),
@@ -124,7 +124,7 @@ public final class MvcContext {
         ),
         RouteRegistry.fxml(
             "ordering-order-handle-cancellation",
-            "/org/itss/prj_itss/ordering/order/handle_cancellation/handle-order-cancellation-view.fxml",
+            "/org/itss/prj_itss/view/ordering/order/handle-order-cancellation-view.fxml",
             (viewId, viewInstance, navigator) ->
                 ((OrderCancellationView) viewInstance).init(navigator, orderControllers.orderCancellationController())
         ),
@@ -168,14 +168,14 @@ public final class MvcContext {
         ),
         RouteRegistry.fxml(
             "warehouse-order-confirm-arrival",
-            "/org/itss/prj_itss/warehouse/order/confirm_arrival/confirm-order-arrival-view.fxml",
+            "/org/itss/prj_itss/view/warehouse/confirm-order-arrival-view.fxml",
             (viewId, viewInstance, navigator) ->
                 ((ConfirmOrderArrivalView) viewInstance)
                     .setController(warehouseControllers.confirmOrderArrivalController())
         ),
         RouteRegistry.fxml(
             "role-workspace",
-            "/org/itss/prj_itss/auth/workspace/role-workspace-view.fxml",
+            "/org/itss/prj_itss/view/auth/role-workspace-view.fxml",
             (viewId, viewInstance, navigator) -> {
                 RoleWorkspaceView roleWorkspaceView = (RoleWorkspaceView) viewInstance;
                 roleWorkspaceView.setController(authControllers.roleWorkspaceController());
@@ -261,7 +261,7 @@ public final class MvcContext {
             ? parsePositiveInt(viewId.substring(REQUEST_PROCESSING_PREFIX.length()), 1)
             : 1;
         return RouteRegistry.loadFxml(
-            "/org/itss/prj_itss/ordering/request/process/layout/request-processing-view.fxml",
+            "/org/itss/prj_itss/view/ordering/request/process/layout/request-processing-view.fxml",
             viewId,
             navigator,
             (requestedViewId, viewInstance, routeNavigator) -> {

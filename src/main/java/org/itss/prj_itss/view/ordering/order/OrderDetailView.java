@@ -85,7 +85,7 @@ public final class OrderDetailView implements ViewLifecycle {
 
     private Node loadOrdersBackground() {
         try {
-            FXMLLoader loader = new FXMLLoader(App.class.getResource("/org/itss/prj_itss/ordering/order/order-management-view.fxml"));
+            FXMLLoader loader = new FXMLLoader(App.class.getResource("/org/itss/prj_itss/view/ordering/order/order-management-view.fxml"));
             Node background = loader.load();
             Object controllerObj = loader.getController();
             if (controllerObj instanceof OrderManagementView viewObj) {

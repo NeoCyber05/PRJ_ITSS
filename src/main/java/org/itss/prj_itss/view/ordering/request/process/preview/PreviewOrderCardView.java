@@ -13,7 +13,7 @@ import java.util.Objects;
 public final class PreviewOrderCardView {
 
     private static final String VIEW_RESOURCE =
-        "/org/itss/prj_itss/ordering/request/process/preview/preview-order-card.fxml";
+        "/org/itss/prj_itss/view/ordering/request/process/preview/preview-order-card.fxml";
 
     @FXML
     private Label orderTitleLabel;

@@ -21,7 +21,7 @@ import java.util.Objects;
 
 public final class RequestDetailPopup {
 
-    private static final String VIEW_RESOURCE = "/org/itss/prj_itss/ordering/request/detail/request-detail-popup.fxml";
+    private static final String VIEW_RESOURCE = "/org/itss/prj_itss/view/ordering/request/detail/request-detail-popup.fxml";
 
     private RequestDetailPopup() {
     }

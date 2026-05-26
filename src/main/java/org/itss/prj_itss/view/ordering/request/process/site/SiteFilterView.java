@@ -21,7 +21,7 @@ import static org.itss.prj_itss.view.ordering.request.process.shared.AllocationV
 public final class SiteFilterView {
 
     private static final String VIEW_RESOURCE =
-        "/org/itss/prj_itss/ordering/request/process/site/site-filter-view.fxml";
+        "/org/itss/prj_itss/view/ordering/request/process/site/site-filter-view.fxml";
     private static final List<String> TOGGLE_STATE_CLASSES = List.of(
         "site-filter-toggle-collapsed",
         "site-filter-toggle-expanded"

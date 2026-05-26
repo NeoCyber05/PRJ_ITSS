@@ -14,7 +14,7 @@ import java.util.Objects;
 public final class PreviewTableRowView {
 
     private static final String VIEW_RESOURCE =
-        "/org/itss/prj_itss/ordering/request/process/preview/preview-table-row.fxml";
+        "/org/itss/prj_itss/view/ordering/request/process/preview/preview-table-row.fxml";
 
     @FXML
     private Label codeCell;

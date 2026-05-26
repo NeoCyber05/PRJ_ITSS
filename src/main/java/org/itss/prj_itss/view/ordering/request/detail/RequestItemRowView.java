@@ -12,7 +12,7 @@ import java.util.Objects;
 public final class RequestItemRowView {
 
     private static final String VIEW_RESOURCE =
-        "/org/itss/prj_itss/ordering/request/detail/request-item-row.fxml";
+        "/org/itss/prj_itss/view/ordering/request/detail/request-item-row.fxml";
 
     @FXML
     private Label codeCell;
