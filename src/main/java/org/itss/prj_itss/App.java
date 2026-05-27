@@ -2,23 +2,21 @@ package org.itss.prj_itss;
 
 import javafx.application.Application;
 import javafx.concurrent.Task;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
-import org.itss.prj_itss.auth.AuthenticatedUser;
-import org.itss.prj_itss.auth.login.LoginController;
-import org.itss.prj_itss.common.config.ApplicationContext;
-import org.itss.prj_itss.layout.MainLayoutController;
+import org.itss.prj_itss.model.auth.domain.AuthenticatedUser;
+import org.itss.prj_itss.bootstrap.ViewLoader;
+import org.itss.prj_itss.view.auth.LoginView;
 
 import java.io.IOException;
 import java.util.Objects;
 
 public class App extends Application {
 
-    private final ApplicationContext context = ApplicationContext.getInstance();
+    private final ViewLoader viewLoader = new ViewLoader();
     private Stage primaryStage;
     private String mainStylesheet;
 
@@ -26,13 +24,11 @@ public class App extends Application {
     public void start(Stage stage) {
         this.primaryStage = stage;
         this.mainStylesheet = Objects.requireNonNull(
-            getClass().getResource("/org/itss/prj_itss/styles/main-style.css"),
-            "Missing main stylesheet"
-        ).toExternalForm();
+                getClass().getResource("/org/itss/prj_itss/styles/main-style.css"),
+                "Missing main stylesheet").toExternalForm();
         Image appIcon = new Image(Objects.requireNonNull(
-            getClass().getResource("/org/itss/prj_itss/images/logo.png"),
-            "Missing app icon"
-        ).toExternalForm());
+                getClass().getResource("/org/itss/prj_itss/images/logo.png"),
+                "Missing app icon").toExternalForm());
 
         stage.setTitle("Hệ thống đặt hàng nhập khẩu");
         stage.setMinWidth(1100);
@@ -44,33 +40,29 @@ public class App extends Application {
 
     private void showLogin() {
         try {
-            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
-                getClass().getResource("/org/itss/prj_itss/auth/login/login-view.fxml"),
-                "Missing login view"
-            ));
-            Parent root = loader.load();
-            LoginController controller = loader.getController();
-            controller.configure(context.authenticationService(), this::showMainLayout);
+            Parent root = viewLoader.loadLoginView(
+                this::showMainLayout,
+                this::warmUpDatabaseConnection
+            );
             setScene(root);
-            warmUpDatabaseConnection(controller);
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to load login view", exception);
         }
     }
 
-    private void warmUpDatabaseConnection(LoginController controller) {
-        controller.beginStartupConnection();
+    private void warmUpDatabaseConnection(LoginView view) {
+        view.beginStartupConnection();
 
         Task<Void> warmUpTask = new Task<>() {
             @Override
             protected Void call() {
-                context.warmUpDatabaseConnection();
+                viewLoader.warmUpDatabaseConnection();
                 return null;
             }
         };
 
-        warmUpTask.setOnSucceeded(event -> controller.completeStartupConnection());
-        warmUpTask.setOnFailed(event -> controller.failStartupConnection());
+        warmUpTask.setOnSucceeded(event -> view.completeStartupConnection());
+        warmUpTask.setOnFailed(event -> view.failStartupConnection());
 
         Thread warmUpThread = new Thread(warmUpTask, "database-startup-connection");
         warmUpThread.setDaemon(true);
@@ -79,14 +71,7 @@ public class App extends Application {
 
     private void showMainLayout(AuthenticatedUser user) {
         try {
-            FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
-                getClass().getResource("/org/itss/prj_itss/layout/main-layout.fxml"),
-                "Missing main layout FXML"
-            ));
-            Parent root = loader.load();
-            MainLayoutController controller = loader.getController();
-            controller.setUser(user);
-            controller.setLogoutHandler(this::showLogin);
+            Parent root = viewLoader.loadMainLayout(user, this::showLogin);
             setScene(root);
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to load application layout", exception);

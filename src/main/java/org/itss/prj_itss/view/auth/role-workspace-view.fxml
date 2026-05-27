@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.itss.prj_itss.view.auth.RoleWorkspaceView"
+            styleClass="content-area">
+    <center>
+        <ScrollPane fitToWidth="true"
+                    hbarPolicy="NEVER"
+                    style="-fx-background-color: transparent; -fx-background: transparent;">
+            <content>
+                <VBox spacing="24">
+                    <padding>
+                        <Insets top="4" right="4" bottom="24" left="4"/>
+                    </padding>
+                    <children>
+                        <VBox spacing="18" styleClass="workspace-strip">
+                            <children>
+                                <HBox alignment="CENTER_LEFT" spacing="12">
+                                    <children>
+                                        <Label text="PHÂN QUYỀN" styleClass="workspace-eyebrow"/>
+                                        <Label fx:id="statusBadgeLabel" styleClass="role-workspace-chip"/>
+                                    </children>
+                                </HBox>
+                                <Label fx:id="workspaceTitleLabel" styleClass="workspace-title"/>
+                                <Label fx:id="workspaceSubtitleLabel" styleClass="role-workspace-subtitle"/>
+                                <Label fx:id="workspaceSummaryLabel"
+                                       wrapText="true"
+                                       styleClass="workspace-subtitle"/>
+                            </children>
+                        </VBox>
+
+                        <HBox spacing="20">
+                            <children>
+                                <VBox spacing="0"
+                                      HBox.hgrow="ALWAYS"
+                                      styleClass="role-workspace-card">
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT" styleClass="role-workspace-card-header">
+                                            <padding>
+                                                <Insets top="18" right="20" bottom="16" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Phạm vi quyền hiện tại" styleClass="card-title"/>
+                                            </children>
+                                        </HBox>
+                                        <VBox spacing="12">
+                                            <padding>
+                                                <Insets top="18" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label fx:id="accessNoteLabel"
+                                                       wrapText="true"
+                                                       styleClass="role-workspace-note"/>
+                                                <Label text="Các quyền nghiệp vụ dự kiến:" styleClass="role-workspace-section-label"/>
+                                                <VBox fx:id="capabilityListContainer" spacing="10"/>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </VBox>
+
+                                <VBox spacing="0"
+                                      prefWidth="310"
+                                      styleClass="role-workspace-card">
+                                    <children>
+                                        <HBox alignment="CENTER_LEFT" styleClass="role-workspace-card-header">
+                                            <padding>
+                                                <Insets top="18" right="20" bottom="16" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Trạng thái triển khai" styleClass="card-title"/>
+                                            </children>
+                                        </HBox>
+                                        <VBox spacing="14">
+                                            <padding>
+                                                <Insets top="18" right="20" bottom="20" left="20"/>
+                                            </padding>
+                                            <children>
+                                                <Label text="Role hiện tại đã được xác thực thành công từ tài khoản đăng nhập."
+                                                       wrapText="true"
+                                                       styleClass="role-workspace-note"/>
+                                                <Region VBox.vgrow="ALWAYS"/>
+                                                <Label text="Module đã triển khai trong phiên bản này:" styleClass="role-workspace-section-label"/>
+                                                <Label text="Bộ phận đặt hàng quốc tế"
+                                                       wrapText="true"
+                                                       styleClass="role-workspace-implemented-label"/>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </VBox>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+            </content>
+        </ScrollPane>
+    </center>
+</BorderPane>

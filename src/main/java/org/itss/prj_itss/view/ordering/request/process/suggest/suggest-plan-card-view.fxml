@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.itss.prj_itss.view.ordering.request.process.suggest.SuggestPlanCardView"
+      spacing="14"
+      styleClass="allocation-plan-card">
+    <padding>
+        <Insets top="16" right="16" bottom="16" left="16"/>
+    </padding>
+    <children>
+        <HBox spacing="12" alignment="TOP_LEFT">
+            <children>
+                <VBox spacing="6">
+                    <children>
+                        <Label fx:id="planTitleLabel" styleClass="allocation-title"/>
+                        <Label fx:id="planSummaryLabel" styleClass="allocation-subtitle"/>
+                    </children>
+                </VBox>
+                <Region HBox.hgrow="ALWAYS"/>
+                <VBox spacing="10" alignment="CENTER_RIGHT">
+                    <children>
+                        <HBox spacing="8" alignment="CENTER_RIGHT">
+                            <children>
+                                <Label text="Đủ số lượng"
+                                       styleClass="allocation-metric-tag,allocation-metric-success"/>
+                                <Label text="Kịp ngày nhận"
+                                       styleClass="allocation-metric-tag,allocation-metric-info"/>
+                            </children>
+                        </HBox>
+                        <Button fx:id="applyButton"
+                                text="Áp dụng phương án này"
+                                onAction="#handleApply"
+                                styleClass="allocation-apply-plan-button"/>
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+        <VBox spacing="8">
+            <children>
+                <Label fx:id="summaryText"/>
+            </children>
+        </VBox>
+    </children>
+</VBox>

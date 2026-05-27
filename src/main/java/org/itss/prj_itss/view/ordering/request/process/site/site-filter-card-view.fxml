@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Priority?>
+<?import javafx.scene.layout.VBox?>
+
+<HBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.itss.prj_itss.view.ordering.request.process.site.SiteFilterCardView"
+      spacing="12"
+      alignment="CENTER_LEFT"
+      styleClass="site-filter-site-card">
+    <children>
+        <Label fx:id="starLabel"
+               text="★"
+               visible="false"
+               managed="false"
+               styleClass="site-filter-star"/>
+        <VBox fx:id="infoBox" spacing="2" HBox.hgrow="ALWAYS">
+            <children>
+                <Label fx:id="nameLabel" styleClass="site-filter-site-name"/>
+                <Label fx:id="codeLabel" styleClass="site-filter-site-code"/>
+            </children>
+        </VBox>
+        <Button fx:id="priorityButton"
+                onAction="#handlePriorityToggle"
+                styleClass="forest-chip-button"/>
+        <Button fx:id="excludeButton"
+                text="Loại bỏ"
+                onAction="#handleExclude"
+                styleClass="forest-chip-button,site-filter-exclude-button"/>
+    </children>
+</HBox>

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.itss.prj_itss.view.ordering.request.process.items.AllocationItemEditorView"
+      spacing="16"
+      styleClass="allocation-inline-editor">
+    <padding>
+        <Insets top="22" right="20" bottom="18" left="20"/>
+    </padding>
+
+    <HBox spacing="12">
+        <children>
+            <VBox spacing="4">
+                <children>
+                    <Label text="TỒN KHO VÀ PHÂN BỔ THEO SITE" styleClass="allocation-eyebrow-muted"/>
+                    <Label fx:id="titleLabel" styleClass="allocation-title"/>
+                    <Label fx:id="subtitleLabel" styleClass="allocation-subtitle"/>
+                </children>
+            </VBox>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Label fx:id="allocatedBadgeLabel"/>
+            <Label fx:id="remainingBadgeLabel"/>
+        </children>
+    </HBox>
+
+    <VBox spacing="0" styleClass="allocation-table">
+        <children>
+            <HBox spacing="16" styleClass="allocation-table-header">
+                <padding>
+                    <Insets top="12" right="16" bottom="12" left="16"/>
+                </padding>
+                <children>
+                    <Label text="SITE" minWidth="380" prefWidth="380" styleClass="allocation-column-header"/>
+                    <Label text="TỒN KHO" minWidth="100" prefWidth="100" styleClass="allocation-column-header"/>
+                    <Label text="SL PHÂN BỔ" minWidth="170" prefWidth="170" styleClass="allocation-column-header"/>
+                    <Label text="VẬN CHUYỂN" minWidth="180" prefWidth="180" styleClass="allocation-column-header"/>
+                    <Label text="TRẠNG THÁI" minWidth="120" prefWidth="120" styleClass="allocation-column-header"/>
+                </children>
+            </HBox>
+            <VBox fx:id="siteRowsBox" spacing="0"/>
+            <Label fx:id="emptyLabel"
+                   text="Không có site khả dụng cho mặt hàng này."
+                   visible="false"
+                   managed="false"
+                   styleClass="allocation-empty-label"/>
+        </children>
+    </VBox>
+</VBox>

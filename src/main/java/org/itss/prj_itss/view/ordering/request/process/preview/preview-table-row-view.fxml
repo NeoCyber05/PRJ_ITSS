@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+
+<HBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.itss.prj_itss.view.ordering.request.process.preview.PreviewTableRowView"
+      alignment="CENTER_LEFT"
+      styleClass="request-preview-table-row">
+    <padding>
+        <Insets top="12" right="14" bottom="12" left="14"/>
+    </padding>
+    <children>
+        <Label fx:id="codeCell" wrapText="true" minWidth="120" prefWidth="120"
+               styleClass="request-preview-value-cell,request-preview-value-cell-strong"/>
+        <Label fx:id="nameCell" wrapText="true" minWidth="250" prefWidth="250"
+               styleClass="request-preview-value-cell"/>
+        <Label fx:id="quantityCell" wrapText="true" minWidth="110" prefWidth="110"
+               styleClass="request-preview-value-cell,request-preview-value-cell-strong"/>
+        <HBox fx:id="transportBox" alignment="CENTER_LEFT" minWidth="150" prefWidth="150"/>
+        <Label fx:id="estimatedCell" wrapText="true" minWidth="140" prefWidth="140"
+               styleClass="request-preview-value-cell"/>
+        <Label fx:id="desiredCell" wrapText="true" minWidth="140" prefWidth="140"
+               styleClass="request-preview-value-cell"/>
+    </children>
+</HBox>

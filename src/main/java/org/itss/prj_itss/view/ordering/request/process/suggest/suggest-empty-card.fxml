@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      spacing="8"
+      styleClass="allocation-table">
+    <padding>
+        <Insets top="18" right="18" bottom="18" left="18"/>
+    </padding>
+    <children>
+        <Label text="Chưa có phương án thỏa mãn"
+               styleClass="allocation-card-title"/>
+        <Label text="Kiểm tra lại site bị loại bỏ, số lượng tồn kho hoặc ngày giao yêu cầu."
+               wrapText="true"
+               styleClass="allocation-subtitle"/>
+    </children>
+</VBox>

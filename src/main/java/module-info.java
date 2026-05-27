@@ -11,33 +11,29 @@ module org.itss.prj_itss {
     requires org.kordamp.bootstrapfx.core;
 
     requires java.sql;
+    requires java.desktop;
 
-    opens org.itss.prj_itss.layout to javafx.fxml;
-    opens org.itss.prj_itss.auth.login to javafx.fxml;
-    opens org.itss.prj_itss.auth.workspace to javafx.fxml;
-    opens org.itss.prj_itss.home to javafx.fxml;
-    opens org.itss.prj_itss.ordering.site to javafx.fxml;
-    opens org.itss.prj_itss.ordering.request.received to javafx.fxml;
-    opens org.itss.prj_itss.ordering.request.detail to javafx.fxml;
-    opens org.itss.prj_itss.ordering.request.process to javafx.fxml;
-    opens org.itss.prj_itss.ordering.request.process.ui to javafx.fxml;
-    opens org.itss.prj_itss.ordering.request.process.preview to javafx.fxml;
-    opens org.itss.prj_itss.ordering.request.process.site to javafx.fxml;
-    opens org.itss.prj_itss.ordering.order to javafx.fxml;
-    opens org.itss.prj_itss.sales.request.create to javafx.fxml;
-    opens org.itss.prj_itss.sales.request.update to javafx.fxml;
-    opens org.itss.prj_itss.warehouse.order.confirm_arrival to javafx.fxml;
+    // Open view packages to javafx.fxml for controller loading
+    opens org.itss.prj_itss.view.layout to javafx.fxml;
+    opens org.itss.prj_itss.view.auth to javafx.fxml;
+    opens org.itss.prj_itss.view.home to javafx.fxml;
+    opens org.itss.prj_itss.view.ordering.site to javafx.fxml;
+    opens org.itss.prj_itss.view.ordering.order to javafx.fxml;
+    opens org.itss.prj_itss.view.ordering.request to javafx.fxml;
+    opens org.itss.prj_itss.view.ordering.request.detail to javafx.fxml;
+    opens org.itss.prj_itss.view.ordering.request.process.layout to javafx.fxml;
+    opens org.itss.prj_itss.view.ordering.request.process.items to javafx.fxml;
+    opens org.itss.prj_itss.view.ordering.request.process.suggest to javafx.fxml;
+    opens org.itss.prj_itss.view.ordering.request.process.preview to javafx.fxml;
+    opens org.itss.prj_itss.view.ordering.request.process.site to javafx.fxml;
+    opens org.itss.prj_itss.view.sales.request.list to javafx.fxml;
+    opens org.itss.prj_itss.view.sales.request.create to javafx.fxml;
+    opens org.itss.prj_itss.view.sales.request.update to javafx.fxml;
+    opens org.itss.prj_itss.view.sales.request.view to javafx.fxml;
+    opens org.itss.prj_itss.view.sales.request.shared to javafx.fxml;
+    opens org.itss.prj_itss.view.warehouse to javafx.fxml;
+
     exports org.itss.prj_itss;
-    exports org.itss.prj_itss.entity;
-    exports org.itss.prj_itss.db;
-    exports org.itss.prj_itss.repository;
-    exports org.itss.prj_itss.service;
-    exports org.itss.prj_itss.dto;
-    exports org.itss.prj_itss.model;
-    exports org.itss.prj_itss.common.config;
-    exports org.itss.prj_itss.ordering.request.detail;
-    exports org.itss.prj_itss.ordering.order;
-    exports org.itss.prj_itss.home;
-    exports org.itss.prj_itss.ordering.site;
-    exports org.itss.prj_itss.layout;
+    exports org.itss.prj_itss.bootstrap;
+    exports org.itss.prj_itss.controller.navigation;
 }

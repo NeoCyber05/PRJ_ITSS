@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+
+<HBox fx:id="rowContainer" alignment="CENTER_LEFT" spacing="0.0" styleClass="request-detail-table-row, request-detail-clickable-row" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1" fx:controller="org.itss.prj_itss.view.ordering.request.detail.AllocatedOrderRowView">
+    <padding>
+        <Insets bottom="14.0" left="18.0" right="18.0" top="14.0" />
+    </padding>
+    <children>
+        <Label fx:id="orderCodeCell" minWidth="115.0" prefWidth="115.0" styleClass="request-detail-table-cell, request-detail-table-cell-strong" wrapText="true" />
+        <Label fx:id="siteNameCell" minWidth="140.0" prefWidth="140.0" styleClass="request-detail-table-cell" wrapText="true" />
+        <HBox fx:id="transportBox" alignment="CENTER_LEFT" minWidth="110.0" prefWidth="110.0" />
+        <Label fx:id="createdAtCell" minWidth="110.0" prefWidth="110.0" styleClass="request-detail-table-cell" wrapText="true" />
+        <HBox fx:id="statusBox" alignment="CENTER_LEFT" minWidth="120.0" prefWidth="120.0" />
+        <HBox fx:id="actionBox" alignment="CENTER_RIGHT" minWidth="90.0" prefWidth="90.0" spacing="8.0">
+            <children>
+                <Button fx:id="cancelBtn" text="Hủy" style="-fx-background-color: transparent; -fx-text-fill: #DC2626; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 4;" visible="false" managed="false" />
+                <Button fx:id="openButton" text="→" styleClass="request-detail-open-button" />
+            </children>
+        </HBox>
+    </children>
+</HBox>
