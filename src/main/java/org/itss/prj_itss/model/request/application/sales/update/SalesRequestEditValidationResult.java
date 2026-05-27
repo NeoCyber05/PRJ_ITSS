@@ -2,14 +2,14 @@ package org.itss.prj_itss.model.request.application.sales.update;
 
 import java.util.List;
 
-public record ValidationResult(List<FieldViolation> violations) {
+public record SalesRequestEditValidationResult(List<SalesRequestEditFieldViolation> violations) {
 
-    public ValidationResult {
+    public SalesRequestEditValidationResult {
         violations = List.copyOf(violations);
     }
 
-    public static ValidationResult valid() {
-        return new ValidationResult(List.of());
+    public static SalesRequestEditValidationResult valid() {
+        return new SalesRequestEditValidationResult(List.of());
     }
 
     public boolean validForm() {

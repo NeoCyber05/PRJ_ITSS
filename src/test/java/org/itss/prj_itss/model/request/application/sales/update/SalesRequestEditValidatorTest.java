@@ -10,19 +10,19 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-class UpdateOrderRequestValidatorTest {
+class SalesRequestEditValidatorTest {
 
-    private final UpdateOrderRequestValidator validator = new UpdateOrderRequestValidator();
+    private final SalesRequestEditValidator validator = new SalesRequestEditValidator();
 
     @Test
     void validDraftHasNoViolations() {
         LocalDate today = LocalDate.of(2026, 5, 25);
-        UpdateOrderRequestDraft draft = new UpdateOrderRequestDraft(
+        SalesRequestEditDraft draft = new SalesRequestEditDraft(
             1,
             "YC-2026-001",
             "25/05/2026",
             "pending",
-            List.of(new UpdateOrderRequestItemDraft(
+            List.of(new SalesRequestEditItemDraft(
                 1,
                 new MerchandiseOption(10, "MH-001", "Item 1", "box"),
                 new BigDecimal("2"),
@@ -30,7 +30,7 @@ class UpdateOrderRequestValidatorTest {
             ))
         );
 
-        ValidationResult result = validator.validate(draft, today);
+        SalesRequestEditValidationResult result = validator.validate(draft, today);
 
         assertTrue(result.validForm());
         assertTrue(result.violations().isEmpty());
@@ -40,18 +40,18 @@ class UpdateOrderRequestValidatorTest {
     void duplicateMerchandiseInvalidQuantityAndPastDateProduceViolations() {
         LocalDate today = LocalDate.of(2026, 5, 25);
         MerchandiseOption option = new MerchandiseOption(10, "MH-001", "Item 1", "box");
-        UpdateOrderRequestDraft draft = new UpdateOrderRequestDraft(
+        SalesRequestEditDraft draft = new SalesRequestEditDraft(
             1,
             "YC-2026-001",
             "25/05/2026",
             "pending",
             List.of(
-                new UpdateOrderRequestItemDraft(1, option, BigDecimal.ONE, today),
-                new UpdateOrderRequestItemDraft(2, option, BigDecimal.ZERO, today.minusDays(1))
+                new SalesRequestEditItemDraft(1, option, BigDecimal.ONE, today),
+                new SalesRequestEditItemDraft(2, option, BigDecimal.ZERO, today.minusDays(1))
             )
         );
 
-        ValidationResult result = validator.validate(draft, today);
+        SalesRequestEditValidationResult result = validator.validate(draft, today);
 
         assertFalse(result.validForm());
         assertTrue(result.hasViolation(2));

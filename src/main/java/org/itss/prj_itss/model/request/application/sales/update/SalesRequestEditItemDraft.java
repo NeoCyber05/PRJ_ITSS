@@ -5,7 +5,7 @@ import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOptio
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public record UpdateOrderRequestItemDraft(
+public record SalesRequestEditItemDraft(
         int lineId,
         MerchandiseOption merchandise,
         BigDecimal quantity,

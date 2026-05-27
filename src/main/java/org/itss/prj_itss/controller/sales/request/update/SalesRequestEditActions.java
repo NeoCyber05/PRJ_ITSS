@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
-public interface UpdateOrderRequestEvents {
+public interface SalesRequestEditActions {
 
     void addItemRequested();
 

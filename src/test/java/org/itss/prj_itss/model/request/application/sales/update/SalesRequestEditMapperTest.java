@@ -2,7 +2,7 @@ package org.itss.prj_itss.model.request.application.sales.update;
 
 import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
 import org.itss.prj_itss.model.request.application.sales.shared.RequestFormView;
-import org.itss.prj_itss.model.request.application.sales.create.RequestItemInput;
+import org.itss.prj_itss.model.request.application.sales.shared.SalesRequestItemSubmission;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -11,9 +11,9 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class UpdateOrderRequestFormMapperTest {
+class SalesRequestEditMapperTest {
 
-    private final UpdateOrderRequestFormMapper mapper = new UpdateOrderRequestFormMapper();
+    private final SalesRequestEditMapper mapper = new SalesRequestEditMapper();
 
     @Test
     void mapsFormViewToStateAndBackToServiceInput() {
@@ -32,9 +32,9 @@ class UpdateOrderRequestFormMapperTest {
             ))
         );
 
-        UpdateOrderRequestFormState state = mapper.toState(form);
-        UpdateOrderRequestDraft draft = state.snapshot();
-        List<RequestItemInput> inputs = mapper.toInput(draft);
+        SalesRequestEditState state = mapper.toState(form);
+        SalesRequestEditDraft draft = state.snapshot();
+        List<SalesRequestItemSubmission> inputs = mapper.toInput(draft);
 
         assertEquals(1, draft.requestId());
         assertEquals("YC-2026-001", draft.requestCode());

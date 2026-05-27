@@ -1,17 +1,17 @@
 package org.itss.prj_itss.controller.sales.request.update;
 
 import org.itss.prj_itss.controller.shared.ActionResult;
-import org.itss.prj_itss.controller.sales.request.shared.OrderRequestDialogListener;
-import org.itss.prj_itss.controller.sales.request.shared.OrderRequestUpdatedEvent;
+import org.itss.prj_itss.controller.sales.request.shared.SalesRequestDialogListener;
+import org.itss.prj_itss.controller.sales.request.shared.SalesRequestSavedEvent;
 import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
 import org.itss.prj_itss.model.request.application.sales.shared.RequestFormView;
-import org.itss.prj_itss.model.request.application.sales.create.RequestItemInput;
+import org.itss.prj_itss.model.request.application.sales.shared.SalesRequestItemSubmission;
 import org.itss.prj_itss.model.request.application.sales.RequestSalesApplicationService;
-import org.itss.prj_itss.model.request.application.sales.update.UpdateOrderRequestDraft;
-import org.itss.prj_itss.model.request.application.sales.update.UpdateOrderRequestFormMapper;
-import org.itss.prj_itss.model.request.application.sales.update.UpdateOrderRequestFormState;
-import org.itss.prj_itss.model.request.application.sales.update.UpdateOrderRequestValidator;
-import org.itss.prj_itss.model.request.application.sales.update.ValidationResult;
+import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditDraft;
+import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditMapper;
+import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditState;
+import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidator;
+import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidationResult;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,16 +19,16 @@ import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public final class UpdateOrderRequestController {
+public final class SalesRequestEditController {
 
     private final RequestSalesApplicationService salesService;
-    private final UpdateOrderRequestFormMapper formMapper;
-    private final UpdateOrderRequestValidator validator;
+    private final SalesRequestEditMapper formMapper;
+    private final SalesRequestEditValidator validator;
 
-    public UpdateOrderRequestController(
+    public SalesRequestEditController(
             RequestSalesApplicationService salesService,
-            UpdateOrderRequestFormMapper formMapper,
-            UpdateOrderRequestValidator validator
+            SalesRequestEditMapper formMapper,
+            SalesRequestEditValidator validator
     ) {
         this.salesService = salesService;
         this.formMapper = formMapper;
@@ -36,9 +36,9 @@ public final class UpdateOrderRequestController {
     }
 
     public void start(
-            UpdateOrderRequestScreen screen,
-            UpdateOrderRequestDialogInput input,
-            OrderRequestDialogListener listener
+            SalesRequestEditViewPort screen,
+            SalesRequestEditDialogInput input,
+            SalesRequestDialogListener listener
     ) {
         Objects.requireNonNull(screen, "screen");
         Objects.requireNonNull(input, "input");
@@ -50,7 +50,7 @@ public final class UpdateOrderRequestController {
             return;
         }
 
-        UpdateSession session = new UpdateSession(
+        EditSession session = new EditSession(
             screen,
             listener,
             formMapper.toState(form),
@@ -68,7 +68,7 @@ public final class UpdateOrderRequestController {
         return salesService.findMerchandiseOptions();
     }
 
-    public ActionResult updateRequest(int requestId, List<RequestItemInput> items) {
+    public ActionResult updateRequest(int requestId, List<SalesRequestItemSubmission> items) {
         try {
             salesService.updateRequest(requestId, items, null);
             return new ActionResult(true, "Cập nhật yêu cầu đặt hàng thành công");
@@ -77,17 +77,17 @@ public final class UpdateOrderRequestController {
         }
     }
 
-    private final class UpdateSession implements UpdateOrderRequestEvents {
+    private final class EditSession implements SalesRequestEditActions {
 
-        private final UpdateOrderRequestScreen screen;
-        private final OrderRequestDialogListener listener;
-        private final UpdateOrderRequestFormState state;
+        private final SalesRequestEditViewPort screen;
+        private final SalesRequestDialogListener listener;
+        private final SalesRequestEditState state;
         private final List<MerchandiseOption> merchandiseOptions;
 
-        private UpdateSession(
-                UpdateOrderRequestScreen screen,
-                OrderRequestDialogListener listener,
-                UpdateOrderRequestFormState state,
+        private EditSession(
+                SalesRequestEditViewPort screen,
+                SalesRequestDialogListener listener,
+                SalesRequestEditState state,
                 List<MerchandiseOption> merchandiseOptions
         ) {
             this.screen = screen;
@@ -137,8 +137,8 @@ public final class UpdateOrderRequestController {
 
         @Override
         public void saveRequested() {
-            UpdateOrderRequestDraft draft = state.snapshot();
-            ValidationResult validationResult = validator.validate(draft, LocalDate.now());
+            SalesRequestEditDraft draft = state.snapshot();
+            SalesRequestEditValidationResult validationResult = validator.validate(draft, LocalDate.now());
             if (!validationResult.validForm()) {
                 screen.renderValidation(validationResult);
                 screen.focusFirstViolation(validationResult.violations());
@@ -153,7 +153,7 @@ public final class UpdateOrderRequestController {
 
             screen.showSuccess(result.message());
             if (listener != null) {
-                listener.onOrderRequestUpdated(new OrderRequestUpdatedEvent(draft.requestId(), draft.requestCode()));
+                listener.onSalesRequestSaved(new SalesRequestSavedEvent(draft.requestId(), draft.requestCode()));
             }
             screen.close();
         }
@@ -161,15 +161,15 @@ public final class UpdateOrderRequestController {
         @Override
         public void cancelRequested() {
             if (listener != null) {
-                listener.onOrderRequestCancelled(state.snapshot().requestId());
+                listener.onSalesRequestEditCancelled(state.snapshot().requestId());
             }
             screen.close();
         }
 
         private void render() {
-            UpdateOrderRequestDraft draft = state.snapshot();
-            ValidationResult validationResult = validator.validate(draft, LocalDate.now());
-            screen.render(new UpdateOrderRequestViewModel(
+            SalesRequestEditDraft draft = state.snapshot();
+            SalesRequestEditValidationResult validationResult = validator.validate(draft, LocalDate.now());
+            screen.render(new SalesRequestEditViewState(
                 draft.requestCode(),
                 draft.createdAt(),
                 draft.status(),

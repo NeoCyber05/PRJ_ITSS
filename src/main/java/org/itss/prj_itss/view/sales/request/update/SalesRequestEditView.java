@@ -34,13 +34,13 @@ import javafx.stage.Window;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
-import org.itss.prj_itss.controller.sales.request.update.UpdateOrderRequestEvents;
-import org.itss.prj_itss.controller.sales.request.update.UpdateOrderRequestScreen;
-import org.itss.prj_itss.controller.sales.request.update.UpdateOrderRequestViewModel;
+import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditActions;
+import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditViewPort;
+import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditViewState;
 import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
-import org.itss.prj_itss.model.request.application.sales.update.FieldViolation;
-import org.itss.prj_itss.model.request.application.sales.update.UpdateOrderRequestItemDraft;
-import org.itss.prj_itss.model.request.application.sales.update.ValidationResult;
+import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditFieldViolation;
+import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditItemDraft;
+import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidationResult;
 import org.itss.prj_itss.view.sales.request.shared.ItemRow;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 
@@ -52,13 +52,13 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public final class UpdateOrderRequestView implements ViewLifecycle, UpdateOrderRequestScreen {
+public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEditViewPort {
 
     private static final int PAGE_SIZE = 10;
 
-    private UpdateOrderRequestEvents events;
+    private SalesRequestEditActions events;
     private Runnable closeHandler;
-    private ValidationResult validationResult = ValidationResult.valid();
+    private SalesRequestEditValidationResult validationResult = SalesRequestEditValidationResult.valid();
     private int currentPage = 0;
 
     private final ObservableList<ItemRow> allItems = FXCollections.observableArrayList();
@@ -116,7 +116,7 @@ public final class UpdateOrderRequestView implements ViewLifecycle, UpdateOrderR
     }
 
     @Override
-    public void bindEvents(UpdateOrderRequestEvents events) {
+    public void bindEvents(SalesRequestEditActions events) {
         this.events = events;
     }
 
@@ -125,7 +125,7 @@ public final class UpdateOrderRequestView implements ViewLifecycle, UpdateOrderR
     }
 
     @Override
-    public void render(UpdateOrderRequestViewModel viewModel) {
+    public void render(SalesRequestEditViewState viewModel) {
         merchandiseOptions = viewModel.merchandiseOptions();
         requestCodeLabel.setText(viewModel.requestCode());
         createdAtLabel.setText(viewModel.createdAt() != null && !viewModel.createdAt().isBlank()
@@ -137,13 +137,13 @@ public final class UpdateOrderRequestView implements ViewLifecycle, UpdateOrderR
     }
 
     @Override
-    public void renderItems(List<UpdateOrderRequestItemDraft> items) {
+    public void renderItems(List<SalesRequestEditItemDraft> items) {
         allItems.setAll(items.stream().map(ItemRow::new).toList());
         applySearchFilter(searchField == null ? "" : searchField.getText());
     }
 
     @Override
-    public void renderValidation(ValidationResult validationResult) {
+    public void renderValidation(SalesRequestEditValidationResult validationResult) {
         this.validationResult = validationResult;
         if (validationResult.validForm()) {
             errorLabel.setVisible(false);
@@ -156,12 +156,12 @@ public final class UpdateOrderRequestView implements ViewLifecycle, UpdateOrderR
     }
 
     @Override
-    public void focusFirstViolation(List<FieldViolation> violations) {
+    public void focusFirstViolation(List<SalesRequestEditFieldViolation> violations) {
         if (violations == null || violations.isEmpty()) {
             return;
         }
 
-        for (FieldViolation violation : violations) {
+        for (SalesRequestEditFieldViolation violation : violations) {
             if (violation.lineId() <= 0) {
                 return;
             }

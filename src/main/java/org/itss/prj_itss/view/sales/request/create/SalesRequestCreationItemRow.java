@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
-final class CreateRequestItemRowView extends HBox {
+final class SalesRequestCreationItemRow extends HBox {
 
     private static final String ROW_STYLE = "-fx-background-color: #F8FAFC; -fx-background-radius: 6; "
         + "-fx-border-color: #E2E8F0; -fx-border-radius: 6; -fx-padding: 8;";
@@ -33,10 +33,10 @@ final class CreateRequestItemRowView extends HBox {
     private final DatePicker desiredDatePicker = new DatePicker();
     private final Button deleteButton = new Button();
 
-    CreateRequestItemRowView(
+    SalesRequestCreationItemRow(
             int index,
             Function<String, MerchandiseOption> merchandiseLookup,
-            Consumer<CreateRequestItemRowView> deleteHandler
+            Consumer<SalesRequestCreationItemRow> deleteHandler
     ) {
         super(12);
         setAlignment(Pos.CENTER_LEFT);
@@ -56,12 +56,12 @@ final class CreateRequestItemRowView extends HBox {
         indexLabel.setText(String.valueOf(index));
     }
 
-    Optional<CreateRequestItemInputCandidate> inputCandidate() {
+    Optional<SalesRequestCreationItemCandidate> inputCandidate() {
         String code = codeField.getText();
         String rawQuantity = quantityField.getText();
         LocalDate desiredDate = desiredDatePicker.getValue();
         BigDecimal quantity = parseQuantity(rawQuantity).orElse(null);
-        return Optional.of(new CreateRequestItemInputCandidate(
+        return Optional.of(new SalesRequestCreationItemCandidate(
             code == null ? "" : code.trim(),
             quantity,
             desiredDate
@@ -138,7 +138,7 @@ final class CreateRequestItemRowView extends HBox {
         });
     }
 
-    private void configureDeleteButton(Consumer<CreateRequestItemRowView> deleteHandler) {
+    private void configureDeleteButton(Consumer<SalesRequestCreationItemRow> deleteHandler) {
         deleteButton.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;");
         SVGPath trashIcon = new SVGPath();
         trashIcon.setContent("M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19V4M6,19A2,2 0 0,0 8,21H16A2,2 0 0,0 18,19V7H6V19Z");

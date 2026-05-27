@@ -2,29 +2,29 @@ package org.itss.prj_itss.controller.sales.request;
 
 import org.itss.prj_itss.model.request.RequestModule;
 import org.itss.prj_itss.controller.sales.request.list.SalesRequestListController;
-import org.itss.prj_itss.controller.sales.request.create.CreateOrderRequestController;
-import org.itss.prj_itss.controller.sales.request.update.UpdateOrderRequestController;
+import org.itss.prj_itss.controller.sales.request.create.SalesRequestCreationController;
+import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditController;
 import org.itss.prj_itss.controller.sales.request.view.ViewOrderRequestController;
-import org.itss.prj_itss.model.request.application.sales.update.UpdateOrderRequestFormMapper;
-import org.itss.prj_itss.model.request.application.sales.update.UpdateOrderRequestValidator;
+import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditMapper;
+import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidator;
 
 public final class SalesRequestControllerModule {
 
     private final SalesRequestListController salesRequestListController;
-    private final CreateOrderRequestController createOrderRequestController;
-    private final UpdateOrderRequestController updateOrderRequestController;
+    private final SalesRequestCreationController salesRequestCreationController;
+    private final SalesRequestEditController salesRequestEditController;
     private final ViewOrderRequestController viewOrderRequestController;
 
     public SalesRequestControllerModule(RequestModule requestModule) {
         this.salesRequestListController =
             new SalesRequestListController(requestModule.receivedRequestsApplicationService());
-        this.createOrderRequestController =
-            new CreateOrderRequestController(requestModule.requestSalesApplicationService());
-        this.updateOrderRequestController =
-            new UpdateOrderRequestController(
+        this.salesRequestCreationController =
+            new SalesRequestCreationController(requestModule.requestSalesApplicationService());
+        this.salesRequestEditController =
+            new SalesRequestEditController(
                 requestModule.requestSalesApplicationService(),
-                new UpdateOrderRequestFormMapper(),
-                new UpdateOrderRequestValidator()
+                new SalesRequestEditMapper(),
+                new SalesRequestEditValidator()
             );
         this.viewOrderRequestController =
             new ViewOrderRequestController(requestModule.requestSalesApplicationService());
@@ -34,12 +34,12 @@ public final class SalesRequestControllerModule {
         return salesRequestListController;
     }
 
-    public CreateOrderRequestController createOrderRequestController() {
-        return createOrderRequestController;
+    public SalesRequestCreationController salesRequestCreationController() {
+        return salesRequestCreationController;
     }
 
-    public UpdateOrderRequestController updateOrderRequestController() {
-        return updateOrderRequestController;
+    public SalesRequestEditController salesRequestEditController() {
+        return salesRequestEditController;
     }
 
     public ViewOrderRequestController viewOrderRequestController() {
