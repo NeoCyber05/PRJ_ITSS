@@ -166,7 +166,7 @@ public class AllocationControl {
             labels.add(DeliveryMethod.AIR.displayLabel());
         }
         if (labels.isEmpty()) {
-            labels.add("KhÃ´ng kháº£ dá»¥ng");
+            labels.add("Không khả dụng");
         }
         return labels;
     }
@@ -243,7 +243,7 @@ public class AllocationControl {
         DeliveryStatus deliveryStatus
     ) {
         public boolean transportDisabled() {
-            return transportLabels.size() == 1 && "KhÃ´ng kháº£ dá»¥ng".equals(transportLabels.get(0));
+            return transportLabels.size() == 1 && "Không khả dụng".equals(transportLabels.get(0));
         }
     }
 

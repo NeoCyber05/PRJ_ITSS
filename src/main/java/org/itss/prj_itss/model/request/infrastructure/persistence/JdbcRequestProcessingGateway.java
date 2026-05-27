@@ -12,6 +12,7 @@ import org.itss.prj_itss.model.request.application.port.RequestProcessingGateway
 import org.itss.prj_itss.model.request.domain.allocation.model.Allocation;
 import org.itss.prj_itss.model.request.domain.allocation.model.AllocationPlan;
 import org.itss.prj_itss.model.request.domain.delivery.DeliveryMethod;
+import org.itss.prj_itss.model.request.domain.request.RequestStatus;
 import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.model.request.domain.processing.RequestProcessingData;
 import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
@@ -131,7 +132,7 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
                     }
                 }
 
-                if (!requestRepository.updateStatus(requestId, "processing")) {
+                if (!requestRepository.updateStatus(requestId, RequestStatus.PROCESSING)) {
                     throw new TransactionException("Cannot update request status " + requestId);
                 }
             });

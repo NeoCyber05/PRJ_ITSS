@@ -11,6 +11,7 @@ import javafx.scene.layout.VBox;
 import org.itss.prj_itss.model.dashboard.application.DashboardData;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.request.domain.request.Request;
+import org.itss.prj_itss.model.request.domain.request.RequestStatus;
 import org.itss.prj_itss.controller.home.HomeController;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 
@@ -83,7 +84,7 @@ public class HomeView implements ViewLifecycle {
         pendingRowsContainer.getChildren().clear();
 
         requests.stream()
-            .filter(request -> "pending".equalsIgnoreCase(request.getStatus()))
+            .filter(request -> request.getStatus() == RequestStatus.PENDING)
             .sorted(Comparator.comparing(this::resolveDeadline, Comparator.nullsLast(Comparator.naturalOrder())))
             .limit(3)
             .map(this::buildPendingRow)
@@ -202,17 +203,14 @@ public class HomeView implements ViewLifecycle {
         return buildActivityItem("YC", message, formatActivityTime(request.getCreatedAt()), "#0F766E");
     }
 
-    private String toRequestStatusText(String status) {
+    private String toRequestStatusText(RequestStatus status) {
         if (status == null) {
             return "N/A";
         }
-        return switch (status.trim().toLowerCase()) {
-            case "pending" -> "Chờ xử lý";
-            case "processing" -> "Đang xử lý";
-            case "shipping" -> "Đang giao";
-            case "completed" -> "Đã hoàn thành";
-            case "cancelled" -> "Đã hủy";
-            default -> status;
+        return switch (status) {
+            case PENDING -> "Chờ xử lý";
+            case PROCESSING -> "Đang xử lý";
+            case COMPLETED -> "Đã hoàn thành";
         };
     }
 

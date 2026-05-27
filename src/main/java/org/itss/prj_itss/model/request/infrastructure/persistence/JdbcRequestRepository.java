@@ -5,6 +5,7 @@ import org.itss.prj_itss.model.shared.database.JdbcRepositorySupport;
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
 import org.itss.prj_itss.model.request.application.port.RequestRepository;
+import org.itss.prj_itss.model.request.domain.request.RequestStatus;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -100,10 +101,10 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
     }
 
     @Override
-    public boolean updateStatus(int requestId, String newStatus) {
+    public boolean updateStatus(int requestId, RequestStatus newStatus) {
         String sql = "UPDATE request SET status = ? WHERE id = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setString(1, newStatus);
+            ps.setString(1, newStatus.storageValue());
             ps.setInt(2, requestId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -167,7 +168,7 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
             int requestId = -1;
             String insertRequestSql = "INSERT INTO request (status, note, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)";
             try (PreparedStatement ps = conn.prepareStatement(insertRequestSql, Statement.RETURN_GENERATED_KEYS)) {
-                ps.setString(1, "pending");
+                ps.setString(1, RequestStatus.PENDING.storageValue());
                 ps.setString(2, note);
                 ps.executeUpdate();
                 try (ResultSet rs = ps.getGeneratedKeys()) {
@@ -242,13 +243,12 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
     }
 
     private Request mapRequest(ResultSet rs) throws SQLException {
-        Request r = new Request();
-        r.setId(rs.getInt("id"));
+        int id = rs.getInt("id");
         Timestamp ts = rs.getTimestamp("created_at");
-        if (ts != null) r.setCreatedAt(ts.toLocalDateTime());
-        r.setStatus(rs.getString("status"));
-        r.setNote(rs.getString("note"));
-        return r;
+        java.time.LocalDateTime createdAt = ts != null ? ts.toLocalDateTime() : null;
+        RequestStatus status = RequestStatus.fromStorageValue(rs.getString("status"));
+        String note = rs.getString("note");
+        return Request.reconstituteFromDb(id, createdAt, status, note);
     }
 }
 

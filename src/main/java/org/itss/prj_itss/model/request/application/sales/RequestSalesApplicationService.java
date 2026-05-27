@@ -55,8 +55,8 @@ public final class RequestSalesApplicationService {
             request.getId(),
             OrderingFormatters.formatRequestCode(request.getId()),
             OrderingFormatters.formatDateOrEmpty(request.getCreatedAt()),
-            request.getStatus(),
-            OrderingFormatters.requestStatusText(request.getStatus()),
+            request.getStatusKey(),
+            OrderingFormatters.requestStatusText(request.getStatusKey()),
             request.getNote(),
             itemRows
         );
@@ -81,8 +81,8 @@ public final class RequestSalesApplicationService {
             request.getId(),
             OrderingFormatters.formatRequestCode(request.getId()),
             OrderingFormatters.formatDateOrEmpty(request.getCreatedAt()),
-            request.getStatus(),
-            OrderingFormatters.requestStatusText(request.getStatus()),
+            request.getStatusKey(),
+            OrderingFormatters.requestStatusText(request.getStatusKey()),
             request.getNote(),
             itemRows
         );

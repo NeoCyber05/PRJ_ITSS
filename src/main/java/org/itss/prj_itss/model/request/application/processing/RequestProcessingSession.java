@@ -77,10 +77,10 @@ public final class RequestProcessingSession {
             }
 
             String statusText = switch (state) {
-                case OVER -> "Vưt mc";
-                case COMPLETE -> "Đ";
-                case PARTIAL -> "Cha đ";
-                case NONE -> "Cha có phng án";
+                case OVER -> "Vượt mức";
+                case COMPLETE -> "Đủ";
+                case PARTIAL -> "Chưa đủ";
+                case NONE -> "Chưa có phương án";
             };
             String statusClass = switch (state) {
                 case OVER -> "allocation-fraction-over";

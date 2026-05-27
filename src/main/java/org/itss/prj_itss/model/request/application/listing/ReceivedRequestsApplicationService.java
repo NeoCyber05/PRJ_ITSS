@@ -24,7 +24,7 @@ public final class ReceivedRequestsApplicationService {
                     OrderingFormatters.formatDateOrEmpty(request.getCreatedAt()),
                     OrderingFormatters.formatItemTypes(requestService.countItemTypes(request.getId())),
                     OrderingFormatters.formatDate(earliestDelivery),
-                    request.getStatus() == null ? "N/A" : request.getStatus()
+                    request.getStatus() == null ? "N/A" : request.getStatusKey()
                 );
             })
             .toList();
