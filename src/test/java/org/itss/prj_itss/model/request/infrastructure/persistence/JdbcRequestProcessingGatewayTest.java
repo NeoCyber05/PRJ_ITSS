@@ -11,11 +11,11 @@ import org.itss.prj_itss.model.site.domain.Site;
 import org.itss.prj_itss.model.request.domain.allocation.model.Allocation;
 import org.itss.prj_itss.model.request.domain.delivery.DeliveryMethod;
 import org.itss.prj_itss.model.request.domain.processing.RequestProcessingData;
-import org.itss.prj_itss.model.request.application.port.RequestProcessingGatewayException;
+import org.itss.prj_itss.model.request.application.processing.RequestProcessingGatewayException;
 import org.itss.prj_itss.model.site.application.port.InventoryRepository;
 import org.itss.prj_itss.model.catalog.application.port.MerchandiseRepository;
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
-import org.itss.prj_itss.model.request.application.port.RequestRepository;
+import org.itss.prj_itss.model.request.application.processing.ProcessingRequestPort;
 import org.itss.prj_itss.model.site.application.port.SiteRepository;
 import org.junit.jupiter.api.Test;
 
@@ -36,7 +36,7 @@ class JdbcRequestProcessingGatewayTest {
             new Site(1, "S1", "Site 1", "", 2, 1)
         ));
         JdbcRequestProcessingGateway gateway = new JdbcRequestProcessingGateway(
-            new RecordingRequestRepository() {
+            new RecordingProcessingRequestPort() {
                 @Override
                 public List<RequestMerchandise> findItemsByRequestId(int requestId) {
                     return List.of(
@@ -72,9 +72,9 @@ class JdbcRequestProcessingGatewayTest {
     @Test
     void createsOneOrderPerAllocatedSiteAndUpdatesRequest() throws RequestProcessingGatewayException {
         FakeOrderRepository orderRepository = new FakeOrderRepository();
-        RecordingRequestRepository requestRepository = new RecordingRequestRepository();
+        RecordingProcessingRequestPort ProcessingRequestPort = new RecordingProcessingRequestPort();
         RecordingTransactionRunner transactionRunner = new RecordingTransactionRunner();
-        JdbcRequestProcessingGateway gateway = gateway(requestRepository, orderRepository, transactionRunner);
+        JdbcRequestProcessingGateway gateway = gateway(ProcessingRequestPort, orderRepository, transactionRunner);
 
         Map<Integer, Map<Integer, Allocation>> allocations = new LinkedHashMap<>();
         allocations.put(10, Map.of(
@@ -87,7 +87,7 @@ class JdbcRequestProcessingGatewayTest {
         assertEquals(1, transactionRunner.commits);
         assertEquals(2, orderRepository.createdOrders.size());
         assertEquals(2, orderRepository.createdItems.size());
-        assertEquals("processing", requestRepository.updatedStatus);
+        assertEquals("processing", ProcessingRequestPort.updatedStatus);
     }
 
     @Test
@@ -96,7 +96,7 @@ class JdbcRequestProcessingGatewayTest {
         orderRepository.failAddItem = true;
         RecordingTransactionRunner transactionRunner = new RecordingTransactionRunner();
         JdbcRequestProcessingGateway gateway = gateway(
-            new RecordingRequestRepository(),
+            new RecordingProcessingRequestPort(),
             orderRepository,
             transactionRunner
         );
@@ -109,12 +109,12 @@ class JdbcRequestProcessingGatewayTest {
     }
 
     private JdbcRequestProcessingGateway gateway(
-        RequestRepository requestRepository,
+        ProcessingRequestPort ProcessingRequestPort,
         OrderRepository orderRepository,
         TransactionRunner transactionRunner
     ) {
         return new JdbcRequestProcessingGateway(
-            requestRepository,
+            ProcessingRequestPort,
             orderRepository,
             new EmptySiteRepository(),
             new EmptyInventoryRepository(),
@@ -211,28 +211,17 @@ class JdbcRequestProcessingGatewayTest {
         }
     }
 
-    private static class RecordingRequestRepository implements RequestRepository {
+    private static class RecordingProcessingRequestPort implements ProcessingRequestPort {
         private String updatedStatus;
 
-        @Override
-        public List<Request> findAll() {
-            return List.of();
-        }
 
-        @Override
-        public Request findById(int id) {
-            return null;
-        }
 
         @Override
         public List<RequestMerchandise> findItemsByRequestId(int requestId) {
             return List.of();
         }
 
-        @Override
-        public int countItemTypes(int requestId) {
-            return 0;
-        }
+
 
         @Override
         public LocalDate getEarliestDeliveryDate(int requestId) {
@@ -240,24 +229,12 @@ class JdbcRequestProcessingGatewayTest {
         }
 
         @Override
-        public boolean updateStatus(int requestId, String newStatus) {
-            updatedStatus = newStatus;
+        public boolean updateStatus(int requestId, org.itss.prj_itss.model.request.domain.request.RequestStatus newStatus) {
+            updatedStatus = newStatus.storageValue();
             return true;
         }
 
-        @Override
-        public void updateRequestItems(int requestId, List<RequestMerchandise> items, String note) {
-        }
 
-        @Override
-        public int createRequest(List<RequestMerchandise> items, String note) {
-            return 1;
-        }
-
-        @Override
-        public boolean deleteById(int requestId) {
-            return true;
-        }
     }
 
     private static class EmptySiteRepository implements SiteRepository {

@@ -7,8 +7,9 @@ import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
 import org.itss.prj_itss.model.site.domain.Site;
-import org.itss.prj_itss.model.request.application.port.RequestProcessingGateway;
-import org.itss.prj_itss.model.request.application.port.RequestProcessingGatewayException;
+import org.itss.prj_itss.model.request.application.processing.RequestProcessingGateway;
+import org.itss.prj_itss.model.request.application.processing.RequestProcessingGatewayException;
+import org.itss.prj_itss.model.request.application.processing.ProcessingRequestPort;
 import org.itss.prj_itss.model.request.domain.allocation.model.Allocation;
 import org.itss.prj_itss.model.request.domain.allocation.model.AllocationPlan;
 import org.itss.prj_itss.model.request.domain.delivery.DeliveryMethod;
@@ -19,7 +20,7 @@ import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
 import org.itss.prj_itss.model.site.application.port.InventoryRepository;
 import org.itss.prj_itss.model.catalog.application.port.MerchandiseRepository;
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
-import org.itss.prj_itss.model.request.application.port.RequestRepository;
+
 import org.itss.prj_itss.model.site.application.port.SiteRepository;
 
 import java.math.BigDecimal;
@@ -32,7 +33,7 @@ import java.util.Map;
 
 public final class JdbcRequestProcessingGateway implements RequestProcessingGateway {
 
-    private final RequestRepository requestRepository;
+    private final ProcessingRequestPort requestRepository;
     private final OrderRepository orderRepository;
     private final SiteRepository siteRepository;
     private final InventoryRepository inventoryRepository;
@@ -40,7 +41,7 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
     private final TransactionRunner transactionRunner;
 
     public JdbcRequestProcessingGateway(
-        RequestRepository requestRepository,
+        ProcessingRequestPort requestRepository,
         OrderRepository orderRepository,
         SiteRepository siteRepository,
         InventoryRepository inventoryRepository,

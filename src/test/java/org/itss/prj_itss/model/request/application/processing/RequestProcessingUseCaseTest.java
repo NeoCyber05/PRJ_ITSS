@@ -1,7 +1,7 @@
 package org.itss.prj_itss.model.request.application.processing;
 
-import org.itss.prj_itss.model.request.application.port.RequestProcessingGateway;
-import org.itss.prj_itss.model.request.application.port.RequestProcessingGatewayException;
+import org.itss.prj_itss.model.request.application.processing.RequestProcessingGateway;
+import org.itss.prj_itss.model.request.application.processing.RequestProcessingGatewayException;
 import org.itss.prj_itss.model.request.domain.allocation.model.Allocation;
 import org.itss.prj_itss.model.request.domain.delivery.DeliveryMethod;
 import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;

@@ -6,7 +6,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import org.itss.prj_itss.controller.ordering.request.RequestDetailPopupController;
-import org.itss.prj_itss.model.request.application.sales.detail.AllocatedOrderRow;
+import org.itss.prj_itss.model.request.application.international.detail.AllocatedOrderRow;
 
 import java.io.IOException;
 import java.util.List;

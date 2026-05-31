@@ -12,7 +12,7 @@ public final class RequestControllerModule {
         this.receivedRequestsController =
             new ReceivedRequestsController(requestModule.receivedRequestsApplicationService());
         this.requestDetailPopupController = new RequestDetailPopupController(
-            requestModule.requestDetailApplicationService(),
+            requestModule.receivedRequestDetailApplicationService(),
             orderModule.orderCancellationApplicationService()
         );
     }

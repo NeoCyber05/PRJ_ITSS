@@ -3,7 +3,7 @@ package org.itss.prj_itss.model.request.application.sales;
 import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
 import org.itss.prj_itss.model.catalog.domain.Merchandise;
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
-import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestPort;
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
 import org.itss.prj_itss.model.request.application.sales.shared.SalesRequestItemSubmission;
@@ -17,10 +17,10 @@ import java.util.List;
 
 public final class RequestSalesApplicationService {
 
-    private final RequestManagementUseCase requestService;
+    private final SalesRequestPort requestService;
     private final CatalogUseCase catalogUseCase;
 
-    public RequestSalesApplicationService(RequestManagementUseCase requestService, CatalogUseCase catalogUseCase) {
+    public RequestSalesApplicationService(SalesRequestPort requestService, CatalogUseCase catalogUseCase) {
         this.requestService = requestService;
         this.catalogUseCase = catalogUseCase;
     }
@@ -103,7 +103,7 @@ public final class RequestSalesApplicationService {
     }
 
     public boolean deleteRequest(int requestId) {
-        return requestService.deleteRequest(requestId);
+        return requestService.deleteById(requestId);
     }
 
     private RequestDetailItemRow toDetailRow(RequestMerchandise item) {
