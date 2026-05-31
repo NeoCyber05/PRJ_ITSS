@@ -47,7 +47,11 @@ class RequestProcessingLayoutControllerTest {
         assertEquals(1, vm.items().size());
         assertEquals(1, vm.sites().size());
         assertEquals(0, vm.allocationItems().get(0).allocated());
-        assertEquals(LocalDate.now().plusDays(7), vm.earliestDeliveryDate() != null ? LocalDate.parse(vm.earliestDeliveryDate(), java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy")) : null);
+        assertEquals(LocalDate.now().plusDays(7),
+                vm.earliestDeliveryDate() != null
+                        ? LocalDate.parse(vm.earliestDeliveryDate(),
+                                java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+                        : null);
     }
 
     @Test
@@ -59,8 +63,7 @@ class RequestProcessingLayoutControllerTest {
         ProcessingSiteView site = vm.sites().get(0);
 
         AllocationChangeResultView result = controller.handleAllocationInputChanged(
-            new AllocationChangeCommand(item.merchandiseId(), site.id(), "3", "Tàu")
-        );
+                new AllocationChangeCommand(item.merchandiseId(), site.id(), "3", "Tàu"));
         assertTrue(result.applied());
 
         vm = controller.snapshot();
@@ -113,8 +116,7 @@ class RequestProcessingLayoutControllerTest {
         scenario.desiredDeliveryDate = LocalDate.now().plusDays(3);
         scenario.earliestDeliveryDate = scenario.desiredDeliveryDate;
         scenario.requestItems = List.of(
-            new RequestMerchandise(99, 10, BigDecimal.valueOf(5), scenario.desiredDeliveryDate)
-        );
+                new RequestMerchandise(99, 10, BigDecimal.valueOf(5), scenario.desiredDeliveryDate));
         scenario.sites = List.of(new Site(1, "S1", "Site 1", "", 6, 999));
 
         RequestProcessingLayoutController controller = controllerWith(scenario);
@@ -124,8 +126,7 @@ class RequestProcessingLayoutControllerTest {
         ProcessingSiteView site = vm.sites().get(0);
 
         controller.handleAllocationInputChanged(
-            new AllocationChangeCommand(item.merchandiseId(), site.id(), "5", "Tàu")
-        );
+                new AllocationChangeCommand(item.merchandiseId(), site.id(), "5", "Tàu"));
 
         RequestProcessingLayoutController.ConfirmResult result = controller.handleConfirm();
 
@@ -134,15 +135,13 @@ class RequestProcessingLayoutControllerTest {
 
     private RequestProcessingLayoutController controllerWith(Scenario scenario) {
         RequestProcessingUseCase useCase = new RequestProcessingUseCase(
-            new JdbcRequestProcessingGateway(
-                new FakeRequestRepository(scenario),
-                new FakeOrderRepository(),
-                new FakeSiteRepository(scenario),
-                new FakeInventoryRepository(scenario),
-                new FakeMerchandiseRepository(scenario),
-                new RecordingTransactionRunner()
-            )
-        );
+                new JdbcRequestProcessingGateway(
+                        new FakeRequestRepository(scenario),
+                        new FakeOrderRepository(),
+                        new FakeSiteRepository(scenario),
+                        new FakeInventoryRepository(scenario),
+                        new FakeMerchandiseRepository(scenario),
+                        new RecordingTransactionRunner()));
         return new RequestProcessingLayoutController(useCase);
     }
 
@@ -151,11 +150,9 @@ class RequestProcessingLayoutControllerTest {
         scenario.desiredDeliveryDate = LocalDate.now().plusDays(7);
         scenario.earliestDeliveryDate = scenario.desiredDeliveryDate;
         scenario.requestItems = List.of(
-            new RequestMerchandise(99, 10, BigDecimal.valueOf(5), scenario.desiredDeliveryDate)
-        );
+                new RequestMerchandise(99, 10, BigDecimal.valueOf(5), scenario.desiredDeliveryDate));
         scenario.merchandiseById = Map.of(
-            10, new Merchandise(10, "M10", "Part 10", "pcs")
-        );
+                10, new Merchandise(10, "M10", "Part 10", "pcs"));
         scenario.sites = List.of(new Site(1, "S1", "Site 1", "", 2, 1));
         scenario.inventoryBySiteId = Map.of(1, Map.of(10, 10));
         return scenario;
@@ -185,83 +182,181 @@ class RequestProcessingLayoutControllerTest {
         }
 
         @Override
-        public List<Request> findAll() { return List.of(); }
+        public List<Request> findAll() {
+            return List.of();
+        }
+
         @Override
-        public Request findById(int id) { return null; }
+        public Request findById(int id) {
+            return null;
+        }
+
         @Override
-        public List<RequestMerchandise> findItemsByRequestId(int requestId) { return scenario.requestItems; }
+        public List<RequestMerchandise> findItemsByRequestId(int requestId) {
+            return scenario.requestItems;
+        }
+
         @Override
-        public int countItemTypes(int requestId) { return scenario.requestItems.size(); }
+        public int countItemTypes(int requestId) {
+            return scenario.requestItems.size();
+        }
+
         @Override
-        public LocalDate getEarliestDeliveryDate(int requestId) { return scenario.earliestDeliveryDate; }
+        public LocalDate getEarliestDeliveryDate(int requestId) {
+            return scenario.earliestDeliveryDate;
+        }
+
         @Override
-        public boolean updateStatus(int requestId, String newStatus) { return true; }
+        public boolean updateStatus(int requestId, String newStatus) {
+            return true;
+        }
+
         @Override
-        public void updateRequestItems(int requestId, List<RequestMerchandise> items, String note) {}
+        public void updateRequestItems(int requestId, List<RequestMerchandise> items, String note) {
+        }
+
         @Override
-        public int createRequest(List<RequestMerchandise> items, String note) { return 1; }
+        public int createRequest(Request request) throws Exception {
+            return 1;
+        }
+
         @Override
-        public boolean deleteById(int requestId) { return true; }
+        public boolean deleteById(int requestId) {
+            return true;
+        }
     }
 
     private static final class FakeSiteRepository implements SiteRepository {
         private final Scenario scenario;
-        private FakeSiteRepository(Scenario scenario) { this.scenario = scenario; }
+
+        private FakeSiteRepository(Scenario scenario) {
+            this.scenario = scenario;
+        }
+
         @Override
-        public List<Site> findAll() { return scenario.sites; }
+        public List<Site> findAll() {
+            return scenario.sites;
+        }
+
         @Override
-        public List<Site> findAvailableForMerchandiseIds(List<Integer> merchandiseIds) { return scenario.sites; }
+        public List<Site> findAvailableForMerchandiseIds(List<Integer> merchandiseIds) {
+            return scenario.sites;
+        }
+
         @Override
-        public Site findById(int id) { return scenario.sites.stream().filter(s -> s.getId() == id).findFirst().orElse(null); }
+        public Site findById(int id) {
+            return scenario.sites.stream().filter(s -> s.getId() == id).findFirst().orElse(null);
+        }
+
         @Override
-        public Site findBySiteCode(String siteCode) { return null; }
+        public Site findBySiteCode(String siteCode) {
+            return null;
+        }
+
         @Override
-        public int countAll() { return scenario.sites.size(); }
+        public int countAll() {
+            return scenario.sites.size();
+        }
     }
 
     private static final class FakeInventoryRepository implements InventoryRepository {
         private final Scenario scenario;
-        private FakeInventoryRepository(Scenario scenario) { this.scenario = scenario; }
+
+        private FakeInventoryRepository(Scenario scenario) {
+            this.scenario = scenario;
+        }
+
         @Override
-        public Map<Integer, Integer> getInventoryBySiteId(int siteId) { return scenario.inventoryBySiteId.getOrDefault(siteId, Map.of()); }
+        public Map<Integer, Integer> getInventoryBySiteId(int siteId) {
+            return scenario.inventoryBySiteId.getOrDefault(siteId, Map.of());
+        }
+
         @Override
-        public int getStockQuantity(int siteId, int merchandiseId) { return getInventoryBySiteId(siteId).getOrDefault(merchandiseId, 0); }
+        public int getStockQuantity(int siteId, int merchandiseId) {
+            return getInventoryBySiteId(siteId).getOrDefault(merchandiseId, 0);
+        }
+
         @Override
-        public int getTotalStock(int merchandiseId) { return scenario.inventoryBySiteId.values().stream().mapToInt(i -> i.getOrDefault(merchandiseId, 0)).sum(); }
+        public int getTotalStock(int merchandiseId) {
+            return scenario.inventoryBySiteId.values().stream().mapToInt(i -> i.getOrDefault(merchandiseId, 0)).sum();
+        }
+
         @Override
-        public int countMerchandiseAtSite(int siteId) { return getInventoryBySiteId(siteId).size(); }
+        public int countMerchandiseAtSite(int siteId) {
+            return getInventoryBySiteId(siteId).size();
+        }
     }
 
     private static final class FakeMerchandiseRepository implements MerchandiseRepository {
         private final Scenario scenario;
-        private FakeMerchandiseRepository(Scenario scenario) { this.scenario = scenario; }
+
+        private FakeMerchandiseRepository(Scenario scenario) {
+            this.scenario = scenario;
+        }
+
         @Override
-        public List<Merchandise> findAll() { return new ArrayList<>(scenario.merchandiseById.values()); }
+        public List<Merchandise> findAll() {
+            return new ArrayList<>(scenario.merchandiseById.values());
+        }
+
         @Override
-        public Merchandise findById(int id) { return scenario.merchandiseById.get(id); }
+        public Merchandise findById(int id) {
+            return scenario.merchandiseById.get(id);
+        }
+
         @Override
-        public Merchandise findByCode(String code) { return scenario.merchandiseById.values().stream().filter(m -> m.getCode().equals(code)).findFirst().orElse(null); }
+        public Merchandise findByCode(String code) {
+            return scenario.merchandiseById.values().stream().filter(m -> m.getCode().equals(code)).findFirst()
+                    .orElse(null);
+        }
+
         @Override
-        public int countAll() { return scenario.merchandiseById.size(); }
+        public int countAll() {
+            return scenario.merchandiseById.size();
+        }
     }
 
     private static final class FakeOrderRepository implements OrderRepository {
         private final List<Order> createdOrders = new ArrayList<>();
         private final List<OrderMerchandise> createdItems = new ArrayList<>();
         private int nextOrderId = 1;
+
         @Override
-        public List<Order> findAll() { return List.of(); }
+        public List<Order> findAll() {
+            return List.of();
+        }
+
         @Override
-        public List<Order> findByStatus(String status) { return List.of(); }
+        public List<Order> findByStatus(String status) {
+            return List.of();
+        }
+
         @Override
-        public Order findById(int id) { return null; }
+        public Order findById(int id) {
+            return null;
+        }
+
         @Override
-        public List<OrderMerchandise> findItemsByOrderId(int orderId) { return List.of(); }
+        public List<OrderMerchandise> findItemsByOrderId(int orderId) {
+            return List.of();
+        }
+
         @Override
-        public int create(Order order) { order.setId(nextOrderId++); createdOrders.add(order); return order.getId(); }
+        public int create(Order order) {
+            order.setId(nextOrderId++);
+            createdOrders.add(order);
+            return order.getId();
+        }
+
         @Override
-        public boolean addItem(OrderMerchandise item) { createdItems.add(item); return true; }
+        public boolean addItem(OrderMerchandise item) {
+            createdItems.add(item);
+            return true;
+        }
+
         @Override
-        public boolean updateStatus(int orderId, String newStatus) { return true; }
+        public boolean updateStatus(int orderId, String newStatus) {
+            return true;
+        }
     }
 }

@@ -1,0 +1,46 @@
+sequenceDiagram
+    actor User as Nhân viên Sales
+    participant SalesCtrl as SalesRequestListController
+    participant Popup as CreateOrderRequestPopup
+    participant FXMLLoader as FXMLLoader
+    participant CreateCtrl as CreateOrderRequestController
+    participant AppCtx as ApplicationContext
+
+    User->>SalesCtrl: click createRequestButton
+    Note right of SalesCtrl: createRequestButton.setOnAction(event -> ...)
+
+    SalesCtrl->>Popup: show(requestTable.getScene().getWindow(), this::reload)
+    Popup->>Popup: new Stage()
+    Popup->>Popup: dialog.initModality(APPLICATION_MODAL)
+    Popup->>Popup: dialog.initStyle(TRANSPARENT)
+    Popup->>Popup: dialog.initOwner(owner)
+
+    Popup->>FXMLLoader: new FXMLLoader(VIEW_RESOURCE)
+    FXMLLoader->>FXMLLoader: load()
+    FXMLLoader-->>Popup: StackPane root
+
+    Popup->>FXMLLoader: getController()
+    FXMLLoader-->>Popup: CreateOrderRequestController
+
+    Popup->>CreateCtrl: setDialog(dialog)
+    Popup->>CreateCtrl: setOnSave(onSave)
+    Popup->>CreateCtrl: init(null, ApplicationContext.getInstance())
+
+    CreateCtrl->>AppCtx: getInstance()
+    AppCtx-->>CreateCtrl: ApplicationContext
+    CreateCtrl->>AppCtx: merchandiseService()
+    AppCtx-->>CreateCtrl: MerchandiseService
+    CreateCtrl->>AppCtx: requestService()
+    AppCtx-->>CreateCtrl: RequestService
+
+    CreateCtrl->>CreateCtrl: closeButton.setOnAction(e -> closePopup())
+    CreateCtrl->>CreateCtrl: cancelButton.setOnAction(e -> closePopup())
+    CreateCtrl->>CreateCtrl: addItemButton.setOnAction(e -> addNewRow())
+    CreateCtrl->>CreateCtrl: submitButton.setOnAction(e -> submitRequest())
+    CreateCtrl->>CreateCtrl: setupRowListeners(firstRow)
+
+    Popup->>Popup: new Scene(root, sceneWidth, sceneHeight)
+    Popup->>Popup: scene.getStylesheets().add(MAIN_STYLESHEET)
+    Popup->>Popup: dialog.setScene(scene)
+    Popup->>Popup: dialog.showAndWait()
+    Note right of Popup: Popup hiển thị, chờ User thao tác

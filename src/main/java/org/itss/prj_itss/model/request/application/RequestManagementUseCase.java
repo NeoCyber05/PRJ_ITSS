@@ -39,8 +39,8 @@ public final class RequestManagementUseCase {
         requestRepository.updateRequestItems(requestId, items, note);
     }
 
-    public int createRequest(List<RequestMerchandise> items, String note) throws Exception {
-        return requestRepository.createRequest(items, note);
+    public int createRequest(Request request) throws Exception {
+        return requestRepository.createRequest(request);
     }
 
     public boolean deleteRequest(int requestId) {

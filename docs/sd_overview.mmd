@@ -1,0 +1,23 @@
+sequenceDiagram
+    actor User as Nhân viên Sales
+    participant SalesCtrl as SalesRequestListController
+    participant Popup as CreateOrderRequestPopup
+    participant CreateCtrl as CreateOrderRequestController
+    participant MerchSvc as MerchandiseService
+    participant ReqSvc as RequestService
+    participant ReqRepo as RequestRepository
+    participant DB as Database
+
+    User->>SalesCtrl: click "Tạo yêu cầu"
+
+    rect rgb(230, 245, 255)
+        Note over SalesCtrl, CreateCtrl: ref [Mở popup & Khởi tạo] — Biểu đồ 1
+    end
+
+    rect rgb(255, 248, 220)
+        Note over User, MerchSvc: ref [Nhập liệu & Validate mã hàng] — Biểu đồ 2
+    end
+
+    rect rgb(220, 255, 220)
+        Note over User, DB: ref [Gửi yêu cầu & Lưu DB] — Biểu đồ 3
+    end

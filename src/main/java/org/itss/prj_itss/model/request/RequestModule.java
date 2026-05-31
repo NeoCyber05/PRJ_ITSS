@@ -24,34 +24,29 @@ public final class RequestModule {
     private final RequestSalesApplicationService requestSalesApplicationService;
 
     public RequestModule(
-        ConnectionProvider connectionProvider,
-        TransactionRunner transactionRunner,
-        OrderModule orderModule,
-        SiteModule siteModule,
-        CatalogModule catalogModule
-    ) {
+            ConnectionProvider connectionProvider,
+            TransactionRunner transactionRunner,
+            OrderModule orderModule,
+            SiteModule siteModule,
+            CatalogModule catalogModule) {
         this.requestRepository = new JdbcRequestRepository(connectionProvider);
         this.requestManagementUseCase = new RequestManagementUseCase(requestRepository);
         this.requestProcessingUseCase = new RequestProcessingUseCase(
-            new JdbcRequestProcessingGateway(
-                requestRepository,
-                orderModule.orderRepository(),
-                siteModule.siteRepository(),
-                siteModule.inventoryRepository(),
-                catalogModule.merchandiseRepository(),
-                transactionRunner
-            )
-        );
-        this.receivedRequestsApplicationService =
-            new ReceivedRequestsApplicationService(requestManagementUseCase);
+                new JdbcRequestProcessingGateway(
+                        requestRepository,
+                        orderModule.orderRepository(),
+                        siteModule.siteRepository(),
+                        siteModule.inventoryRepository(),
+                        catalogModule.merchandiseRepository(),
+                        transactionRunner));
+        this.receivedRequestsApplicationService = new ReceivedRequestsApplicationService(requestManagementUseCase);
         this.requestDetailApplicationService = new RequestDetailApplicationService(
-            requestManagementUseCase,
-            orderModule.orderUseCase(),
-            siteModule.siteUseCase(),
-            catalogModule.catalogUseCase()
-        );
-        this.requestSalesApplicationService =
-            new RequestSalesApplicationService(requestManagementUseCase, catalogModule.catalogUseCase());
+                requestManagementUseCase,
+                orderModule.orderUseCase(),
+                siteModule.siteUseCase(),
+                catalogModule.catalogUseCase());
+        this.requestSalesApplicationService = new RequestSalesApplicationService(requestManagementUseCase,
+                catalogModule.catalogUseCase());
     }
 
     public RequestManagementUseCase requestManagementUseCase() {

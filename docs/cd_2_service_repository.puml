@@ -1,0 +1,67 @@
+@startuml class_diagram_service_repository
+
+skinparam classAttributeIconSize 0
+
+title Service & Repository Layer - Tạo yêu cầu đặt hàng
+
+class ApplicationContext {
+    - {static} INSTANCE: ApplicationContext
+    - merchandiseService: MerchandiseService
+    - requestService: RequestService
+    + {static} getInstance(): ApplicationContext
+    + merchandiseService(): MerchandiseService
+    + requestService(): RequestService
+}
+
+class MerchandiseService {
+    - merchandiseRepository: IMerchandiseRepository
+    + findByCode(code: String): Merchandise
+    + findById(id: int): Merchandise
+    + findAll(): List<Merchandise>
+    + countAll(): int
+}
+
+class RequestService {
+    - requestRepository: IRequestRepository
+    + createRequest(items: List<RequestMerchandise>, note: String): int
+    + findAll(): List<Request>
+    + findById(id: int): Request
+    + deleteRequest(requestId: int): boolean
+}
+
+interface IMerchandiseRepository {
+    + findAll(): List<Merchandise>
+    + findById(id: int): Merchandise
+    + findByCode(code: String): Merchandise
+    + countAll(): int
+}
+
+interface IRequestRepository {
+    + findAll(): List<Request>
+    + findById(id: int): Request
+    + createRequest(items: List<RequestMerchandise>, note: String): int
+    + deleteById(requestId: int): boolean
+}
+
+class MerchandiseRepository {
+    + findAll(): List<Merchandise>
+    + findById(id: int): Merchandise
+    + findByCode(code: String): Merchandise
+    + countAll(): int
+}
+
+class RequestRepository {
+    + findAll(): List<Request>
+    + findById(id: int): Request
+    + createRequest(items: List<RequestMerchandise>, note: String): int
+    + deleteById(requestId: int): boolean
+}
+
+ApplicationContext --> MerchandiseService
+ApplicationContext --> RequestService
+MerchandiseService --> IMerchandiseRepository
+RequestService --> IRequestRepository
+MerchandiseRepository ..|> IMerchandiseRepository
+RequestRepository ..|> IRequestRepository
+
+@enduml

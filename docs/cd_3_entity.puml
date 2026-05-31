@@ -1,0 +1,55 @@
+@startuml class_diagram_entity
+
+skinparam classAttributeIconSize 0
+
+title Entity Layer - Tạo yêu cầu đặt hàng
+
+class Request {
+    - id: int
+    - createdAt: LocalDateTime
+    - status: String
+    - note: String
+    + getId(): int
+    + setId(id: int): void
+    + getCreatedAt(): LocalDateTime
+    + setCreatedAt(createdAt: LocalDateTime): void
+    + getStatus(): String
+    + setStatus(status: String): void
+    + getNote(): String
+    + setNote(note: String): void
+}
+
+class RequestMerchandise {
+    - requestId: int
+    - merchandiseId: int
+    - quantityOrdered: BigDecimal
+    - desiredDeliveryDate: LocalDate
+    + getRequestId(): int
+    + setRequestId(requestId: int): void
+    + getMerchandiseId(): int
+    + setMerchandiseId(merchandiseId: int): void
+    + getQuantityOrdered(): BigDecimal
+    + setQuantityOrdered(quantityOrdered: BigDecimal): void
+    + getDesiredDeliveryDate(): LocalDate
+    + setDesiredDeliveryDate(desiredDeliveryDate: LocalDate): void
+}
+
+class Merchandise {
+    - id: int
+    - code: String
+    - name: String
+    - unit: String
+    + getId(): int
+    + setId(id: int): void
+    + getCode(): String
+    + setCode(code: String): void
+    + getName(): String
+    + setName(name: String): void
+    + getUnit(): String
+    + setUnit(unit: String): void
+}
+
+Request "1" *-- "*" RequestMerchandise
+RequestMerchandise "*" --> "1" Merchandise
+
+@enduml

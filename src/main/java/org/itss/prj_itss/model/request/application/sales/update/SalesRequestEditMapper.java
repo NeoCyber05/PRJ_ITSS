@@ -39,7 +39,7 @@ public final class SalesRequestEditMapper {
     public List<SalesRequestItemSubmission> toInput(SalesRequestEditDraft draft) {
         return draft.items().stream()
             .map(item -> new SalesRequestItemSubmission(
-                item.merchandise().id(),
+                item.merchandise().code(),
                 item.quantity(),
                 item.desiredDate()
             ))

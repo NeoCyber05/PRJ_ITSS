@@ -16,9 +16,25 @@ public class Request {
     private LocalDateTime createdAt;
     private RequestStatus status;
     private String note;
+    private final java.util.List<RequestMerchandise> items = new java.util.ArrayList<>();
 
     /** Constructor mặc định để framework / JDBC mapper có thể khởi tạo. */
     public Request() {
+    }
+
+    /** Constructor nghiệp vụ để khởi tạo Yêu cầu mới. */
+    public Request(String note) {
+        this.note = note;
+        this.status = RequestStatus.PENDING;
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public void addItem(int merchandiseId, java.math.BigDecimal quantity, java.time.LocalDate desiredDate) {
+        this.items.add(new RequestMerchandise(this.id, merchandiseId, quantity, desiredDate));
+    }
+
+    public java.util.List<RequestMerchandise> getItems() {
+        return java.util.Collections.unmodifiableList(items);
     }
 
     /**

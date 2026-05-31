@@ -44,7 +44,7 @@ class SalesRequestEditMapperTest {
         assertEquals(LocalDate.of(2026, 5, 26), draft.items().get(0).desiredDate());
 
         assertEquals(1, inputs.size());
-        assertEquals(10, inputs.get(0).merchandiseId());
+        assertEquals("MH-001", inputs.get(0).merchandiseCode());
         assertEquals(new BigDecimal("2.5"), inputs.get(0).quantityOrdered());
         assertEquals(LocalDate.of(2026, 5, 26), inputs.get(0).desiredDeliveryDate());
     }

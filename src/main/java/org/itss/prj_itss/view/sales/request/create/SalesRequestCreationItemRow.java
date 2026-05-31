@@ -69,7 +69,7 @@ final class SalesRequestCreationItemRow extends HBox {
     }
 
     private void configureIndexLabel(int index) {
-        indexLabel.setMinWidth(30);
+        indexLabel.setPrefWidth(30);
         indexLabel.setAlignment(Pos.CENTER);
         indexLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569;");
         updateIndex(index);
@@ -77,7 +77,7 @@ final class SalesRequestCreationItemRow extends HBox {
 
     private void configureCodeField(Function<String, MerchandiseOption> merchandiseLookup) {
         codeField.setPromptText("VD: MH-001");
-        codeField.setMinWidth(150);
+        codeField.setPrefWidth(150);
         codeField.setStyle(INPUT_STYLE);
         codeField.textProperty().addListener((observable, oldValue, newValue) -> {
             String code = newValue == null ? "" : newValue.trim();
@@ -101,20 +101,20 @@ final class SalesRequestCreationItemRow extends HBox {
 
     private void configureQuantityField() {
         quantityField.setPromptText("0");
-        quantityField.setMinWidth(100);
+        quantityField.setPrefWidth(100);
         quantityField.setStyle(INPUT_STYLE);
     }
 
     private void configureUnitField() {
         unitField.setPromptText("VD: Thùng");
-        unitField.setMinWidth(120);
+        unitField.setPrefWidth(120);
         unitField.setStyle(INPUT_STYLE);
         unitField.setEditable(false);
     }
 
     private void configureDesiredDatePicker() {
         desiredDatePicker.setPromptText("dd/mm/yyyy");
-        desiredDatePicker.setMinWidth(180);
+        desiredDatePicker.setPrefWidth(180);
         desiredDatePicker.setStyle("-fx-background-color: white; -fx-border-color: #CBD5E1; -fx-border-radius: 4;");
         desiredDatePicker.setDayCellFactory(picker -> new DateCell() {
             @Override

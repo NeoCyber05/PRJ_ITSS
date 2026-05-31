@@ -59,14 +59,8 @@ public final class SalesRequestCreationView implements ViewLifecycle {
                 return;
             }
 
-            MerchandiseOption merchandise = controller.getMerchandiseOptionByCode(candidate.merchandiseCode());
-            if (merchandise == null) {
-                showError("Mã hàng \"" + candidate.merchandiseCode() + "\" không tồn tại trong hệ thống.");
-                return;
-            }
-
             items.add(new SalesRequestItemSubmission(
-                merchandise.id(),
+                candidate.merchandiseCode(),
                 candidate.quantity(),
                 candidate.desiredDate()
             ));

@@ -1,0 +1,49 @@
+sequenceDiagram
+    actor User as Nhân viên Sales
+    participant CreateCtrl as CreateOrderRequestController
+    participant MerchSvc as MerchandiseService
+    participant MerchRepo as MerchandiseRepository
+    participant DB as Database
+
+    Note over User, CreateCtrl: User nhập mã hàng, số lượng, ngày giao mong muốn
+
+    rect rgb(235, 245, 255)
+        Note over User, DB: Validate mã hàng (real-time khi gõ)
+        User->>CreateCtrl: nhập mã hàng vào codeField
+        Note right of CreateCtrl: codeField.textProperty().addListener(...)
+        CreateCtrl->>MerchSvc: findByCode(code.trim())
+        MerchSvc->>MerchRepo: findByCode(code)
+        MerchRepo->>DB: SELECT id, code, name, unit FROM merchandise WHERE code = ?
+        DB-->>MerchRepo: ResultSet
+        MerchRepo-->>MerchSvc: Merchandise / null
+        MerchSvc-->>CreateCtrl: Merchandise / null
+        alt Merchandise != null (mã hợp lệ)
+            CreateCtrl->>CreateCtrl: codeField.setStyle(defaultStyle)
+            CreateCtrl->>CreateCtrl: unitField.setText(m.getUnit())
+        else Merchandise == null (mã không tồn tại)
+            CreateCtrl->>CreateCtrl: codeField.setStyle(errorStyle)
+            CreateCtrl->>CreateCtrl: unitField.setText("")
+        end
+    end
+
+    rect rgb(255, 248, 220)
+        Note over User, CreateCtrl: Thêm dòng hàng mới
+        User->>CreateCtrl: click addItemButton
+        CreateCtrl->>CreateCtrl: addNewRow()
+        CreateCtrl->>CreateCtrl: new HBox(idLabel, codeField, quantityField, unitField, datePicker, deleteBtn)
+        CreateCtrl->>CreateCtrl: deleteBtn.setOnAction(e -> removeRow(newRow))
+        CreateCtrl->>CreateCtrl: setupRowListeners(newRow)
+        CreateCtrl->>CreateCtrl: itemsContainer.getChildren().add(newRow)
+    end
+
+    rect rgb(255, 235, 235)
+        Note over User, CreateCtrl: Xóa dòng hàng
+        User->>CreateCtrl: click deleteBtn trên dòng
+        CreateCtrl->>CreateCtrl: removeRow(row)
+        alt itemsContainer.size() <= 1
+            CreateCtrl->>CreateCtrl: Alert WARNING "Không thể xóa sản phẩm cuối cùng"
+        else itemsContainer.size() > 1
+            CreateCtrl->>CreateCtrl: itemsContainer.getChildren().remove(row)
+            CreateCtrl->>CreateCtrl: renumberRows()
+        end
+    end

@@ -33,34 +33,33 @@ class JdbcRequestProcessingGatewayTest {
     @Test
     void loadProcessingDataOnlyQueriesSitesAvailableForRequestedMerchandise() {
         RecordingSiteRepository siteRepository = new RecordingSiteRepository(List.of(
-            new Site(1, "S1", "Site 1", "", 2, 1)
-        ));
+                new Site(1, "S1", "Site 1", "", 2, 1)));
         JdbcRequestProcessingGateway gateway = new JdbcRequestProcessingGateway(
-            new RecordingRequestRepository() {
-                @Override
-                public List<RequestMerchandise> findItemsByRequestId(int requestId) {
-                    return List.of(
-                        new RequestMerchandise(requestId, 10, BigDecimal.valueOf(2), LocalDate.now().plusDays(7)),
-                        new RequestMerchandise(requestId, 11, BigDecimal.valueOf(3), LocalDate.now().plusDays(8))
-                    );
-                }
-            },
-            new FakeOrderRepository(),
-            siteRepository,
-            new EmptyInventoryRepository() {
-                @Override
-                public Map<Integer, Integer> getInventoryBySiteId(int siteId) {
-                    return Map.of(10, 5);
-                }
-            },
-            new EmptyMerchandiseRepository() {
-                @Override
-                public Merchandise findById(int id) {
-                    return new Merchandise(id, "M" + id, "Item " + id, "pcs");
-                }
-            },
-            new RecordingTransactionRunner()
-        );
+                new RecordingRequestRepository() {
+                    @Override
+                    public List<RequestMerchandise> findItemsByRequestId(int requestId) {
+                        return List.of(
+                                new RequestMerchandise(requestId, 10, BigDecimal.valueOf(2),
+                                        LocalDate.now().plusDays(7)),
+                                new RequestMerchandise(requestId, 11, BigDecimal.valueOf(3),
+                                        LocalDate.now().plusDays(8)));
+                    }
+                },
+                new FakeOrderRepository(),
+                siteRepository,
+                new EmptyInventoryRepository() {
+                    @Override
+                    public Map<Integer, Integer> getInventoryBySiteId(int siteId) {
+                        return Map.of(10, 5);
+                    }
+                },
+                new EmptyMerchandiseRepository() {
+                    @Override
+                    public Merchandise findById(int id) {
+                        return new Merchandise(id, "M" + id, "Item " + id, "pcs");
+                    }
+                },
+                new RecordingTransactionRunner());
 
         RequestProcessingData data = gateway.loadProcessingData(99);
 
@@ -78,9 +77,8 @@ class JdbcRequestProcessingGatewayTest {
 
         Map<Integer, Map<Integer, Allocation>> allocations = new LinkedHashMap<>();
         allocations.put(10, Map.of(
-            1, allocation(1, 10, 2),
-            2, allocation(2, 10, 3)
-        ));
+                1, allocation(1, 10, 2),
+                2, allocation(2, 10, 3)));
 
         gateway.createAllocatedOrders(99, allocations);
 
@@ -96,31 +94,27 @@ class JdbcRequestProcessingGatewayTest {
         orderRepository.failAddItem = true;
         RecordingTransactionRunner transactionRunner = new RecordingTransactionRunner();
         JdbcRequestProcessingGateway gateway = gateway(
-            new RecordingRequestRepository(),
-            orderRepository,
-            transactionRunner
-        );
+                new RecordingRequestRepository(),
+                orderRepository,
+                transactionRunner);
 
         assertThrows(RequestProcessingGatewayException.class, () -> gateway.createAllocatedOrders(
-            99,
-            Map.of(10, Map.of(1, allocation(1, 10, 2)))
-        ));
+                99,
+                Map.of(10, Map.of(1, allocation(1, 10, 2)))));
         assertEquals(1, transactionRunner.rollbacks);
     }
 
     private JdbcRequestProcessingGateway gateway(
-        RequestRepository requestRepository,
-        OrderRepository orderRepository,
-        TransactionRunner transactionRunner
-    ) {
+            RequestRepository requestRepository,
+            OrderRepository orderRepository,
+            TransactionRunner transactionRunner) {
         return new JdbcRequestProcessingGateway(
-            requestRepository,
-            orderRepository,
-            new EmptySiteRepository(),
-            new EmptyInventoryRepository(),
-            new EmptyMerchandiseRepository(),
-            transactionRunner
-        );
+                requestRepository,
+                orderRepository,
+                new EmptySiteRepository(),
+                new EmptyInventoryRepository(),
+                new EmptyMerchandiseRepository(),
+                transactionRunner);
     }
 
     private Allocation allocation(int siteId, int merchandiseId, int quantity) {
@@ -250,7 +244,7 @@ class JdbcRequestProcessingGatewayTest {
         }
 
         @Override
-        public int createRequest(List<RequestMerchandise> items, String note) {
+        public int createRequest(Request request) throws Exception {
             return 1;
         }
 

@@ -1,0 +1,50 @@
+@startuml class_diagram_boundary
+
+skinparam classAttributeIconSize 0
+
+title Boundary Layer - Tạo yêu cầu đặt hàng
+
+interface IViewController {
+    + init(navigator: INavigator, context: ApplicationContext): void
+    + onViewShown(viewId: String): void
+}
+
+class SalesRequestListController {
+    - navigator: INavigator
+    - requestService: RequestService
+    - currentPage: int
+    + init(navigator: INavigator, context: ApplicationContext): void
+    + onViewShown(viewId: String): void
+    - reload(): void
+    - applyFilters(): void
+}
+
+class CreateOrderRequestPopup {
+    - {static} VIEW_RESOURCE: String
+    - {static} MAIN_STYLESHEET: String
+    + {static} show(owner: Window, onSave: Runnable): void
+}
+
+class CreateOrderRequestController {
+    - dialog: Stage
+    - merchandiseService: MerchandiseService
+    - requestService: RequestService
+    - onSaveCallback: Runnable
+    + init(navigator: INavigator, context: ApplicationContext): void
+    + setDialog(dialog: Stage): void
+    + setOnSave(callback: Runnable): void
+    - submitRequest(): void
+    - addNewRow(): void
+    - setupRowListeners(row: HBox): void
+    - removeRow(row: HBox): void
+    - renumberRows(): void
+    - showError(message: String): void
+    - closePopup(): void
+}
+
+SalesRequestListController ..|> IViewController
+CreateOrderRequestController ..|> IViewController
+SalesRequestListController ..> CreateOrderRequestPopup : <<use>>
+CreateOrderRequestPopup ..> CreateOrderRequestController : <<create>>
+
+@enduml

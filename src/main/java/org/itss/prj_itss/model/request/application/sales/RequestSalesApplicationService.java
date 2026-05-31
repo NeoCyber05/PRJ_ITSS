@@ -12,7 +12,6 @@ import org.itss.prj_itss.model.request.application.sales.shared.RequestFormView;
 import org.itss.prj_itss.model.request.application.sales.view.RequestDetailItemRow;
 import org.itss.prj_itss.model.request.application.sales.view.RequestReadOnlyView;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 public final class RequestSalesApplicationService {
@@ -89,15 +88,26 @@ public final class RequestSalesApplicationService {
     }
 
     public int createRequest(List<SalesRequestItemSubmission> items, String note) throws Exception {
-        List<RequestMerchandise> domainItems = items.stream()
-            .map(i -> new RequestMerchandise(0, i.merchandiseId(), i.quantityOrdered(), i.desiredDeliveryDate()))
-            .toList();
-        return requestService.createRequest(domainItems, note);
+        Request request = new Request(note);
+        for (SalesRequestItemSubmission item : items) {
+            Merchandise m = catalogUseCase.findByCode(item.merchandiseCode());
+            if (m == null) {
+                throw new IllegalArgumentException("Mã hàng không tồn tại: " + item.merchandiseCode());
+            }
+            request.addItem(m.getId(), item.quantityOrdered(), item.desiredDeliveryDate());
+        }
+        return requestService.createRequest(request);
     }
 
     public void updateRequest(int requestId, List<SalesRequestItemSubmission> items, String note) throws Exception {
         List<RequestMerchandise> domainItems = items.stream()
-            .map(i -> new RequestMerchandise(requestId, i.merchandiseId(), i.quantityOrdered(), i.desiredDeliveryDate()))
+            .map(i -> {
+                Merchandise m = catalogUseCase.findByCode(i.merchandiseCode());
+                if (m == null) {
+                    throw new IllegalArgumentException("Mã hàng không tồn tại: " + i.merchandiseCode());
+                }
+                return new RequestMerchandise(requestId, m.getId(), i.quantityOrdered(), i.desiredDeliveryDate());
+            })
             .toList();
         requestService.updateRequestItems(requestId, domainItems, note);
     }

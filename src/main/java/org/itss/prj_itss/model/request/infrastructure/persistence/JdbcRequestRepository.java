@@ -23,8 +23,9 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
         List<Request> list = new ArrayList<>();
         String sql = "SELECT id, created_at, status, note FROM request ORDER BY id DESC";
         try (PreparedStatement ps = getConnection().prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-            while (rs.next()) list.add(mapRequest(rs));
+                ResultSet rs = ps.executeQuery()) {
+            while (rs.next())
+                list.add(mapRequest(rs));
         } catch (SQLException e) {
             System.err.println("RequestRepository.findAll: " + e.getMessage());
         }
@@ -37,7 +38,8 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, id);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return mapRequest(rs);
+                if (rs.next())
+                    return mapRequest(rs);
             }
         } catch (SQLException e) {
             System.err.println("RequestRepository.findById: " + e.getMessage());
@@ -49,7 +51,7 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
     public List<RequestMerchandise> findItemsByRequestId(int requestId) {
         List<RequestMerchandise> list = new ArrayList<>();
         String sql = "SELECT request_id, merchandise_id, quantity_ordered, desired_delivery_date " +
-                     "FROM request_merchandise WHERE request_id = ?";
+                "FROM request_merchandise WHERE request_id = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, requestId);
             try (ResultSet rs = ps.executeQuery()) {
@@ -59,7 +61,8 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
                     rm.setMerchandiseId(rs.getInt("merchandise_id"));
                     rm.setQuantityOrdered(rs.getBigDecimal("quantity_ordered"));
                     Date d = rs.getDate("desired_delivery_date");
-                    if (d != null) rm.setDesiredDeliveryDate(d.toLocalDate());
+                    if (d != null)
+                        rm.setDesiredDeliveryDate(d.toLocalDate());
                     list.add(rm);
                 }
             }
@@ -75,7 +78,8 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
             ps.setInt(1, requestId);
             try (ResultSet rs = ps.executeQuery()) {
-                if (rs.next()) return rs.getInt(1);
+                if (rs.next())
+                    return rs.getInt(1);
             }
         } catch (SQLException e) {
             System.err.println("RequestRepository.countItemTypes: " + e.getMessage());
@@ -91,7 +95,8 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) {
                     Date d = rs.getDate(1);
-                    if (d != null) return d.toLocalDate();
+                    if (d != null)
+                        return d.toLocalDate();
                 }
             }
         } catch (SQLException e) {
@@ -119,7 +124,7 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
         boolean originalAutoCommit = conn.getAutoCommit();
         try {
             conn.setAutoCommit(false);
-            
+
             String updateNoteSql = "UPDATE request SET note = ? WHERE id = ?";
             try (PreparedStatement ps = conn.prepareStatement(updateNoteSql)) {
                 ps.setString(1, note);
@@ -132,7 +137,7 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
                 ps.setInt(1, requestId);
                 ps.executeUpdate();
             }
-            
+
             String insertSql = "INSERT INTO request_merchandise (request_id, merchandise_id, quantity_ordered, desired_delivery_date) VALUES (?, ?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(insertSql)) {
                 for (RequestMerchandise item : items) {
@@ -148,7 +153,7 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
                 }
                 ps.executeBatch();
             }
-            
+
             conn.commit();
         } catch (Exception e) {
             conn.rollback();
@@ -159,28 +164,31 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
     }
 
     @Override
-    public int createRequest(List<RequestMerchandise> items, String note) throws Exception {
+    public int createRequest(Request request) throws Exception {
         Connection conn = getConnection();
         boolean originalAutoCommit = conn.getAutoCommit();
         try {
             conn.setAutoCommit(false);
-            
+
             int requestId = -1;
-            String insertRequestSql = "INSERT INTO request (status, note, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)";
+            String insertRequestSql = "INSERT INTO request (status, note, created_at) VALUES (?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(insertRequestSql, Statement.RETURN_GENERATED_KEYS)) {
-                ps.setString(1, RequestStatus.PENDING.storageValue());
-                ps.setString(2, note);
+                ps.setString(1, request.getStatus().storageValue());
+                ps.setString(2, request.getNote());
+                ps.setTimestamp(3, Timestamp.valueOf(request.getCreatedAt()));
                 ps.executeUpdate();
                 try (ResultSet rs = ps.getGeneratedKeys()) {
-                    if (rs.next()) requestId = rs.getInt(1);
+                    if (rs.next())
+                        requestId = rs.getInt(1);
                 }
             }
 
-            if (requestId == -1) throw new SQLException("Failed to create request, no ID obtained.");
+            if (requestId == -1)
+                throw new SQLException("Failed to create request, no ID obtained.");
 
             String insertItemSql = "INSERT INTO request_merchandise (request_id, merchandise_id, quantity_ordered, desired_delivery_date) VALUES (?, ?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(insertItemSql)) {
-                for (RequestMerchandise item : items) {
+                for (RequestMerchandise item : request.getItems()) {
                     ps.setInt(1, requestId);
                     ps.setInt(2, item.getMerchandiseId());
                     ps.setBigDecimal(3, item.getQuantityOrdered());
@@ -193,7 +201,7 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
                 }
                 ps.executeBatch();
             }
-            
+
             conn.commit();
             return requestId;
         } catch (Exception e) {
@@ -231,10 +239,16 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
                 return affected > 0;
             } catch (SQLException e) {
                 System.err.println("RequestRepository.deleteById: " + e.getMessage());
-                try { conn.rollback(); } catch (SQLException ex) { /* ignore */ }
+                try {
+                    conn.rollback();
+                } catch (SQLException ex) {
+                    /* ignore */ }
                 return false;
             } finally {
-                try { conn.setAutoCommit(originalAutoCommit); } catch (SQLException ex) { /* ignore */ }
+                try {
+                    conn.setAutoCommit(originalAutoCommit);
+                } catch (SQLException ex) {
+                    /* ignore */ }
             }
         } catch (SQLException e) {
             System.err.println("RequestRepository.deleteById (connection): " + e.getMessage());
@@ -251,4 +265,3 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
         return Request.reconstituteFromDb(id, createdAt, status, note);
     }
 }
-

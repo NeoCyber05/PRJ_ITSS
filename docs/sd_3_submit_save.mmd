@@ -1,0 +1,70 @@
+sequenceDiagram
+    actor User as Nhân viên Sales
+    participant CreateCtrl as CreateOrderRequestController
+    participant MerchSvc as MerchandiseService
+    participant MerchRepo as MerchandiseRepository
+    participant ReqSvc as RequestService
+    participant ReqRepo as RequestRepository
+    participant DB as Database
+    participant SalesCtrl as SalesRequestListController
+
+    User->>CreateCtrl: click submitButton
+    CreateCtrl->>CreateCtrl: submitRequest()
+
+    loop Mỗi dòng hàng (row) trong itemsContainer
+        CreateCtrl->>CreateCtrl: Lấy codeField, quantityField, datePicker từ row
+
+        alt code/quantity/date rỗng
+            CreateCtrl->>CreateCtrl: showError("Vui lòng điền đầy đủ thông tin")
+            Note right of CreateCtrl: return (dừng submit)
+        end
+
+        CreateCtrl->>MerchSvc: findByCode(code.trim())
+        MerchSvc->>MerchRepo: findByCode(code)
+        MerchRepo->>DB: SELECT ... FROM merchandise WHERE code = ?
+        DB-->>MerchRepo: ResultSet
+        MerchRepo-->>MerchSvc: Merchandise / null
+        MerchSvc-->>CreateCtrl: Merchandise / null
+
+        alt Merchandise == null
+            CreateCtrl->>CreateCtrl: showError("Mã hàng không tồn tại")
+            Note right of CreateCtrl: return (dừng submit)
+        end
+
+        CreateCtrl->>CreateCtrl: parse quantity (BigDecimal)
+        alt quantity <= 0 hoặc không hợp lệ
+            CreateCtrl->>CreateCtrl: showError("Số lượng phải là số dương hợp lệ")
+            Note right of CreateCtrl: return (dừng submit)
+        end
+
+        CreateCtrl->>CreateCtrl: new RequestMerchandise()
+        CreateCtrl->>CreateCtrl: item.setMerchandiseId(m.getId())
+        CreateCtrl->>CreateCtrl: item.setQuantityOrdered(quantity)
+        CreateCtrl->>CreateCtrl: item.setDesiredDeliveryDate(date)
+        CreateCtrl->>CreateCtrl: items.add(item)
+    end
+
+    alt items.isEmpty()
+        CreateCtrl->>CreateCtrl: showError("Cần ít nhất một mặt hàng")
+        Note right of CreateCtrl: return (dừng submit)
+    end
+
+    CreateCtrl->>ReqSvc: createRequest(items, "")
+    ReqSvc->>ReqRepo: createRequest(items, note)
+    ReqRepo->>DB: conn.setAutoCommit(false)
+    ReqRepo->>DB: INSERT INTO request (status, note, created_at) VALUES ('pending', ?, CURRENT_TIMESTAMP)
+    DB-->>ReqRepo: generated requestId
+
+    loop Mỗi RequestMerchandise item
+        ReqRepo->>DB: INSERT INTO request_merchandise (request_id, merchandise_id, quantity_ordered, desired_delivery_date) VALUES (?, ?, ?, ?)
+    end
+
+    ReqRepo->>DB: conn.commit()
+    ReqRepo-->>ReqSvc: requestId
+    ReqSvc-->>CreateCtrl: requestId
+
+    CreateCtrl->>CreateCtrl: Alert INFORMATION "Yêu cầu nhập hàng đã được gửi thành công"
+    CreateCtrl->>SalesCtrl: onSaveCallback.run()
+    SalesCtrl->>SalesCtrl: reload()
+    CreateCtrl->>CreateCtrl: closePopup()
+    CreateCtrl->>CreateCtrl: dialog.close()

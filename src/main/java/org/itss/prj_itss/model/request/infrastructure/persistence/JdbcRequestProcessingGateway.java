@@ -40,13 +40,12 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
     private final TransactionRunner transactionRunner;
 
     public JdbcRequestProcessingGateway(
-        RequestRepository requestRepository,
-        OrderRepository orderRepository,
-        SiteRepository siteRepository,
-        InventoryRepository inventoryRepository,
-        MerchandiseRepository merchandiseRepository,
-        TransactionRunner transactionRunner
-    ) {
+            RequestRepository requestRepository,
+            OrderRepository orderRepository,
+            SiteRepository siteRepository,
+            InventoryRepository inventoryRepository,
+            MerchandiseRepository merchandiseRepository,
+            TransactionRunner transactionRunner) {
         this.requestRepository = requestRepository;
         this.orderRepository = orderRepository;
         this.siteRepository = siteRepository;
@@ -63,11 +62,10 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
             Merchandise merchandise = merchandiseRepository.findById(requestItem.getMerchandiseId());
             if (merchandise != null) {
                 items.add(new ItemRequirement(
-                    merchandise.getId(),
-                    merchandise.getCode(),
-                    merchandise.getName(),
-                    requestItem.getQuantityOrdered().intValue()
-                ));
+                        merchandise.getId(),
+                        merchandise.getCode(),
+                        merchandise.getName(),
+                        requestItem.getQuantityOrdered().intValue()));
                 desiredDeliveryDates.put(merchandise.getId(), requestItem.getDesiredDeliveryDate());
             }
         }
@@ -82,33 +80,33 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
         }
 
         List<Integer> requestedMerchandiseIds = items.stream()
-            .map(item -> item.merchandiseId)
-            .distinct()
-            .toList();
+                .map(item -> item.merchandiseId)
+                .distinct()
+                .toList();
         List<SiteStockOption> sites = new ArrayList<>();
         for (Site site : siteRepository.findAvailableForMerchandiseIds(requestedMerchandiseIds)) {
             sites.add(new SiteStockOption(
-                site.getId(),
-                site.getSiteCode(),
-                site.getName(),
-                site.getDescription(),
-                site.getShipDeliveryDays() == null ? 999 : site.getShipDeliveryDays(),
-                site.getAirDeliveryDays() == null ? 999 : site.getAirDeliveryDays(),
-                inventoryRepository.getInventoryBySiteId(site.getId())
-            ));
+                    site.getId(),
+                    site.getSiteCode(),
+                    site.getName(),
+                    site.getDescription(),
+                    site.getShipDeliveryDays() == null ? 999 : site.getShipDeliveryDays(),
+                    site.getAirDeliveryDays() == null ? 999 : site.getAirDeliveryDays(),
+                    inventoryRepository.getInventoryBySiteId(site.getId())));
         }
 
-        return new RequestProcessingData(requestId, earliestDeliveryDate, deadlineDays, items, sites, desiredDeliveryDates);
+        return new RequestProcessingData(requestId, earliestDeliveryDate, deadlineDays, items, sites,
+                desiredDeliveryDates);
     }
 
     @Override
     public void createAllocatedOrders(
-        int requestId,
-        Map<Integer, Map<Integer, Allocation>> allocations
-    ) throws RequestProcessingGatewayException {
+            int requestId,
+            Map<Integer, Map<Integer, Allocation>> allocations) throws RequestProcessingGatewayException {
         try {
             transactionRunner.execute(() -> {
-                for (Map.Entry<Integer, List<Allocation>> siteEntry : AllocationPlan.using(allocations).groupBySite().entrySet()) {
+                for (Map.Entry<Integer, List<Allocation>> siteEntry : AllocationPlan.using(allocations).groupBySite()
+                        .entrySet()) {
                     Order order = new Order();
                     order.setRequestId(requestId);
                     order.setSiteId(siteEntry.getKey());
@@ -121,11 +119,10 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
 
                     for (Allocation allocation : siteEntry.getValue()) {
                         OrderMerchandise orderItem = new OrderMerchandise(
-                            orderId,
-                            allocation.merchandiseId,
-                            BigDecimal.valueOf(allocation.getQuantity()),
-                            toStoredDeliveryMethod(allocation.transport)
-                        );
+                                orderId,
+                                allocation.merchandiseId,
+                                BigDecimal.valueOf(allocation.getQuantity()),
+                                toStoredDeliveryMethod(allocation.transport));
                         if (!orderRepository.addItem(orderItem)) {
                             throw new TransactionException("Cannot create order line for order " + orderId);
                         }
@@ -138,9 +135,8 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
             });
         } catch (TransactionException exception) {
             throw new RequestProcessingGatewayException(
-                "Cannot create allocated orders for request " + requestId,
-                exception
-            );
+                    "Cannot create allocated orders for request " + requestId,
+                    exception);
         }
     }
 
@@ -149,4 +145,3 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
         return (method == null ? DeliveryMethod.SHIP : method).storageValue();
     }
 }
-

@@ -1,0 +1,179 @@
+@startuml class_diagram_create_order_request
+
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+
+' ==================== Interface ====================
+interface IViewController {
+    + init(navigator: INavigator, context: ApplicationContext): void
+    + onViewShown(viewId: String): void
+}
+
+' ==================== Boundary ====================
+class SalesRequestListController {
+    - navigator: INavigator
+    - requestService: RequestService
+    - currentPage: int
+    + init(navigator: INavigator, context: ApplicationContext): void
+    + onViewShown(viewId: String): void
+    - reload(): void
+    - applyFilters(): void
+}
+
+class CreateOrderRequestPopup {
+    - {static} VIEW_RESOURCE: String
+    - {static} MAIN_STYLESHEET: String
+    + {static} show(owner: Window, onSave: Runnable): void
+}
+
+class CreateOrderRequestController {
+    - dialog: Stage
+    - merchandiseService: MerchandiseService
+    - requestService: RequestService
+    - onSaveCallback: Runnable
+    + init(navigator: INavigator, context: ApplicationContext): void
+    + setDialog(dialog: Stage): void
+    + setOnSave(callback: Runnable): void
+    - submitRequest(): void
+    - addNewRow(): void
+    - setupRowListeners(row: HBox): void
+    - removeRow(row: HBox): void
+    - renumberRows(): void
+    - showError(message: String): void
+    - closePopup(): void
+}
+
+' ==================== Control ====================
+class ApplicationContext {
+    - {static} INSTANCE: ApplicationContext
+    - merchandiseService: MerchandiseService
+    - requestService: RequestService
+    + {static} getInstance(): ApplicationContext
+    + merchandiseService(): MerchandiseService
+    + requestService(): RequestService
+}
+
+class MerchandiseService {
+    - merchandiseRepository: IMerchandiseRepository
+    + findByCode(code: String): Merchandise
+    + findById(id: int): Merchandise
+    + findAll(): List<Merchandise>
+    + countAll(): int
+}
+
+class RequestService {
+    - requestRepository: IRequestRepository
+    + createRequest(items: List<RequestMerchandise>, note: String): int
+    + findAll(): List<Request>
+    + findById(id: int): Request
+    + deleteRequest(requestId: int): boolean
+}
+
+' ==================== Repository ====================
+interface IMerchandiseRepository {
+    + findAll(): List<Merchandise>
+    + findById(id: int): Merchandise
+    + findByCode(code: String): Merchandise
+    + countAll(): int
+}
+
+interface IRequestRepository {
+    + findAll(): List<Request>
+    + findById(id: int): Request
+    + createRequest(items: List<RequestMerchandise>, note: String): int
+    + deleteById(requestId: int): boolean
+}
+
+class MerchandiseRepository {
+    + findAll(): List<Merchandise>
+    + findById(id: int): Merchandise
+    + findByCode(code: String): Merchandise
+    + countAll(): int
+}
+
+class RequestRepository {
+    + findAll(): List<Request>
+    + findById(id: int): Request
+    + createRequest(items: List<RequestMerchandise>, note: String): int
+    + deleteById(requestId: int): boolean
+}
+
+' ==================== Entity ====================
+class Request {
+    - id: int
+    - createdAt: LocalDateTime
+    - status: String
+    - note: String
+    + getId(): int
+    + setId(id: int): void
+    + getCreatedAt(): LocalDateTime
+    + setCreatedAt(createdAt: LocalDateTime): void
+    + getStatus(): String
+    + setStatus(status: String): void
+    + getNote(): String
+    + setNote(note: String): void
+}
+
+class RequestMerchandise {
+    - requestId: int
+    - merchandiseId: int
+    - quantityOrdered: BigDecimal
+    - desiredDeliveryDate: LocalDate
+    + getRequestId(): int
+    + setRequestId(requestId: int): void
+    + getMerchandiseId(): int
+    + setMerchandiseId(merchandiseId: int): void
+    + getQuantityOrdered(): BigDecimal
+    + setQuantityOrdered(quantityOrdered: BigDecimal): void
+    + getDesiredDeliveryDate(): LocalDate
+    + setDesiredDeliveryDate(desiredDeliveryDate: LocalDate): void
+}
+
+class Merchandise {
+    - id: int
+    - code: String
+    - name: String
+    - unit: String
+    + getId(): int
+    + setId(id: int): void
+    + getCode(): String
+    + setCode(code: String): void
+    + getName(): String
+    + setName(name: String): void
+    + getUnit(): String
+    + setUnit(unit: String): void
+}
+
+' ==================== Relationships ====================
+
+' Realization
+SalesRequestListController ..|> IViewController
+CreateOrderRequestController ..|> IViewController
+
+' Dependency
+SalesRequestListController ..> CreateOrderRequestPopup : <<use>>
+CreateOrderRequestPopup ..> CreateOrderRequestController : <<create>>
+CreateOrderRequestController ..> ApplicationContext : <<use>>
+
+' Association
+CreateOrderRequestController --> MerchandiseService
+CreateOrderRequestController --> RequestService
+ApplicationContext --> MerchandiseService
+ApplicationContext --> RequestService
+MerchandiseService --> IMerchandiseRepository
+RequestService --> IRequestRepository
+
+' Realization (Repository)
+MerchandiseRepository ..|> IMerchandiseRepository
+RequestRepository ..|> IRequestRepository
+
+' Dependency (Repository -> Entity)
+MerchandiseRepository ..> Merchandise : <<create>>
+RequestRepository ..> Request : <<create>>
+RequestRepository ..> RequestMerchandise : <<create>>
+
+' Composition & Association (Entity)
+Request "1" *-- "*" RequestMerchandise
+RequestMerchandise "*" --> "1" Merchandise
+
+@enduml

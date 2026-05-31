@@ -49,11 +49,14 @@
                                     <children>
                                         <!-- Table Header -->
                                         <HBox spacing="12" alignment="CENTER_LEFT">
-                                            <Label text="#" minWidth="30" style="-fx-font-size: 13px; -fx-text-fill: #475569; -fx-font-weight: bold;"/>
-                                            <Label text="Mã hàng *" minWidth="150" style="-fx-font-size: 13px; -fx-text-fill: #475569; -fx-font-weight: bold;"/>
-                                            <Label text="Số lượng *" minWidth="100" style="-fx-font-size: 13px; -fx-text-fill: #475569; -fx-font-weight: bold;"/>
-                                            <Label text="Đơn vị *" minWidth="120" style="-fx-font-size: 13px; -fx-text-fill: #475569; -fx-font-weight: bold;"/>
-                                            <Label text="Ngày nhận mong muốn *" minWidth="180" style="-fx-font-size: 13px; -fx-text-fill: #475569; -fx-font-weight: bold;"/>
+                                            <padding>
+                                                <Insets left="8" right="8"/>
+                                            </padding>
+                                            <Label text="#" prefWidth="30" alignment="CENTER" style="-fx-font-size: 13px; -fx-text-fill: #475569; -fx-font-weight: bold;"/>
+                                            <Label text="Mã hàng *" prefWidth="150" style="-fx-font-size: 13px; -fx-text-fill: #475569; -fx-font-weight: bold;"/>
+                                            <Label text="Số lượng *" prefWidth="100" style="-fx-font-size: 13px; -fx-text-fill: #475569; -fx-font-weight: bold;"/>
+                                            <Label text="Đơn vị *" prefWidth="120" style="-fx-font-size: 13px; -fx-text-fill: #475569; -fx-font-weight: bold;"/>
+                                            <Label text="Ngày nhận mong muốn *" prefWidth="180" style="-fx-font-size: 13px; -fx-text-fill: #475569; -fx-font-weight: bold;"/>
                                         </HBox>
                                         <Line endX="752" stroke="#E2E8F0"/>
 
@@ -68,7 +71,7 @@
                                 <HBox spacing="12" alignment="CENTER_RIGHT" style="-fx-background-color: #F8FAFC; -fx-padding: 16 24; -fx-background-radius: 0 0 12 12;">
                                     <Region HBox.hgrow="ALWAYS"/>
                                     <Button fx:id="cancelButton" text="Hủy" style="-fx-background-color: white; -fx-border-color: #CBD5E1; -fx-border-radius: 6; -fx-text-fill: #334155; -fx-padding: 8 16; -fx-cursor: hand;"/>
-                                    <Button fx:id="submitButton" text="Gửi yêu cầu nhập hàng" styleClass="btn-submit-order"/>
+                                    <Button fx:id="submitButton" text="Gửi yêu cầu đặt hàng" styleClass="btn-submit-order"/>
                                 </HBox>
                             </children>
                         </VBox>
