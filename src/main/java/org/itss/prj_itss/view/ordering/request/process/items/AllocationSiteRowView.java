@@ -8,9 +8,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.model.request.application.processing.AllocationChangeCommand;
-import org.itss.prj_itss.model.request.application.processing.AllocationChangeResultView;
-import org.itss.prj_itss.model.request.application.processing.RequestProcessingViewModel;
+import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
+import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
+import org.itss.prj_itss.view.ordering.request.process.state.RequestProcessingViewModel;
 
 import java.io.IOException;
 import java.util.Objects;

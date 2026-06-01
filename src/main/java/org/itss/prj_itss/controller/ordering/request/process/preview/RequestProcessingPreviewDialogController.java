@@ -2,7 +2,7 @@ package org.itss.prj_itss.controller.ordering.request.process.preview;
 
 import org.itss.prj_itss.controller.ordering.request.process.RequestProcessingLayoutController;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingException;
-import org.itss.prj_itss.model.request.application.processing.ProcessingPreviewOrderView;
+import org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView;
 
 import java.util.List;
 import java.util.Objects;

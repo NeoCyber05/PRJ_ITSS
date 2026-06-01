@@ -1,10 +1,10 @@
 package org.itss.prj_itss.model.request.application.processing;
 
-import org.itss.prj_itss.model.request.domain.allocation.model.Allocation;
-import org.itss.prj_itss.model.request.domain.allocation.suggester.AllocationSuggester;
-import org.itss.prj_itss.model.request.domain.allocation.suggester.DefaultAllocationSuggester;
-import org.itss.prj_itss.model.request.domain.allocation.validator.AllocationValidator;
-import org.itss.prj_itss.model.request.domain.allocation.validator.DefaultAllocationValidator;
+import org.itss.prj_itss.model.request.domain.processing.allocation.Allocation;
+import org.itss.prj_itss.model.request.domain.processing.suggestion.AllocationSuggester;
+import org.itss.prj_itss.model.request.domain.processing.suggestion.DefaultAllocationSuggester;
+import org.itss.prj_itss.model.request.domain.processing.allocation.validator.AllocationValidator;
+import org.itss.prj_itss.model.request.domain.processing.allocation.validator.DefaultAllocationValidator;
 import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.model.request.domain.processing.RequestProcessingData;
 import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;

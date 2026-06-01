@@ -8,7 +8,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.model.request.application.processing.ProcessingSiteView;
+import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;
 import org.itss.prj_itss.controller.ordering.request.process.site.SiteFilterController;
 
 import java.io.IOException;

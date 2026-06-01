@@ -6,7 +6,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 
-import org.itss.prj_itss.model.request.application.processing.ProcessingSiteView;
+import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;
 
 import java.io.IOException;
 import java.util.List;

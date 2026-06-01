@@ -7,14 +7,15 @@ import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
+import org.itss.prj_itss.model.request.domain.request.RequestStatus;
 import org.itss.prj_itss.model.site.domain.Site;
-import org.itss.prj_itss.model.request.application.processing.AllocationChangeCommand;
-import org.itss.prj_itss.model.request.application.processing.AllocationChangeResultView;
-import org.itss.prj_itss.model.request.application.processing.ProcessingItemView;
-import org.itss.prj_itss.model.request.application.processing.ProcessingSiteView;
+import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
+import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
+import org.itss.prj_itss.view.ordering.request.process.state.ProcessingItemView;
+import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
-import org.itss.prj_itss.model.request.application.processing.RequestProcessingViewModel;
-import org.itss.prj_itss.model.request.application.processing.SuggestedPlanView;
+import org.itss.prj_itss.view.ordering.request.process.state.RequestProcessingViewModel;
+import org.itss.prj_itss.view.ordering.request.process.state.SuggestedPlanView;
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcRequestProcessingGateway;
 import org.itss.prj_itss.model.site.application.port.InventoryRepository;
 import org.itss.prj_itss.model.catalog.application.port.MerchandiseRepository;
@@ -190,9 +191,9 @@ class RequestProcessingLayoutControllerTest {
 
         @Override
         public LocalDate getEarliestDeliveryDate(int requestId) { return scenario.earliestDeliveryDate; }
-        @Override
-        public boolean updateStatus(int requestId, org.itss.prj_itss.model.request.domain.request.RequestStatus newStatus) { return true; }
 
+        @Override
+        public boolean updateStatus(int requestId, RequestStatus newStatus) { return true; }
     }
 
     private static final class FakeSiteRepository implements SiteRepository {

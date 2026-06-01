@@ -1,7 +1,7 @@
 package org.itss.prj_itss.controller.ordering.request.process.site;
 
-import org.itss.prj_itss.model.request.application.processing.ProcessingSiteView;
-import org.itss.prj_itss.model.request.application.processing.SiteFilterModel;
+import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;
+import org.itss.prj_itss.view.ordering.request.process.state.SiteFilterModel;
 
 import java.util.List;
 import java.util.Set;

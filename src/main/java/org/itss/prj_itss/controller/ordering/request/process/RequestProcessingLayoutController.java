@@ -1,13 +1,13 @@
 package org.itss.prj_itss.controller.ordering.request.process;
 
-import org.itss.prj_itss.model.request.application.processing.AllocationChangeCommand;
-import org.itss.prj_itss.model.request.application.processing.AllocationChangeResultView;
-import org.itss.prj_itss.model.request.application.processing.ProcessingPreviewOrderView;
-import org.itss.prj_itss.model.request.application.processing.RequestProcessingSession;
-import org.itss.prj_itss.model.request.application.processing.RequestProcessingViewModel;
-import org.itss.prj_itss.model.request.application.processing.SuggestedPlanView;
+import org.itss.prj_itss.controller.ordering.request.process.session.RequestProcessingSession;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingException;
+import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
+import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
+import org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView;
+import org.itss.prj_itss.view.ordering.request.process.state.RequestProcessingViewModel;
+import org.itss.prj_itss.view.ordering.request.process.state.SuggestedPlanView;
 
 import java.util.List;
 import java.util.Objects;

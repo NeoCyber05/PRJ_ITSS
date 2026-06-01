@@ -18,7 +18,6 @@ import org.itss.prj_itss.model.catalog.CatalogModule;
 import org.itss.prj_itss.model.dashboard.DashboardModule;
 import org.itss.prj_itss.model.order.OrderModule;
 import org.itss.prj_itss.model.request.RequestModule;
-import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
 import org.itss.prj_itss.model.site.SiteModule;
 import org.itss.prj_itss.model.shared.database.ConnectionProvider;
 import org.itss.prj_itss.model.shared.database.DatabaseConnectionProvider;
@@ -212,10 +211,6 @@ public final class MvcContext {
         return routeRegistry;
     }
 
-    public RequestProcessingUseCase requestProcessingUseCase() {
-        return requestModule.requestProcessingUseCase();
-    }
-
     public AuthControllerModule authControllers() {
         return authControllers;
     }
@@ -266,7 +261,10 @@ public final class MvcContext {
             navigator,
             (requestedViewId, viewInstance, routeNavigator) -> {
                 RequestProcessingLayoutView requestProcessingView = (RequestProcessingLayoutView) viewInstance;
-                requestProcessingView.init(requestProcessingUseCase(), routeNavigator::showView);
+                requestProcessingView.init(
+                    requestControllers.requestProcessingLayoutController(),
+                    routeNavigator::showView
+                );
                 requestProcessingView.setRequestId(requestId);
             }
         );
