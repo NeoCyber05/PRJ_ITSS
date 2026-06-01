@@ -163,17 +163,18 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Sale
     }
 
     @Override
-    public int createRequest(List<RequestMerchandise> items, String note) throws Exception {
+    public int createRequest(Request request) throws Exception {
         Connection conn = getConnection();
         boolean originalAutoCommit = conn.getAutoCommit();
         try {
             conn.setAutoCommit(false);
             
             int requestId = -1;
-            String insertRequestSql = "INSERT INTO request (status, note, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)";
+            String insertRequestSql = "INSERT INTO request (status, note, created_at) VALUES (?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(insertRequestSql, Statement.RETURN_GENERATED_KEYS)) {
-                ps.setString(1, RequestStatus.PENDING.storageValue());
-                ps.setString(2, note);
+                ps.setString(1, request.getStatus().storageValue());
+                ps.setString(2, request.getNote());
+                ps.setTimestamp(3, Timestamp.valueOf(request.getCreatedAt()));
                 ps.executeUpdate();
                 try (ResultSet rs = ps.getGeneratedKeys()) {
                     if (rs.next()) requestId = rs.getInt(1);
@@ -184,7 +185,7 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Sale
 
             String insertItemSql = "INSERT INTO request_merchandise (request_id, merchandise_id, quantity_ordered, desired_delivery_date) VALUES (?, ?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(insertItemSql)) {
-                for (RequestMerchandise item : items) {
+                for (RequestMerchandise item : request.getItems()) {
                     ps.setInt(1, requestId);
                     ps.setInt(2, item.getMerchandiseId());
                     ps.setBigDecimal(3, item.getQuantityOrdered());
