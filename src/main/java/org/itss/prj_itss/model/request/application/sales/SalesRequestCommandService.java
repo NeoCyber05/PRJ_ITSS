@@ -1,7 +1,8 @@
 package org.itss.prj_itss.model.request.application.sales;
 
-import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
 import org.itss.prj_itss.model.request.application.sales.shared.SalesRequestItemSubmission;
+import org.itss.prj_itss.model.request.domain.request.Request;
+import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
 
 import java.util.List;
 
@@ -14,10 +15,11 @@ public final class SalesRequestCommandService {
     }
 
     public int createRequest(List<SalesRequestItemSubmission> items, String note) throws Exception {
-        List<RequestMerchandise> domainItems = items.stream()
-            .map(i -> new RequestMerchandise(0, i.merchandiseId(), i.quantityOrdered(), i.desiredDeliveryDate()))
-            .toList();
-        return commandPort.createRequest(domainItems, note);
+        Request request = new Request(note);
+        for (SalesRequestItemSubmission item : items) {
+            request.addItem(item.merchandiseId(), item.quantityOrdered(), item.desiredDeliveryDate());
+        }
+        return commandPort.createRequest(request);
     }
 
     public void updateRequest(int requestId, List<SalesRequestItemSubmission> items, String note) throws Exception {
