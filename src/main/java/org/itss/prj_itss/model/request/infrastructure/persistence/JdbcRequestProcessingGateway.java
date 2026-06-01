@@ -19,7 +19,8 @@ import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
 import org.itss.prj_itss.model.site.application.port.InventoryRepository;
 import org.itss.prj_itss.model.catalog.application.port.MerchandiseRepository;
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
-import org.itss.prj_itss.model.request.application.port.RequestRepository;
+import org.itss.prj_itss.model.request.application.port.RequestReadRepository;
+import org.itss.prj_itss.model.request.application.port.RequestWriteRepository;
 import org.itss.prj_itss.model.site.application.port.SiteRepository;
 
 import java.math.BigDecimal;
@@ -32,7 +33,8 @@ import java.util.Map;
 
 public final class JdbcRequestProcessingGateway implements RequestProcessingGateway {
 
-    private final RequestRepository requestRepository;
+    private final RequestReadRepository requestReadRepository;
+    private final RequestWriteRepository requestWriteRepository;
     private final OrderRepository orderRepository;
     private final SiteRepository siteRepository;
     private final InventoryRepository inventoryRepository;
@@ -40,13 +42,15 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
     private final TransactionRunner transactionRunner;
 
     public JdbcRequestProcessingGateway(
-            RequestRepository requestRepository,
+            RequestReadRepository requestReadRepository,
+            RequestWriteRepository requestWriteRepository,
             OrderRepository orderRepository,
             SiteRepository siteRepository,
             InventoryRepository inventoryRepository,
             MerchandiseRepository merchandiseRepository,
             TransactionRunner transactionRunner) {
-        this.requestRepository = requestRepository;
+        this.requestReadRepository = requestReadRepository;
+        this.requestWriteRepository = requestWriteRepository;
         this.orderRepository = orderRepository;
         this.siteRepository = siteRepository;
         this.inventoryRepository = inventoryRepository;
@@ -58,7 +62,7 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
     public RequestProcessingData loadProcessingData(int requestId) {
         List<ItemRequirement> items = new ArrayList<>();
         Map<Integer, LocalDate> desiredDeliveryDates = new LinkedHashMap<>();
-        for (RequestMerchandise requestItem : requestRepository.findItemsByRequestId(requestId)) {
+        for (RequestMerchandise requestItem : requestReadRepository.findItemsByRequestId(requestId)) {
             Merchandise merchandise = merchandiseRepository.findById(requestItem.getMerchandiseId());
             if (merchandise != null) {
                 items.add(new ItemRequirement(
@@ -70,7 +74,7 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
             }
         }
 
-        LocalDate earliestDeliveryDate = requestRepository.getEarliestDeliveryDate(requestId);
+        LocalDate earliestDeliveryDate = requestReadRepository.getEarliestDeliveryDate(requestId);
         int deadlineDays = 14;
         if (earliestDeliveryDate != null) {
             deadlineDays = (int) ChronoUnit.DAYS.between(LocalDate.now(), earliestDeliveryDate);
@@ -129,7 +133,7 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
                     }
                 }
 
-                if (!requestRepository.updateStatus(requestId, RequestStatus.PROCESSING)) {
+                if (!requestWriteRepository.updateStatus(requestId, RequestStatus.PROCESSING)) {
                     throw new TransactionException("Cannot update request status " + requestId);
                 }
             });

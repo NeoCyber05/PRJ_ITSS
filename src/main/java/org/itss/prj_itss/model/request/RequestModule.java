@@ -16,7 +16,7 @@ import org.itss.prj_itss.model.site.SiteModule;
 
 public final class RequestModule {
 
-    private final RequestRepository requestRepository;
+    private final JdbcRequestRepository requestRepository;
     private final RequestManagementUseCase requestManagementUseCase;
     private final RequestProcessingUseCase requestProcessingUseCase;
     private final ReceivedRequestsApplicationService receivedRequestsApplicationService;
@@ -30,9 +30,10 @@ public final class RequestModule {
             SiteModule siteModule,
             CatalogModule catalogModule) {
         this.requestRepository = new JdbcRequestRepository(connectionProvider);
-        this.requestManagementUseCase = new RequestManagementUseCase(requestRepository);
+        this.requestManagementUseCase = new RequestManagementUseCase(requestRepository, requestRepository);
         this.requestProcessingUseCase = new RequestProcessingUseCase(
                 new JdbcRequestProcessingGateway(
+                        requestRepository,
                         requestRepository,
                         orderModule.orderRepository(),
                         siteModule.siteRepository(),

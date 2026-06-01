@@ -134,9 +134,11 @@ class RequestProcessingLayoutControllerTest {
     }
 
     private RequestProcessingLayoutController controllerWith(Scenario scenario) {
+        FakeRequestRepository fakeRepo = new FakeRequestRepository(scenario);
         RequestProcessingUseCase useCase = new RequestProcessingUseCase(
                 new JdbcRequestProcessingGateway(
-                        new FakeRequestRepository(scenario),
+                        fakeRepo,
+                        fakeRepo,
                         new FakeOrderRepository(),
                         new FakeSiteRepository(scenario),
                         new FakeInventoryRepository(scenario),
@@ -174,7 +176,7 @@ class RequestProcessingLayoutControllerTest {
         }
     }
 
-    private static final class FakeRequestRepository implements RequestRepository {
+    private static final class FakeRequestRepository implements org.itss.prj_itss.model.request.application.port.RequestReadRepository, org.itss.prj_itss.model.request.application.port.RequestWriteRepository {
         private final Scenario scenario;
 
         private FakeRequestRepository(Scenario scenario) {
@@ -207,7 +209,7 @@ class RequestProcessingLayoutControllerTest {
         }
 
         @Override
-        public boolean updateStatus(int requestId, String newStatus) {
+        public boolean updateStatus(int requestId, org.itss.prj_itss.model.request.domain.request.RequestStatus newStatus) {
             return true;
         }
 

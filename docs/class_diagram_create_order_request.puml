@@ -161,11 +161,11 @@ CreateOrderRequestController --> RequestService
 ApplicationContext --> MerchandiseService
 ApplicationContext --> RequestService
 MerchandiseService --> IMerchandiseRepository
-RequestService --> IRequestRepository
+RequestService --> IRequestWriteRepository
 
 ' Realization (Repository)
 MerchandiseRepository ..|> IMerchandiseRepository
-RequestRepository ..|> IRequestRepository
+RequestRepository ..|> IRequestWriteRepository
 
 ' Dependency (Repository -> Entity)
 MerchandiseRepository ..> Merchandise : <<create>>

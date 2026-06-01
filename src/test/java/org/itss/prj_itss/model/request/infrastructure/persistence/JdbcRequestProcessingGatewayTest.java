@@ -34,17 +34,19 @@ class JdbcRequestProcessingGatewayTest {
     void loadProcessingDataOnlyQueriesSitesAvailableForRequestedMerchandise() {
         RecordingSiteRepository siteRepository = new RecordingSiteRepository(List.of(
                 new Site(1, "S1", "Site 1", "", 2, 1)));
+        RecordingRequestRepository repo = new RecordingRequestRepository() {
+            @Override
+            public List<RequestMerchandise> findItemsByRequestId(int requestId) {
+                return List.of(
+                        new RequestMerchandise(requestId, 10, BigDecimal.valueOf(2),
+                                LocalDate.now().plusDays(7)),
+                        new RequestMerchandise(requestId, 11, BigDecimal.valueOf(3),
+                                LocalDate.now().plusDays(8)));
+            }
+        };
         JdbcRequestProcessingGateway gateway = new JdbcRequestProcessingGateway(
-                new RecordingRequestRepository() {
-                    @Override
-                    public List<RequestMerchandise> findItemsByRequestId(int requestId) {
-                        return List.of(
-                                new RequestMerchandise(requestId, 10, BigDecimal.valueOf(2),
-                                        LocalDate.now().plusDays(7)),
-                                new RequestMerchandise(requestId, 11, BigDecimal.valueOf(3),
-                                        LocalDate.now().plusDays(8)));
-                    }
-                },
+                repo,
+                repo,
                 new FakeOrderRepository(),
                 siteRepository,
                 new EmptyInventoryRepository() {
@@ -73,7 +75,8 @@ class JdbcRequestProcessingGatewayTest {
         FakeOrderRepository orderRepository = new FakeOrderRepository();
         RecordingRequestRepository requestRepository = new RecordingRequestRepository();
         RecordingTransactionRunner transactionRunner = new RecordingTransactionRunner();
-        JdbcRequestProcessingGateway gateway = gateway(requestRepository, orderRepository, transactionRunner);
+        JdbcRequestProcessingGateway gateway = gatewayWith(requestRepository, requestRepository, orderRepository,
+                transactionRunner);
 
         Map<Integer, Map<Integer, Allocation>> allocations = new LinkedHashMap<>();
         allocations.put(10, Map.of(
@@ -104,12 +107,14 @@ class JdbcRequestProcessingGatewayTest {
         assertEquals(1, transactionRunner.rollbacks);
     }
 
-    private JdbcRequestProcessingGateway gateway(
-            RequestRepository requestRepository,
+    private JdbcRequestProcessingGateway gatewayWith(
+            org.itss.prj_itss.model.request.application.port.RequestReadRepository requestReadRepository,
+            org.itss.prj_itss.model.request.application.port.RequestWriteRepository requestWriteRepository,
             OrderRepository orderRepository,
             TransactionRunner transactionRunner) {
         return new JdbcRequestProcessingGateway(
-                requestRepository,
+                requestReadRepository,
+                requestWriteRepository,
                 orderRepository,
                 new EmptySiteRepository(),
                 new EmptyInventoryRepository(),
@@ -205,7 +210,7 @@ class JdbcRequestProcessingGatewayTest {
         }
     }
 
-    private static class RecordingRequestRepository implements RequestRepository {
+    private static class RecordingRequestRepository implements org.itss.prj_itss.model.request.application.port.RequestReadRepository, org.itss.prj_itss.model.request.application.port.RequestWriteRepository {
         private String updatedStatus;
 
         @Override
@@ -234,8 +239,8 @@ class JdbcRequestProcessingGatewayTest {
         }
 
         @Override
-        public boolean updateStatus(int requestId, String newStatus) {
-            updatedStatus = newStatus;
+        public boolean updateStatus(int requestId, org.itss.prj_itss.model.request.domain.request.RequestStatus newStatus) {
+            updatedStatus = newStatus.storageValue();
             return true;
         }
 

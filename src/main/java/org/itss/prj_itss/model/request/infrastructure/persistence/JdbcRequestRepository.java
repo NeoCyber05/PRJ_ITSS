@@ -4,7 +4,8 @@ import org.itss.prj_itss.model.shared.database.JdbcRepositorySupport;
 
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
-import org.itss.prj_itss.model.request.application.port.RequestRepository;
+import org.itss.prj_itss.model.request.application.port.RequestReadRepository;
+import org.itss.prj_itss.model.request.application.port.RequestWriteRepository;
 import org.itss.prj_itss.model.request.domain.request.RequestStatus;
 
 import java.sql.*;
@@ -12,7 +13,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JdbcRequestRepository extends JdbcRepositorySupport implements RequestRepository {
+public class JdbcRequestRepository extends JdbcRepositorySupport implements RequestReadRepository, RequestWriteRepository {
 
     public JdbcRequestRepository(org.itss.prj_itss.model.shared.database.ConnectionProvider connectionProvider) {
         super(connectionProvider);
