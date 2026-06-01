@@ -35,6 +35,9 @@ public final class OrderDetailView implements ViewLifecycle {
 
     private String orderIdRaw;
     private BorderPane panelRoot;
+    private Runnable onBackAction;
+    private Runnable onCloseAction;
+    private boolean isEmbedded = false;
 
     public OrderDetailView() {
         this.view = new StackPane();
@@ -46,6 +49,14 @@ public final class OrderDetailView implements ViewLifecycle {
         this.controller = controller;
         this.managementController = managementController;
         this.orderIdRaw = orderIdRaw;
+        this.isEmbedded = false;
+        
+        this.onBackAction = () -> {
+            if (this.navigator != null) {
+                this.navigator.showView("orders");
+            }
+        };
+        this.onCloseAction = null;
 
         this.view.getChildren().clear();
 
@@ -55,7 +66,11 @@ public final class OrderDetailView implements ViewLifecycle {
 
         Region backdrop = new Region();
         backdrop.setStyle("-fx-background-color: rgba(15,23,42,0.34);");
-        backdrop.setOnMouseClicked(event -> navigator.showView("orders"));
+        backdrop.setOnMouseClicked(event -> {
+            if (this.navigator != null) {
+                this.navigator.showView("orders");
+            }
+        });
 
         this.panelRoot = new BorderPane();
         this.panelRoot.setMaxWidth(Double.MAX_VALUE);
@@ -76,6 +91,27 @@ public final class OrderDetailView implements ViewLifecycle {
         drawerLayer.setAlignment(Pos.CENTER_RIGHT);
 
         view.getChildren().addAll(background, backdrop, drawerLayer);
+    }
+    
+    public void initAsEmbedded(OrderDetailController controller, String orderIdRaw, Runnable onBackAction, Runnable onCloseAction) {
+        this.controller = controller;
+        this.orderIdRaw = orderIdRaw;
+        this.onBackAction = onBackAction;
+        this.onCloseAction = onCloseAction;
+        this.isEmbedded = true;
+        this.navigator = null;
+        this.managementController = null;
+        
+        this.view.getChildren().clear();
+        this.view.setStyle("-fx-background-color: transparent;");
+        
+        this.panelRoot = new BorderPane();
+        this.panelRoot.setMaxWidth(Double.MAX_VALUE);
+        this.panelRoot.setStyle("-fx-background-color: transparent;"); // container handles background
+        
+        buildPanelContent();
+        
+        this.view.getChildren().add(this.panelRoot);
     }
 
     @Override
@@ -123,8 +159,8 @@ public final class OrderDetailView implements ViewLifecycle {
 
         Button backButton = new Button("‹");
         backButton.setOnAction(event -> {
-            if (navigator != null) {
-                navigator.showView("orders");
+            if (onBackAction != null) {
+                onBackAction.run();
             }
         });
         backButton.setStyle(
@@ -149,10 +185,11 @@ public final class OrderDetailView implements ViewLifecycle {
 
         topRow.getChildren().addAll(backButton, titleBox);
 
+        Region topSpacer = new Region();
+        HBox.setHgrow(topSpacer, Priority.ALWAYS);
+        topRow.getChildren().add(topSpacer);
+
         if ("pending".equalsIgnoreCase(order.getStatus())) {
-            Region spacer = new Region();
-            HBox.setHgrow(spacer, Priority.ALWAYS);
-            
             Button cancelBtn = new Button("Hủy đơn hàng");
             cancelBtn.setStyle(
                 "-fx-background-color: #FEF2F2; " +
@@ -174,14 +211,27 @@ public final class OrderDetailView implements ViewLifecycle {
                 alert.showAndWait().ifPresent(response -> {
                     if (response == ButtonType.OK) {
                         OrderCancellationApplicationService.CancellationResult result = controller.cancel(order.getId());
-                        if (result.success() && navigator != null) {
-                            navigator.showView("orders");
+                        if (result.success() && onBackAction != null) {
+                            onBackAction.run();
                         }
                     }
                 });
             });
             
-            topRow.getChildren().addAll(spacer, cancelBtn);
+            topRow.getChildren().add(cancelBtn);
+        }
+
+        if (onCloseAction != null) {
+            Button closeBtn = new Button("✕");
+            closeBtn.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-text-fill: #94A3B8;" +
+                "-fx-font-size: 18px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-cursor: hand;"
+            );
+            closeBtn.setOnAction(e -> onCloseAction.run());
+            topRow.getChildren().add(closeBtn);
         }
 
         Label topStatusBadge = buildTopStatusBadge(order.getStatus());

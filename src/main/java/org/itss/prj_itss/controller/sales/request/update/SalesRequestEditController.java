@@ -6,7 +6,8 @@ import org.itss.prj_itss.controller.sales.request.shared.SalesRequestSavedEvent;
 import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
 import org.itss.prj_itss.model.request.application.sales.shared.RequestFormView;
 import org.itss.prj_itss.model.request.application.sales.shared.SalesRequestItemSubmission;
-import org.itss.prj_itss.model.request.application.sales.RequestSalesApplicationService;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestQueryService;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestCommandService;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditDraft;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditMapper;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditState;
@@ -21,16 +22,19 @@ import java.util.stream.Collectors;
 
 public final class SalesRequestEditController {
 
-    private final RequestSalesApplicationService salesService;
+    private final SalesRequestQueryService queryService;
+    private final SalesRequestCommandService commandService;
     private final SalesRequestEditMapper formMapper;
     private final SalesRequestEditValidator validator;
 
     public SalesRequestEditController(
-            RequestSalesApplicationService salesService,
+            SalesRequestQueryService queryService,
+            SalesRequestCommandService commandService,
             SalesRequestEditMapper formMapper,
             SalesRequestEditValidator validator
     ) {
-        this.salesService = salesService;
+        this.queryService = queryService;
+        this.commandService = commandService;
         this.formMapper = formMapper;
         this.validator = validator;
     }
@@ -61,16 +65,16 @@ public final class SalesRequestEditController {
     }
 
     public RequestFormView loadRequest(int requestId) {
-        return salesService.findFormView(requestId);
+        return queryService.findFormView(requestId);
     }
 
     public List<MerchandiseOption> getMerchandiseOptions() {
-        return salesService.findMerchandiseOptions();
+        return queryService.findMerchandiseOptions();
     }
 
     public ActionResult updateRequest(int requestId, List<SalesRequestItemSubmission> items) {
         try {
-            salesService.updateRequest(requestId, items, null);
+            commandService.updateRequest(requestId, items, null);
             return new ActionResult(true, "Cập nhật yêu cầu đặt hàng thành công");
         } catch (Exception e) {
             return new ActionResult(false, e.getMessage());

@@ -19,7 +19,7 @@ import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcRequestPro
 import org.itss.prj_itss.model.site.application.port.InventoryRepository;
 import org.itss.prj_itss.model.catalog.application.port.MerchandiseRepository;
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
-import org.itss.prj_itss.model.request.application.port.RequestRepository;
+import org.itss.prj_itss.model.request.application.processing.ProcessingRequestPort;
 import org.itss.prj_itss.model.site.application.port.SiteRepository;
 import org.junit.jupiter.api.Test;
 
@@ -135,7 +135,7 @@ class RequestProcessingLayoutControllerTest {
     private RequestProcessingLayoutController controllerWith(Scenario scenario) {
         RequestProcessingUseCase useCase = new RequestProcessingUseCase(
             new JdbcRequestProcessingGateway(
-                new FakeRequestRepository(scenario),
+                new FakeProcessingRequestPort(scenario),
                 new FakeOrderRepository(),
                 new FakeSiteRepository(scenario),
                 new FakeInventoryRepository(scenario),
@@ -177,31 +177,22 @@ class RequestProcessingLayoutControllerTest {
         }
     }
 
-    private static final class FakeRequestRepository implements RequestRepository {
+    private static final class FakeProcessingRequestPort implements ProcessingRequestPort {
         private final Scenario scenario;
 
-        private FakeRequestRepository(Scenario scenario) {
+        private FakeProcessingRequestPort(Scenario scenario) {
             this.scenario = scenario;
         }
 
-        @Override
-        public List<Request> findAll() { return List.of(); }
-        @Override
-        public Request findById(int id) { return null; }
+
         @Override
         public List<RequestMerchandise> findItemsByRequestId(int requestId) { return scenario.requestItems; }
-        @Override
-        public int countItemTypes(int requestId) { return scenario.requestItems.size(); }
+
         @Override
         public LocalDate getEarliestDeliveryDate(int requestId) { return scenario.earliestDeliveryDate; }
         @Override
-        public boolean updateStatus(int requestId, String newStatus) { return true; }
-        @Override
-        public void updateRequestItems(int requestId, List<RequestMerchandise> items, String note) {}
-        @Override
-        public int createRequest(List<RequestMerchandise> items, String note) { return 1; }
-        @Override
-        public boolean deleteById(int requestId) { return true; }
+        public boolean updateStatus(int requestId, org.itss.prj_itss.model.request.domain.request.RequestStatus newStatus) { return true; }
+
     }
 
     private static final class FakeSiteRepository implements SiteRepository {

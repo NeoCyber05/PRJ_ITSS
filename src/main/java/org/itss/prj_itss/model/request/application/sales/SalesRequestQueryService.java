@@ -3,25 +3,22 @@ package org.itss.prj_itss.model.request.application.sales;
 import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
 import org.itss.prj_itss.model.catalog.domain.Merchandise;
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
-import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
-import org.itss.prj_itss.model.request.application.sales.shared.SalesRequestItemSubmission;
 import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
 import org.itss.prj_itss.model.request.application.sales.shared.RequestFormView;
 import org.itss.prj_itss.model.request.application.sales.view.RequestDetailItemRow;
 import org.itss.prj_itss.model.request.application.sales.view.RequestReadOnlyView;
 
-import java.math.BigDecimal;
 import java.util.List;
 
-public final class RequestSalesApplicationService {
+public final class SalesRequestQueryService {
 
-    private final RequestManagementUseCase requestService;
+    private final SalesRequestQueryPort queryPort;
     private final CatalogUseCase catalogUseCase;
 
-    public RequestSalesApplicationService(RequestManagementUseCase requestService, CatalogUseCase catalogUseCase) {
-        this.requestService = requestService;
+    public SalesRequestQueryService(SalesRequestQueryPort queryPort, CatalogUseCase catalogUseCase) {
+        this.queryPort = queryPort;
         this.catalogUseCase = catalogUseCase;
     }
 
@@ -44,10 +41,10 @@ public final class RequestSalesApplicationService {
     }
 
     public RequestReadOnlyView findReadOnlyView(int requestId) {
-        Request request = requestService.findById(requestId);
+        Request request = queryPort.findById(requestId);
         if (request == null) return null;
 
-        List<RequestDetailItemRow> itemRows = requestService.findItemsByRequestId(requestId).stream()
+        List<RequestDetailItemRow> itemRows = queryPort.findItemsByRequestId(requestId).stream()
             .map(this::toDetailRow)
             .toList();
 
@@ -63,10 +60,10 @@ public final class RequestSalesApplicationService {
     }
 
     public RequestFormView findFormView(int requestId) {
-        Request request = requestService.findById(requestId);
+        Request request = queryPort.findById(requestId);
         if (request == null) return null;
 
-        List<RequestFormView.RequestItemFormRow> itemRows = requestService.findItemsByRequestId(requestId).stream()
+        List<RequestFormView.RequestItemFormRow> itemRows = queryPort.findItemsByRequestId(requestId).stream()
             .map(item -> {
                 MerchandiseOption m = findMerchandiseOptionById(item.getMerchandiseId());
                 return new RequestFormView.RequestItemFormRow(
@@ -86,24 +83,6 @@ public final class RequestSalesApplicationService {
             request.getNote(),
             itemRows
         );
-    }
-
-    public int createRequest(List<SalesRequestItemSubmission> items, String note) throws Exception {
-        List<RequestMerchandise> domainItems = items.stream()
-            .map(i -> new RequestMerchandise(0, i.merchandiseId(), i.quantityOrdered(), i.desiredDeliveryDate()))
-            .toList();
-        return requestService.createRequest(domainItems, note);
-    }
-
-    public void updateRequest(int requestId, List<SalesRequestItemSubmission> items, String note) throws Exception {
-        List<RequestMerchandise> domainItems = items.stream()
-            .map(i -> new RequestMerchandise(requestId, i.merchandiseId(), i.quantityOrdered(), i.desiredDeliveryDate()))
-            .toList();
-        requestService.updateRequestItems(requestId, domainItems, note);
-    }
-
-    public boolean deleteRequest(int requestId) {
-        return requestService.deleteRequest(requestId);
     }
 
     private RequestDetailItemRow toDetailRow(RequestMerchandise item) {

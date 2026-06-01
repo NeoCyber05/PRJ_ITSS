@@ -1,10 +1,8 @@
-package org.itss.prj_itss.model.request.application.sales.detail;
-
-import org.itss.prj_itss.model.request.application.sales.view.RequestDetailItemRow;
+package org.itss.prj_itss.model.request.application.international.detail;
 
 import java.util.List;
 
-public record RequestDetailViewModel(
+public record ReceivedRequestDetailViewModel(
     int requestId,
     String requestCode,
     String createdAt,
@@ -12,10 +10,10 @@ public record RequestDetailViewModel(
     String statusText,
     String note,
     String earliestDeadline,
-    List<RequestDetailItemRow> requestItems,
+    List<ReceivedRequestDetailItemRow> requestItems,
     List<AllocatedOrderRow> allocatedOrders
 ) {
-    public RequestDetailViewModel {
+    public ReceivedRequestDetailViewModel {
         requestItems = requestItems == null ? List.of() : List.copyOf(requestItems);
         allocatedOrders = allocatedOrders == null ? List.of() : List.copyOf(allocatedOrders);
     }

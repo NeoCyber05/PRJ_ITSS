@@ -8,8 +8,8 @@ import org.itss.prj_itss.model.request.domain.allocation.validator.DefaultAlloca
 import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.model.request.domain.processing.RequestProcessingData;
 import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
-import org.itss.prj_itss.model.request.application.port.RequestProcessingGateway;
-import org.itss.prj_itss.model.request.application.port.RequestProcessingGatewayException;
+import org.itss.prj_itss.model.request.application.processing.RequestProcessingGateway;
+import org.itss.prj_itss.model.request.application.processing.RequestProcessingGatewayException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -27,7 +27,7 @@ public final class RequestProcessingUseCase {
     }
 
     public RequestProcessingUseCase(
-        RequestProcessingGateway gateway,
+            RequestProcessingGateway gateway,
         AllocationValidator allocationValidator,
         AllocationSuggester allocationSuggester
     ) {

@@ -4,24 +4,25 @@ import org.itss.prj_itss.model.shared.database.ConnectionProvider;
 import org.itss.prj_itss.model.shared.database.TransactionRunner;
 import org.itss.prj_itss.model.catalog.CatalogModule;
 import org.itss.prj_itss.model.order.OrderModule;
-import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
+import org.itss.prj_itss.model.dashboard.application.port.DashboardRequestPort;
 import org.itss.prj_itss.model.request.application.listing.ReceivedRequestsApplicationService;
-import org.itss.prj_itss.model.request.application.port.RequestRepository;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
-import org.itss.prj_itss.model.request.application.sales.detail.RequestDetailApplicationService;
-import org.itss.prj_itss.model.request.application.sales.RequestSalesApplicationService;
+import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailApplicationService;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestQueryService;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestCommandService;
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcRequestProcessingGateway;
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcRequestRepository;
+import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcReceivedRequestDetailQuery;
 import org.itss.prj_itss.model.site.SiteModule;
 
 public final class RequestModule {
 
-    private final RequestRepository requestRepository;
-    private final RequestManagementUseCase requestManagementUseCase;
+    private final JdbcRequestRepository jdbcRequestRepository;
     private final RequestProcessingUseCase requestProcessingUseCase;
     private final ReceivedRequestsApplicationService receivedRequestsApplicationService;
-    private final RequestDetailApplicationService requestDetailApplicationService;
-    private final RequestSalesApplicationService requestSalesApplicationService;
+    private final ReceivedRequestDetailApplicationService receivedRequestDetailApplicationService;
+    private final SalesRequestQueryService salesRequestQueryService;
+    private final SalesRequestCommandService salesRequestCommandService;
 
     public RequestModule(
         ConnectionProvider connectionProvider,
@@ -30,11 +31,10 @@ public final class RequestModule {
         SiteModule siteModule,
         CatalogModule catalogModule
     ) {
-        this.requestRepository = new JdbcRequestRepository(connectionProvider);
-        this.requestManagementUseCase = new RequestManagementUseCase(requestRepository);
+        this.jdbcRequestRepository = new JdbcRequestRepository(connectionProvider);
         this.requestProcessingUseCase = new RequestProcessingUseCase(
             new JdbcRequestProcessingGateway(
-                requestRepository,
+                jdbcRequestRepository,
                 orderModule.orderRepository(),
                 siteModule.siteRepository(),
                 siteModule.inventoryRepository(),
@@ -43,19 +43,16 @@ public final class RequestModule {
             )
         );
         this.receivedRequestsApplicationService =
-            new ReceivedRequestsApplicationService(requestManagementUseCase);
-        this.requestDetailApplicationService = new RequestDetailApplicationService(
-            requestManagementUseCase,
-            orderModule.orderUseCase(),
-            siteModule.siteUseCase(),
-            catalogModule.catalogUseCase()
+            new ReceivedRequestsApplicationService(jdbcRequestRepository);
+        this.receivedRequestDetailApplicationService = new ReceivedRequestDetailApplicationService(
+            new JdbcReceivedRequestDetailQuery(connectionProvider)
         );
-        this.requestSalesApplicationService =
-            new RequestSalesApplicationService(requestManagementUseCase, catalogModule.catalogUseCase());
+        this.salesRequestQueryService = new SalesRequestQueryService(jdbcRequestRepository, catalogModule.catalogUseCase());
+        this.salesRequestCommandService = new SalesRequestCommandService(jdbcRequestRepository);
     }
 
-    public RequestManagementUseCase requestManagementUseCase() {
-        return requestManagementUseCase;
+    public DashboardRequestPort dashboardRequestPort() {
+        return jdbcRequestRepository;
     }
 
     public RequestProcessingUseCase requestProcessingUseCase() {
@@ -66,11 +63,15 @@ public final class RequestModule {
         return receivedRequestsApplicationService;
     }
 
-    public RequestDetailApplicationService requestDetailApplicationService() {
-        return requestDetailApplicationService;
+    public ReceivedRequestDetailApplicationService receivedRequestDetailApplicationService() {
+        return receivedRequestDetailApplicationService;
     }
 
-    public RequestSalesApplicationService requestSalesApplicationService() {
-        return requestSalesApplicationService;
+    public SalesRequestQueryService salesRequestQueryService() {
+        return salesRequestQueryService;
+    }
+
+    public SalesRequestCommandService salesRequestCommandService() {
+        return salesRequestCommandService;
     }
 }

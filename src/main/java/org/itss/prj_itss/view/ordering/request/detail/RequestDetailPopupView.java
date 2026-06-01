@@ -13,8 +13,8 @@ import org.itss.prj_itss.controller.navigation.Navigator;
 import org.itss.prj_itss.controller.ordering.order.OrderDetailController;
 import org.itss.prj_itss.controller.ordering.order.OrderManagementController;
 import org.itss.prj_itss.controller.ordering.request.RequestDetailPopupController;
-import org.itss.prj_itss.model.request.application.sales.detail.AllocatedOrderRow;
-import org.itss.prj_itss.model.request.application.sales.detail.RequestDetailViewModel;
+import org.itss.prj_itss.model.request.application.international.detail.AllocatedOrderRow;
+import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailViewModel;
 import org.itss.prj_itss.view.ordering.order.OrderDetailView;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 import org.itss.prj_itss.view.shared.ui.StatusBadgeFactory;
@@ -68,7 +68,9 @@ public final class RequestDetailPopupView implements ViewLifecycle {
 
     private HBox currentSelectedRow;
     private AllocatedOrderRow currentSelectedOrder;
-    private RequestDetailViewModel currentViewModel;
+    private ReceivedRequestDetailViewModel currentViewModel;
+
+    private Stage dialog;
 
     public void init(
         Stage dialog,
@@ -77,12 +79,13 @@ public final class RequestDetailPopupView implements ViewLifecycle {
         OrderDetailController orderDetailController,
         OrderManagementController orderManagementController,
         Navigator navigator,
-        RequestDetailViewModel viewModel,
+        ReceivedRequestDetailViewModel viewModel,
         double sceneWidth,
         double requestCollapsedWidth,
         double requestExpandedWidth,
         double orderPanelWidth
     ) {
+        this.dialog = dialog;
         this.controller = controller;
         this.orderDetailController = orderDetailController;
         this.orderManagementController = orderManagementController;
@@ -126,7 +129,16 @@ public final class RequestDetailPopupView implements ViewLifecycle {
 
     private void showOrderDetail(int orderId) {
         OrderDetailView orderDetailView = new OrderDetailView();
-        orderDetailView.init(navigator, orderDetailController, orderManagementController, String.valueOf(orderId));
+        orderDetailView.initAsEmbedded(
+            orderDetailController,
+            String.valueOf(orderId),
+            this::hideOrderDetail,
+            () -> {
+                if (this.dialog != null) {
+                    this.dialog.close();
+                }
+            }
+        );
         orderDetailContainer.getChildren().setAll(orderDetailView.getView());
 
         requestCard.setVisible(false);
