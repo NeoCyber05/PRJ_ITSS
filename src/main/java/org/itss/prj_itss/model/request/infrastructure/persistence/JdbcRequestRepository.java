@@ -7,7 +7,8 @@ import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
 import org.itss.prj_itss.model.dashboard.application.port.DashboardRequestPort;
 import org.itss.prj_itss.model.request.application.listing.ReceivedRequestsPort;
 import org.itss.prj_itss.model.request.application.processing.ProcessingRequestPort;
-import org.itss.prj_itss.model.request.application.sales.SalesRequestPort;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestQueryPort;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestCommandPort;
 import org.itss.prj_itss.model.request.domain.request.RequestStatus;
 
 import java.sql.*;
@@ -15,7 +16,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JdbcRequestRepository extends JdbcRepositorySupport implements SalesRequestPort, ReceivedRequestsPort, DashboardRequestPort, ProcessingRequestPort {
+public class JdbcRequestRepository extends JdbcRepositorySupport implements SalesRequestQueryPort, SalesRequestCommandPort, ReceivedRequestsPort, DashboardRequestPort, ProcessingRequestPort {
 
     public JdbcRequestRepository(org.itss.prj_itss.model.shared.database.ConnectionProvider connectionProvider) {
         super(connectionProvider);

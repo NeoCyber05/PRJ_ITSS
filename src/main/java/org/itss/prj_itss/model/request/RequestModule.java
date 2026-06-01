@@ -8,7 +8,8 @@ import org.itss.prj_itss.model.dashboard.application.port.DashboardRequestPort;
 import org.itss.prj_itss.model.request.application.listing.ReceivedRequestsApplicationService;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
 import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailApplicationService;
-import org.itss.prj_itss.model.request.application.sales.RequestSalesApplicationService;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestQueryService;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestCommandService;
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcRequestProcessingGateway;
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcRequestRepository;
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcReceivedRequestDetailQuery;
@@ -20,7 +21,8 @@ public final class RequestModule {
     private final RequestProcessingUseCase requestProcessingUseCase;
     private final ReceivedRequestsApplicationService receivedRequestsApplicationService;
     private final ReceivedRequestDetailApplicationService receivedRequestDetailApplicationService;
-    private final RequestSalesApplicationService requestSalesApplicationService;
+    private final SalesRequestQueryService salesRequestQueryService;
+    private final SalesRequestCommandService salesRequestCommandService;
 
     public RequestModule(
         ConnectionProvider connectionProvider,
@@ -45,8 +47,8 @@ public final class RequestModule {
         this.receivedRequestDetailApplicationService = new ReceivedRequestDetailApplicationService(
             new JdbcReceivedRequestDetailQuery(connectionProvider)
         );
-        this.requestSalesApplicationService =
-            new RequestSalesApplicationService(jdbcRequestRepository, catalogModule.catalogUseCase());
+        this.salesRequestQueryService = new SalesRequestQueryService(jdbcRequestRepository, catalogModule.catalogUseCase());
+        this.salesRequestCommandService = new SalesRequestCommandService(jdbcRequestRepository);
     }
 
     public DashboardRequestPort dashboardRequestPort() {
@@ -65,7 +67,11 @@ public final class RequestModule {
         return receivedRequestDetailApplicationService;
     }
 
-    public RequestSalesApplicationService requestSalesApplicationService() {
-        return requestSalesApplicationService;
+    public SalesRequestQueryService salesRequestQueryService() {
+        return salesRequestQueryService;
+    }
+
+    public SalesRequestCommandService salesRequestCommandService() {
+        return salesRequestCommandService;
     }
 }

@@ -27,7 +27,7 @@ public final class RequestProcessingUseCase {
     }
 
     public RequestProcessingUseCase(
-        RequestProcessingGateway gateway,
+            RequestProcessingGateway gateway,
         AllocationValidator allocationValidator,
         AllocationSuggester allocationSuggester
     ) {

@@ -19,15 +19,19 @@ public final class SalesRequestControllerModule {
         this.salesRequestListController =
             new SalesRequestListController(requestModule.receivedRequestsApplicationService());
         this.salesRequestCreationController =
-            new SalesRequestCreationController(requestModule.requestSalesApplicationService());
+            new SalesRequestCreationController(
+                requestModule.salesRequestQueryService(),
+                requestModule.salesRequestCommandService()
+            );
         this.salesRequestEditController =
             new SalesRequestEditController(
-                requestModule.requestSalesApplicationService(),
+                requestModule.salesRequestQueryService(),
+                requestModule.salesRequestCommandService(),
                 new SalesRequestEditMapper(),
                 new SalesRequestEditValidator()
             );
         this.viewOrderRequestController =
-            new ViewOrderRequestController(requestModule.requestSalesApplicationService());
+            new ViewOrderRequestController(requestModule.salesRequestQueryService());
     }
 
     public SalesRequestListController salesRequestListController() {
