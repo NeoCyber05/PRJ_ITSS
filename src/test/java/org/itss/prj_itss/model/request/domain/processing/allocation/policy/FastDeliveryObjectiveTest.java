@@ -10,8 +10,8 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-class AllocationPolicyTest {
-    private final AllocationPolicy policy = new AllocationPolicy();
+class FastDeliveryObjectiveTest {
+    private final FastDeliveryObjective objective = new FastDeliveryObjective();
 
     @Test
     void prefersShipBeforeAirWhenBothCanMeetDeadline() {
@@ -20,11 +20,11 @@ class AllocationPolicyTest {
         ItemRequirement item = new ItemRequirement(10, "M10", "Part", 3);
 
         List<SiteStockOption> sorted = List.of(airSite, shipSite).stream()
-            .sorted(policy.candidateComparator(item, 7))
+            .sorted(objective.siteComparator(item, 7))
             .toList();
 
         assertEquals(1, sorted.get(0).id);
-        assertEquals(DeliveryMethod.SHIP, policy.pickSuggestedTransport(shipSite, 7));
+        assertEquals(DeliveryMethod.SHIP.storageValue(), objective.pickTransport(shipSite, 7));
     }
 
     @Test
@@ -34,7 +34,7 @@ class AllocationPolicyTest {
         ItemRequirement item = new ItemRequirement(10, "M10", "Part", 3);
 
         List<SiteStockOption> sorted = List.of(lowStock, highStock).stream()
-            .sorted(policy.candidateComparator(item, 7))
+            .sorted(objective.siteComparator(item, 7))
             .toList();
 
         assertEquals(2, sorted.get(0).id);

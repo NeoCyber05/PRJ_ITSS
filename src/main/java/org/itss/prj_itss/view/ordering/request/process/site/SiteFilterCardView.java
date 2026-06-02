@@ -41,14 +41,15 @@ public final class SiteFilterCardView {
     private Button excludeButton;
 
     private ProcessingSiteView site;
-    private boolean prioritized;
-    private Consumer<ProcessingSiteView> onPriorityToggle = ignored -> {};
+    private boolean selected;
+    private Consumer<ProcessingSiteView> onSelectionToggle = ignored -> {};
     private Consumer<ProcessingSiteView> onExclude = ignored -> {};
 
     public static HBox load(
         ProcessingSiteView site,
-        boolean prioritized,
-        Consumer<ProcessingSiteView> onPriorityToggle,
+        boolean selected,
+        boolean dimmed,
+        Consumer<ProcessingSiteView> onSelectionToggle,
         Consumer<ProcessingSiteView> onExclude
     ) {
         try {
@@ -58,7 +59,7 @@ public final class SiteFilterCardView {
             ));
             HBox root = loader.load();
             SiteFilterCardView controller = loader.getController();
-            controller.init(root, site, prioritized, onPriorityToggle, onExclude);
+            controller.init(root, site, selected, dimmed, onSelectionToggle, onExclude);
             return root;
         } catch (IOException exception) {
             throw new IllegalStateException("Cannot load site filter card view", exception);
@@ -67,7 +68,7 @@ public final class SiteFilterCardView {
 
     @FXML
     private void handlePriorityToggle() {
-        onPriorityToggle.accept(site);
+        onSelectionToggle.accept(site);
     }
 
     @FXML
@@ -78,30 +79,36 @@ public final class SiteFilterCardView {
     private void init(
         HBox root,
         ProcessingSiteView site,
-        boolean prioritized,
-        Consumer<ProcessingSiteView> onPriorityToggle,
+        boolean selected,
+        boolean dimmed,
+        Consumer<ProcessingSiteView> onSelectionToggle,
         Consumer<ProcessingSiteView> onExclude
     ) {
         this.site = Objects.requireNonNull(site, "site");
-        this.prioritized = prioritized;
-        this.onPriorityToggle = onPriorityToggle == null ? ignored -> {} : onPriorityToggle;
+        this.selected = selected;
+        this.onSelectionToggle = onSelectionToggle == null ? ignored -> {} : onSelectionToggle;
         this.onExclude = onExclude == null ? ignored -> {} : onExclude;
 
         setStateClass(root, SITE_CARD_STATE_CLASSES,
-            prioritized ? "site-filter-site-card-priority" : "site-filter-site-card-normal");
+            selected ? "site-filter-site-card-priority" : "site-filter-site-card-normal");
+        if (dimmed) {
+            root.setOpacity(0.5);
+        } else {
+            root.setOpacity(1.0);
+        }
 
-        starLabel.setVisible(prioritized);
-        starLabel.setManaged(prioritized);
+        starLabel.setVisible(selected);
+        starLabel.setManaged(selected);
 
-        nameLabel.setText(siteName(site) + (prioritized ? " - Đang ưu tiên" : ""));
+        nameLabel.setText(siteName(site) + (selected ? " - Đã chọn" : ""));
         setStateClass(nameLabel, SITE_NAME_STATE_CLASSES,
-            prioritized ? "site-filter-site-name-priority" : "site-filter-site-name-normal");
+            selected ? "site-filter-site-name-priority" : "site-filter-site-name-normal");
 
         codeLabel.setText(siteCode(site) + " | Tàu: " + site.shipDays() + " ngày | Bay: " + site.airDays() + " ngày");
 
-        priorityButton.setText(prioritized ? "Bỏ ưu tiên" : "Ưu tiên");
+        priorityButton.setText(selected ? "Bỏ chọn" : "Chọn");
         priorityButton.getStyleClass().removeAll("site-filter-priority-button", "site-filter-unprioritize-button");
-        priorityButton.getStyleClass().add(prioritized ? "site-filter-unprioritize-button" : "site-filter-priority-button");
+        priorityButton.getStyleClass().add(selected ? "site-filter-unprioritize-button" : "site-filter-priority-button");
     }
 
     private static String siteName(ProcessingSiteView site) {

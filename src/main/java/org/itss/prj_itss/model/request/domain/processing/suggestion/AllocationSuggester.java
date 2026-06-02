@@ -13,6 +13,7 @@ public interface AllocationSuggester {
         List<ItemRequirement> items,
         List<SiteStockOption> allSites,
         Set<Integer> excludedSiteIds,
+        Set<Integer> selectedSiteIds,
         int deadlineDays
     );
 
@@ -20,7 +21,7 @@ public interface AllocationSuggester {
         List<ItemRequirement> items,
         List<SiteStockOption> allSites,
         Set<Integer> excludedSiteIds,
-        Set<Integer> prioritySiteIds,
+        Set<Integer> selectedSiteIds,
         int deadlineDays,
         int limit,
         int maxItemVariants

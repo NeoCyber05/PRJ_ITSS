@@ -14,6 +14,9 @@ import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcRequestPro
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcRequestRepository;
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcReceivedRequestDetailQuery;
 import org.itss.prj_itss.model.site.SiteModule;
+import org.itss.prj_itss.model.request.domain.processing.allocation.validator.DefaultAllocationValidator;
+import org.itss.prj_itss.model.request.domain.processing.suggestion.DefaultAllocationSuggester;
+import org.itss.prj_itss.model.request.domain.processing.allocation.policy.FastDeliveryObjective;
 
 public final class RequestModule {
 
@@ -40,7 +43,9 @@ public final class RequestModule {
                 siteModule.inventoryRepository(),
                 catalogModule.merchandiseRepository(),
                 transactionRunner
-            )
+            ),
+            new DefaultAllocationValidator(),
+            new DefaultAllocationSuggester(new FastDeliveryObjective())
         );
         this.receivedRequestsApplicationService =
             new ReceivedRequestsApplicationService(jdbcRequestRepository);

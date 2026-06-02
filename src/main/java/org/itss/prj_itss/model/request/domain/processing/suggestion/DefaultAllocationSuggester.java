@@ -1,27 +1,22 @@
 package org.itss.prj_itss.model.request.domain.processing.suggestion;
 
-import org.itss.prj_itss.model.request.domain.processing.suggestion.algo.AllSuggestAlgo;
-import org.itss.prj_itss.model.request.domain.processing.suggestion.algo.OptimalSuggestAlgo;
+import org.itss.prj_itss.model.request.domain.processing.suggestion.algo.AllSuggest;
+import org.itss.prj_itss.model.request.domain.processing.suggestion.algo.OptimalSuggest;
 import org.itss.prj_itss.model.request.domain.processing.allocation.AllocationDraft;
-import org.itss.prj_itss.model.request.domain.processing.allocation.policy.AllocationPolicy;
+import org.itss.prj_itss.model.request.domain.processing.allocation.policy.AllocationObjective;
 import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
 
-import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
 public final class DefaultAllocationSuggester implements AllocationSuggester {
-    private final AllocationPolicy allocationPolicy;
+    private final AllocationObjective objective;
 
-    public DefaultAllocationSuggester() {
-        this(new AllocationPolicy());
-    }
-
-    public DefaultAllocationSuggester(AllocationPolicy allocationPolicy) {
-        this.allocationPolicy = Objects.requireNonNull(allocationPolicy, "allocationPolicy");
+    public DefaultAllocationSuggester(AllocationObjective objective) {
+        this.objective = Objects.requireNonNull(objective, "objective");
     }
 
     @Override
@@ -29,44 +24,16 @@ public final class DefaultAllocationSuggester implements AllocationSuggester {
         List<ItemRequirement> items,
         List<SiteStockOption> allSites,
         Set<Integer> excludedSiteIds,
+        Set<Integer> selectedSiteIds,
         int deadlineDays
     ) {
-        OptimalSuggestAlgo optimalAlgo = new OptimalSuggestAlgo(
+        return new OptimalSuggest(
             allSites,
             excludedSiteIds,
+            selectedSiteIds,
             deadlineDays,
-            allocationPolicy
-        );
-        Map<Integer, Map<Integer, AllocationDraft>> draftsByItem = new LinkedHashMap<>();
-
-        for (ItemRequirement item : items) {
-            int remaining = item.required;
-            Map<Integer, AllocationDraft> draftsBySite = new LinkedHashMap<>();
-
-            for (SiteStockOption site : optimalAlgo.buildCandidateSites(item)) {
-                if (remaining <= 0) {
-                    break;
-                }
-
-                String transport = optimalAlgo.pickSuggestedTransport(site);
-                if (transport == null) {
-                    continue;
-                }
-
-                int stock = site.stock.getOrDefault(item.merchandiseId, 0);
-                int quantity = Math.min(remaining, stock);
-                if (quantity <= 0) {
-                    continue;
-                }
-
-                draftsBySite.put(site.id, new AllocationDraft(site.id, item.merchandiseId, quantity, transport));
-                remaining -= quantity;
-            }
-
-            draftsByItem.put(item.merchandiseId, draftsBySite);
-        }
-
-        return draftsByItem;
+            objective
+        ).buildOptimalDrafts(items);
     }
 
     @Override
@@ -74,18 +41,18 @@ public final class DefaultAllocationSuggester implements AllocationSuggester {
         List<ItemRequirement> items,
         List<SiteStockOption> allSites,
         Set<Integer> excludedSiteIds,
-        Set<Integer> prioritySiteIds,
+        Set<Integer> selectedSiteIds,
         int deadlineDays,
         int limit,
         int maxItemVariants
     ) {
-        return new AllSuggestAlgo(
+        return new AllSuggest(
             items,
             allSites,
             excludedSiteIds,
-            prioritySiteIds,
+            selectedSiteIds,
             deadlineDays,
-            allocationPolicy
+            objective
         ).buildSuggestedPlans(limit, maxItemVariants);
     }
 }

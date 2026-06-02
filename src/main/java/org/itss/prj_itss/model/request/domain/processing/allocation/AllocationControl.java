@@ -1,7 +1,6 @@
 package org.itss.prj_itss.model.request.domain.processing.allocation;
 
 import org.itss.prj_itss.model.request.domain.processing.suggestion.AllocationSuggester;
-import org.itss.prj_itss.model.request.domain.processing.suggestion.DefaultAllocationSuggester;
 import org.itss.prj_itss.model.request.domain.delivery.DeliveryMethod;
 import org.itss.prj_itss.model.request.domain.delivery.DeliveryOptions;
 import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
@@ -24,7 +23,7 @@ public class AllocationControl {
     private final List<ItemRequirement> items;
     private final List<SiteStockOption> allSites;
     private final Set<Integer> excludedSiteIds;
-    private final Set<Integer> prioritySiteIds;
+    private final Set<Integer> selectedSiteIds;
     private final Map<Integer, Map<Integer, Allocation>> allocations;
     private final int deadlineDays;
     private final ApplyPlan applyPlan;
@@ -34,26 +33,7 @@ public class AllocationControl {
         List<ItemRequirement> items,
         List<SiteStockOption> allSites,
         Set<Integer> excludedSiteIds,
-        Set<Integer> prioritySiteIds,
-        Map<Integer, Map<Integer, Allocation>> allocations,
-        int deadlineDays
-    ) {
-        this(
-            items,
-            allSites,
-            excludedSiteIds,
-            prioritySiteIds,
-            allocations,
-            deadlineDays,
-            new DefaultAllocationSuggester()
-        );
-    }
-
-    public AllocationControl(
-        List<ItemRequirement> items,
-        List<SiteStockOption> allSites,
-        Set<Integer> excludedSiteIds,
-        Set<Integer> prioritySiteIds,
+        Set<Integer> selectedSiteIds,
         Map<Integer, Map<Integer, Allocation>> allocations,
         int deadlineDays,
         AllocationSuggester allocationSuggester
@@ -61,7 +41,7 @@ public class AllocationControl {
         this.items = Objects.requireNonNull(items, "items");
         this.allSites = Objects.requireNonNull(allSites, "allSites");
         this.excludedSiteIds = Objects.requireNonNull(excludedSiteIds, "excludedSiteIds");
-        this.prioritySiteIds = Objects.requireNonNull(prioritySiteIds, "prioritySiteIds");
+        this.selectedSiteIds = Objects.requireNonNull(selectedSiteIds, "selectedSiteIds");
         this.allocations = Objects.requireNonNull(allocations, "allocations");
         this.deadlineDays = deadlineDays;
         this.applyPlan = new ApplyPlan(items, allocations);
@@ -133,6 +113,7 @@ public class AllocationControl {
             items,
             allSites,
             excludedSiteIds,
+            selectedSiteIds,
             deadlineDays
         ));
     }
@@ -142,7 +123,7 @@ public class AllocationControl {
             items,
             allSites,
             excludedSiteIds,
-            prioritySiteIds,
+            selectedSiteIds,
             deadlineDays,
             MAX_SUGGESTED_PLANS,
             MAX_ITEM_VARIANTS

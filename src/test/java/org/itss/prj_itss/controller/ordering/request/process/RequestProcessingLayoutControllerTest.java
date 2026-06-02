@@ -22,6 +22,9 @@ import org.itss.prj_itss.model.catalog.application.port.MerchandiseRepository;
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
 import org.itss.prj_itss.model.request.application.processing.ProcessingRequestPort;
 import org.itss.prj_itss.model.site.application.port.SiteRepository;
+import org.itss.prj_itss.model.request.domain.processing.allocation.validator.DefaultAllocationValidator;
+import org.itss.prj_itss.model.request.domain.processing.suggestion.DefaultAllocationSuggester;
+import org.itss.prj_itss.model.request.domain.processing.allocation.policy.FastDeliveryObjective;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -142,7 +145,9 @@ class RequestProcessingLayoutControllerTest {
                 new FakeInventoryRepository(scenario),
                 new FakeMerchandiseRepository(scenario),
                 new RecordingTransactionRunner()
-            )
+            ),
+            new DefaultAllocationValidator(),
+            new DefaultAllocationSuggester(new FastDeliveryObjective())
         );
         return new RequestProcessingLayoutController(useCase);
     }

@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "design-patterns": {
+      "source": "ratacat/claude-skills",
+      "sourceType": "github",
+      "skillPath": "skills/design-patterns/SKILL.md",
+      "computedHash": "e88f4692973650b9aa48f168ff00b1c87a69daf5482a3c9819cdfbc8b56a2e39"
+    },
     "find-skills": {
       "source": "vercel-labs/skills",
       "sourceType": "github",
