@@ -12,6 +12,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.itss.prj_itss.model.request.domain.processing.allocation.validator.DefaultAllocationValidator;
+import org.itss.prj_itss.model.request.domain.processing.suggestion.DefaultAllocationSuggester;
+import org.itss.prj_itss.model.request.domain.processing.allocation.policy.FastDeliveryObjective;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -20,7 +23,7 @@ class RequestProcessingUseCaseTest {
     @Test
     void delegatesLoadAndSubmitThroughGateway() throws RequestProcessingException {
         RecordingGateway gateway = new RecordingGateway();
-        RequestProcessingUseCase useCase = new RequestProcessingUseCase(gateway);
+        RequestProcessingUseCase useCase = new RequestProcessingUseCase(gateway, new DefaultAllocationValidator(), new DefaultAllocationSuggester(new FastDeliveryObjective()));
 
         RequestProcessingData data = useCase.loadProcessingData(99);
         useCase.createAllocatedOrders(99, allocations(10, new Allocation(1, 10, 2, DeliveryMethod.SHIP.storageValue())));
@@ -33,7 +36,7 @@ class RequestProcessingUseCaseTest {
     @Test
     void validatesSubmissionWithDefaultValidator() {
         RecordingGateway gateway = new RecordingGateway();
-        RequestProcessingUseCase useCase = new RequestProcessingUseCase(gateway);
+        RequestProcessingUseCase useCase = new RequestProcessingUseCase(gateway, new DefaultAllocationValidator(), new DefaultAllocationSuggester(new FastDeliveryObjective()));
         ItemRequirement item = gateway.data.items().get(0);
         SiteStockOption site = gateway.data.sites().get(0);
 
@@ -50,7 +53,7 @@ class RequestProcessingUseCaseTest {
 
     @Test
     void validatesMissingExactAndExcessQuantity() {
-        RequestProcessingUseCase useCase = new RequestProcessingUseCase(new RecordingGateway());
+        RequestProcessingUseCase useCase = new RequestProcessingUseCase(new RecordingGateway(), new DefaultAllocationValidator(), new DefaultAllocationSuggester(new FastDeliveryObjective()));
         ItemRequirement item = new ItemRequirement(10, "M10", "Part", 5);
 
         Map<Integer, Map<Integer, Allocation>> missing = allocations(
@@ -73,7 +76,7 @@ class RequestProcessingUseCaseTest {
 
     @Test
     void rejectsSubmissionWhenDesiredDeliveryCannotBeMet() {
-        RequestProcessingUseCase useCase = new RequestProcessingUseCase(new RecordingGateway());
+        RequestProcessingUseCase useCase = new RequestProcessingUseCase(new RecordingGateway(), new DefaultAllocationValidator(), new DefaultAllocationSuggester(new FastDeliveryObjective()));
         ItemRequirement item = new ItemRequirement(10, "M10", "Part", 5);
         SiteStockOption site = new SiteStockOption(1, "S1", "Site 1", "", 6, 2, Map.of(item.merchandiseId, 5));
 
@@ -90,7 +93,7 @@ class RequestProcessingUseCaseTest {
 
     @Test
     void acceptsSubmissionWhenDesiredDeliveryCanBeMet() {
-        RequestProcessingUseCase useCase = new RequestProcessingUseCase(new RecordingGateway());
+        RequestProcessingUseCase useCase = new RequestProcessingUseCase(new RecordingGateway(), new DefaultAllocationValidator(), new DefaultAllocationSuggester(new FastDeliveryObjective()));
         ItemRequirement item = new ItemRequirement(10, "M10", "Part", 5);
         SiteStockOption site = new SiteStockOption(1, "S1", "Site 1", "", 2, 5, Map.of(item.merchandiseId, 5));
 

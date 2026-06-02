@@ -29,8 +29,8 @@ public final class RequestProcessingLayoutController {
         return session.buildViewModel();
     }
 
-    public void handleSiteFilterChanged(Set<Integer> excludedSiteIds, Set<Integer> prioritySiteIds) {
-        session.handleSiteFilterChanged(excludedSiteIds, prioritySiteIds);
+    public void handleSiteFilterChanged(Set<Integer> excludedSiteIds, Set<Integer> selectedSiteIds) {
+        session.handleSiteFilterChanged(excludedSiteIds, selectedSiteIds);
     }
 
     public void handleOptimizeAllocation() {

@@ -38,7 +38,7 @@ public final class RequestProcessingSession {
     private final Map<Integer, Map<Integer, Allocation>> allocations = new LinkedHashMap<>();
     private final Map<Integer, LocalDate> desiredDeliveryDates = new LinkedHashMap<>();
     private Set<Integer> excludedSiteIds = new LinkedHashSet<>();
-    private Set<Integer> prioritySiteIds = new LinkedHashSet<>();
+    private Set<Integer> selectedSiteIds = new LinkedHashSet<>();
 
     private int requestId = -1;
     private int deadlineDays = 14;
@@ -164,9 +164,9 @@ public final class RequestProcessingSession {
         );
     }
 
-    public void handleSiteFilterChanged(Set<Integer> excludedSiteIds, Set<Integer> prioritySiteIds) {
+    public void handleSiteFilterChanged(Set<Integer> excludedSiteIds, Set<Integer> selectedSiteIds) {
         this.excludedSiteIds = copyIds(excludedSiteIds);
-        this.prioritySiteIds = copyIds(prioritySiteIds);
+        this.selectedSiteIds = copyIds(selectedSiteIds);
         AllocationPlan.using(allocations).removeSites(this.excludedSiteIds);
         rebuildAllocationSection();
     }
@@ -183,7 +183,6 @@ public final class RequestProcessingSession {
                 p.totalQuantity(),
                 p.totalLineCount(),
                 p.siteCount(),
-                p.prioritySiteCount(),
                 p.totalDeliveryDays()
             ))
             .toList();
@@ -290,16 +289,16 @@ public final class RequestProcessingSession {
         return excludedSiteIds.contains(siteId);
     }
 
-    public boolean isSitePriority(int siteId) {
-        return prioritySiteIds.contains(siteId);
+    public boolean isSiteSelected(int siteId) {
+        return selectedSiteIds.contains(siteId);
     }
 
     public Set<Integer> excludedSiteIds() {
         return Set.copyOf(excludedSiteIds);
     }
 
-    public Set<Integer> prioritySiteIds() {
-        return Set.copyOf(prioritySiteIds);
+    public Set<Integer> selectedSiteIds() {
+        return Set.copyOf(selectedSiteIds);
     }
 
     public int expandedItemIndex() {
@@ -312,7 +311,7 @@ public final class RequestProcessingSession {
         allocations.clear();
         desiredDeliveryDates.clear();
         excludedSiteIds = new LinkedHashSet<>();
-        prioritySiteIds = new LinkedHashSet<>();
+        selectedSiteIds = new LinkedHashSet<>();
         earliestDeliveryDate = null;
         deadlineDays = 14;
         expandedItemIndex = -1;
@@ -342,7 +341,7 @@ public final class RequestProcessingSession {
             items,
             allSites,
             excludedSiteIds,
-            prioritySiteIds,
+            selectedSiteIds,
             allocations,
             deadlineDays,
             requestProcessingUseCase.allocationSuggester()

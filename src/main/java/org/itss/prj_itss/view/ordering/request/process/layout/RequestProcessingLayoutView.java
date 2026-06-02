@@ -143,7 +143,7 @@ public final class RequestProcessingLayoutView {
     private void handleSiteFilterChanged() {
         controller.handleSiteFilterChanged(
             siteFilterView.getExcludedSiteIds(),
-            siteFilterView.getPrioritySiteIds()
+            siteFilterView.getSelectedSiteIds()
         );
         renderItemsViewSection();
     }

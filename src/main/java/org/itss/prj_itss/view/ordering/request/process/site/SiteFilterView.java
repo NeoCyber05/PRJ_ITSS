@@ -76,8 +76,8 @@ public final class SiteFilterView {
         return root;
     }
 
-    public Set<Integer> getPrioritySiteIds() {
-        return controller.prioritySiteIds();
+    public Set<Integer> getSelectedSiteIds() {
+        return controller.selectedSiteIds();
     }
 
     public Set<Integer> getExcludedSiteIds() {
@@ -115,11 +115,11 @@ public final class SiteFilterView {
         notifyFiltersChanged();
     }
 
-    private void onPriorityToggled(ProcessingSiteView site) {
-        if (controller.isPriority(site)) {
-            controller.unprioritizeSite(site);
+    private void onSelectionToggled(ProcessingSiteView site) {
+        if (controller.isSelected(site)) {
+            controller.deselectSite(site);
         } else {
-            controller.prioritizeSite(site);
+            controller.selectSite(site);
         }
         renderUi();
         notifyFiltersChanged();
@@ -133,7 +133,7 @@ public final class SiteFilterView {
 
     private void renderUi() {
         renderSiteList();
-        renderPriorityTags();
+        renderSelectedTags();
         renderExcludeTags();
         renderSummary();
         renderExpandedState();
@@ -145,34 +145,38 @@ public final class SiteFilterView {
         }
 
         siteListContainer.getChildren().clear();
+        Set<Integer> selected = controller.selectedSiteIds();
         for (ProcessingSiteView site : controller.visibleSites()) {
+            boolean isSelected = controller.isSelected(site);
+            boolean dimmed = !selected.isEmpty() && !isSelected;
             siteListContainer.getChildren().add(SiteFilterCardView.load(
                 site,
-                controller.isPriority(site),
-                this::onPriorityToggled,
+                isSelected,
+                dimmed,
+                this::onSelectionToggled,
                 this::onExclude
             ));
         }
     }
 
-    private void renderPriorityTags() {
+    private void renderSelectedTags() {
         if (priorityTagsBox == null) {
             return;
         }
 
         priorityTagsBox.getChildren().clear();
-        if (controller.prioritySiteIds().isEmpty()) {
-            Label placeholderLabel = new Label("Chưa chọn site ưu tiên");
+        if (controller.selectedSiteIds().isEmpty()) {
+            Label placeholderLabel = new Label("Chưa chọn site");
             placeholderLabel.getStyleClass().add("site-filter-tag-placeholder");
             priorityTagsBox.getChildren().add(placeholderLabel);
             return;
         }
 
-        for (ProcessingSiteView site : controller.prioritySites()) {
-            Label tag = new Label("★ " + siteName(site) + "  ✕");
+        for (ProcessingSiteView site : controller.selectedSites()) {
+            Label tag = new Label("● " + siteName(site) + "  ✕");
             tag.getStyleClass().addAll("site-filter-tag", "site-filter-priority-tag");
             tag.setOnMouseClicked(event -> {
-                controller.removePriority(site.id());
+                controller.removeSelected(site.id());
                 renderUi();
                 notifyFiltersChanged();
             });
@@ -207,15 +211,20 @@ public final class SiteFilterView {
 
     private void renderSummary() {
         String countText = controller.visibleSites().size() + "/" + controller.allSites().size() + " site";
-        String summaryText = countText + " | "
-            + controller.prioritySiteIds().size() + " ưu tiên | "
-            + controller.excludedSiteIds().size() + " loại bỏ";
+        StringBuilder summaryText = new StringBuilder(countText);
+        summaryText.append(" | ")
+            .append(controller.selectedSiteIds().size()).append(" đã chọn")
+            .append(" | ")
+            .append(controller.excludedSiteIds().size()).append(" loại bỏ");
+        if (!controller.selectedSiteIds().isEmpty()) {
+            summaryText.append(" | Chỉ dùng site đã chọn");
+        }
 
         if (countLabel != null) {
             countLabel.setText(countText);
         }
         if (toggleSummaryLabel != null) {
-            toggleSummaryLabel.setText(summaryText);
+            toggleSummaryLabel.setText(summaryText.toString());
         }
     }
 

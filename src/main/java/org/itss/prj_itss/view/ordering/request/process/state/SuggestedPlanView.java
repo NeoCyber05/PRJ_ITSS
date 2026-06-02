@@ -5,7 +5,6 @@ public record SuggestedPlanView(
     int totalQuantity,
     int totalLineCount,
     int siteCount,
-    int prioritySiteCount,
     int totalDeliveryDays
 ) {
 }

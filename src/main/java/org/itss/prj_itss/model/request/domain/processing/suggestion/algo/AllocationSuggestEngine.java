@@ -2,13 +2,14 @@ package org.itss.prj_itss.model.request.domain.processing.suggestion.algo;
 
 import org.itss.prj_itss.model.request.domain.processing.allocation.AllocationDraft;
 import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
+import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
+import org.itss.prj_itss.model.request.domain.delivery.DeliveryOptions;
+import org.itss.prj_itss.model.request.domain.processing.allocation.policy.AllocationObjective;
+import org.itss.prj_itss.model.request.domain.processing.suggestion.ItemVariant;
 import org.itss.prj_itss.model.request.domain.processing.suggestion.OrderLineSuggestion;
 import org.itss.prj_itss.model.request.domain.processing.suggestion.SiteOrderSuggestion;
-import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
 import org.itss.prj_itss.model.request.domain.processing.suggestion.SuggestedPlan;
-import org.itss.prj_itss.model.request.domain.delivery.DeliveryMethod;
-import org.itss.prj_itss.model.request.domain.delivery.DeliveryOptions;
-import org.itss.prj_itss.model.request.domain.processing.allocation.policy.AllocationPolicy;
+import org.itss.prj_itss.model.request.domain.processing.suggestion.SiteSelectionScope;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,43 +20,30 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-/**
- * Thuật toán sinh tất cả gợi ý khả dụng có giới hạn
- * và xếp hạng để người dùng chọn.
- */
-public final class AllSuggestAlgo {
+public final class AllocationSuggestEngine {
     private static final int MAX_COMBINATION_ATTEMPTS = 240;
 
     private final List<ItemRequirement> items;
     private final List<SiteStockOption> allSites;
-    private final Set<Integer> prioritySiteIds;
-    private final OptimalSuggestAlgo optimalSelector;
+    private final SiteSelectionScope scope;
+    private final AllocationObjective objective;
+    private final int deadlineDays;
 
-    public AllSuggestAlgo(
+    public AllocationSuggestEngine(
         List<ItemRequirement> items,
         List<SiteStockOption> allSites,
-        Set<Integer> excludedSiteIds,
-        Set<Integer> prioritySiteIds,
+        SiteSelectionScope scope,
+        AllocationObjective objective,
         int deadlineDays
-    ) {
-        this(items, allSites, excludedSiteIds, prioritySiteIds, deadlineDays, new AllocationPolicy());
-    }
-
-    public AllSuggestAlgo(
-        List<ItemRequirement> items,
-        List<SiteStockOption> allSites,
-        Set<Integer> excludedSiteIds,
-        Set<Integer> prioritySiteIds,
-        int deadlineDays,
-        AllocationPolicy allocationPolicy
     ) {
         this.items = items;
         this.allSites = allSites;
-        this.prioritySiteIds = prioritySiteIds;
-        this.optimalSelector = new OptimalSuggestAlgo(allSites, excludedSiteIds, deadlineDays, allocationPolicy);
+        this.scope = scope;
+        this.objective = objective;
+        this.deadlineDays = deadlineDays;
     }
 
-    public List<SuggestedPlan> buildSuggestedPlans(int limit, int maxItemVariants) {
+    public List<SuggestedPlan> suggestMany(int limit, int maxItemVariants) {
         if (items.isEmpty()) {
             return List.of();
         }
@@ -76,11 +64,7 @@ public final class AllSuggestAlgo {
             }
         }
 
-        plans.sort(Comparator
-            .comparingInt(SuggestedPlan::siteCount)
-            .thenComparingInt(SuggestedPlan::totalDeliveryDays)
-            .thenComparingInt(SuggestedPlan::totalLineCount)
-            .thenComparing(SuggestedPlan::signature));
+        plans.sort(objective.planComparator());
 
         return plans.size() > limit ? plans.subList(0, limit) : plans;
     }
@@ -98,7 +82,12 @@ public final class AllSuggestAlgo {
     }
 
     private List<ItemVariant> buildItemVariants(ItemRequirement item, int limit) {
-        List<SiteStockOption> candidateSites = optimalSelector.buildCandidateSites(item);
+        List<SiteStockOption> candidateSites = scope.candidateSites().stream()
+            .filter(site -> site.stock.getOrDefault(item.merchandiseId, 0) > 0)
+            .filter(site -> objective.pickTransport(site, deadlineDays) != null)
+            .sorted(objective.siteComparator(item, deadlineDays))
+            .toList();
+
         if (candidateSites.isEmpty()) {
             return List.of();
         }
@@ -130,10 +119,7 @@ public final class AllSuggestAlgo {
             }
         }
 
-        variants.sort(Comparator
-            .comparingInt(ItemVariant::siteCount)
-            .thenComparingInt(ItemVariant::totalDeliveryDays)
-            .thenComparing(ItemVariant::signature));
+        variants.sort(objective.itemVariantComparator());
         return variants;
     }
 
@@ -231,7 +217,7 @@ public final class AllSuggestAlgo {
             return;
         }
 
-        String transport = optimalSelector.pickSuggestedTransport(site);
+        String transport = objective.pickTransport(site, deadlineDays);
         if (transport == null) {
             collectItemVariants(item, orderedSites, siteIndex + 1, remaining, current, variants, seenSignatures, limit);
             return;
@@ -347,13 +333,11 @@ public final class AllSuggestAlgo {
 
     private SuggestedPlan assemblePlan(Map<Integer, Map<Integer, AllocationDraft>> allocationsByItem) {
         Map<Integer, MutableSiteOrder> siteOrdersById = new LinkedHashMap<>();
-        Set<Integer> countedPrioritySites = new LinkedHashSet<>();
         StringBuilder signature = new StringBuilder();
 
         int totalQuantity = 0;
         int totalLines = 0;
         int totalDeliveryDays = 0;
-        int prioritySiteCount = 0;
 
         for (ItemRequirement item : items) {
             Map<Integer, AllocationDraft> itemAllocations =
@@ -376,10 +360,6 @@ public final class AllSuggestAlgo {
                 totalQuantity += draft.quantity();
                 totalLines++;
                 totalDeliveryDays += deliveryDays;
-
-                if (prioritySiteIds.contains(site.id) && countedPrioritySites.add(site.id)) {
-                    prioritySiteCount++;
-                }
 
                 if (!signature.isEmpty()) {
                     signature.append('|');
@@ -407,7 +387,6 @@ public final class AllSuggestAlgo {
             totalQuantity,
             totalLines,
             siteOrders.size(),
-            prioritySiteCount,
             totalDeliveryDays,
             signature.toString()
         );
@@ -424,7 +403,7 @@ public final class AllSuggestAlgo {
     }
 
     private String transportLabel(String transport) {
-        return DeliveryMethod.displayLabelOf(transport);
+        return org.itss.prj_itss.model.request.domain.delivery.DeliveryMethod.displayLabelOf(transport);
     }
 
     private SiteStockOption findSiteById(int siteId) {
@@ -438,14 +417,6 @@ public final class AllSuggestAlgo {
 
     private int getDeliveryDays(SiteStockOption site, String transport) {
         return DeliveryOptions.deliveryDays(site, DeliveryOptions.resolve(site, transport, Integer.MAX_VALUE));
-    }
-
-    private record ItemVariant(
-        Map<Integer, AllocationDraft> allocationsBySite,
-        int siteCount,
-        int totalDeliveryDays,
-        String signature
-    ) {
     }
 
     private static final class MutableSiteOrder {
@@ -467,4 +438,3 @@ public final class AllSuggestAlgo {
         }
     }
 }
-
