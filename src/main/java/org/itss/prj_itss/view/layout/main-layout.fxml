@@ -65,6 +65,15 @@
                                         styleClass="shell-nav-button"/>
                             </children>
                         </VBox>
+                        <VBox fx:id="adminNavContainer" spacing="10">
+                            <children>
+                                <Button fx:id="accountManagementButton"
+                                        text="Quản lý tài khoản"
+                                        alignment="CENTER_LEFT"
+                                        maxWidth="1.7976931348623157E308"
+                                        styleClass="shell-nav-button"/>
+                            </children>
+                        </VBox>
                     </children>
                 </VBox>
 

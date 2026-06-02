@@ -14,6 +14,12 @@ public final class RoleAccessPolicy {
 
     public static boolean canAccess(RoleType roleType, String viewId) {
         String normalizedViewId = normalizeViewId(viewId);
+        if (roleType.isAdminRole()) {
+            return switch (normalizedViewId) {
+                case "account-management" -> true;
+                default -> false;
+            };
+        }
         if (roleType.isOrderingRole()) {
             return switch (normalizedViewId) {
                 case "home", "site-management", "received-requests", "orders",
@@ -43,6 +49,9 @@ public final class RoleAccessPolicy {
     }
 
     public static String defaultViewId(RoleType roleType) {
+        if (roleType.isAdminRole()) {
+            return "account-management";
+        }
         if (roleType.isOrderingRole()) {
             return "home";
         }
