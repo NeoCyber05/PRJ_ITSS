@@ -18,9 +18,9 @@ public final class RoleWorkspaceContentFactory {
                 "Tổng quan quyền",
                 "Không gian làm việc theo phân quyền của quản trị viên",
                 "Không gian quản trị",
-                "Tài khoản đã được xác thực đúng role. Module nghiệp vụ riêng cho quản trị viên chưa được triển khai trong phiên bản này.",
+                "Tài khoản đã được xác thực đúng role. Module nghiệp vụ riêng cho quản trị viên đã được triển khai trong phiên bản này.",
                 "Quyền chính: quản lý tài khoản người dùng nội bộ.",
-                "Chưa triển khai",
+                "Đã triển khai",
                 List.of(
                     "Tạo, sửa, vô hiệu hóa hoặc hủy tài khoản nội bộ",
                     "Theo dõi phạm vi quyền truy cập theo role",

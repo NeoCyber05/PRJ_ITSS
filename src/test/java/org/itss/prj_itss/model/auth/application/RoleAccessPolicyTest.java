@@ -41,12 +41,23 @@ class RoleAccessPolicyTest {
 
     @Test
     void unknownAndUnsupportedRolesUseRoleWorkspaceOnly() {
-        assertEquals("role-workspace", RoleAccessPolicy.defaultViewId(RoleType.ADMIN));
         assertEquals("role-workspace", RoleAccessPolicy.defaultViewId(RoleType.SITE));
         assertEquals("role-workspace", RoleAccessPolicy.defaultViewId(RoleType.UNKNOWN));
         assertTrue(RoleAccessPolicy.canAccess(RoleType.UNKNOWN, "role-workspace"));
         assertFalse(RoleAccessPolicy.canAccess(RoleType.UNKNOWN, "home"));
         assertFalse(RoleAccessPolicy.canAccess(RoleType.UNKNOWN, null));
+    }
+
+    @Test
+    void adminCanAccessAccountManagementOnly() {
+        assertTrue(RoleAccessPolicy.canAccess(RoleType.ADMIN, "account-management"));
+        assertFalse(RoleAccessPolicy.canAccess(RoleType.ADMIN, "site-management"));
+        assertEquals("account-management", RoleAccessPolicy.defaultViewId(RoleType.ADMIN));
+    }
+
+    @Test
+    void orderingCannotAccessAccountManagement() {
+        assertFalse(RoleAccessPolicy.canAccess(RoleType.ORDERING, "account-management"));
     }
 
     @Test

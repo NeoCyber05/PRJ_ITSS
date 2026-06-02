@@ -25,6 +25,8 @@ import org.itss.prj_itss.model.shared.database.TransactionManager;
 import org.itss.prj_itss.model.shared.database.WarehouseConnectionProvider;
 import org.itss.prj_itss.model.shared.database.WarehouseTransactionManager;
 import org.itss.prj_itss.model.warehouse.WarehouseModule;
+import org.itss.prj_itss.controller.admin.account.AdminControllerModule;
+import org.itss.prj_itss.view.admin.account.AccountManagementView;
 import org.itss.prj_itss.view.auth.RoleWorkspaceView;
 import org.itss.prj_itss.view.home.HomeView;
 import org.itss.prj_itss.view.ordering.order.OrderCancellationView;
@@ -54,7 +56,12 @@ public final class MvcContext {
 
     private final AuthModule authModule = new AuthModule(connectionProvider);
     private final CatalogModule catalogModule = new CatalogModule(connectionProvider);
-    private final SiteModule siteModule = new SiteModule(connectionProvider, catalogModule);
+    private final SiteModule siteModule = new SiteModule(
+        connectionProvider,
+        transactionManager,
+        catalogModule,
+        authModule.siteAccountProvisioningPort()
+    );
     private final OrderModule orderModule = new OrderModule(connectionProvider, siteModule, catalogModule);
     private final RequestModule requestModule =
         new RequestModule(connectionProvider, transactionManager, orderModule, siteModule, catalogModule);
@@ -83,6 +90,7 @@ public final class MvcContext {
         new SalesRequestControllerModule(requestModule);
     private final WarehouseControllerModule warehouseControllers =
         new WarehouseControllerModule(warehouseModule, siteModule, catalogModule);
+    private final AdminControllerModule adminControllers = new AdminControllerModule(authModule);
     private final RouteRegistry routeRegistry = new RouteRegistry(List.of(
         RouteRegistry.fxml(
             "home",
@@ -171,6 +179,15 @@ public final class MvcContext {
             (viewId, viewInstance, navigator) ->
                 ((ConfirmOrderArrivalView) viewInstance)
                     .setController(warehouseControllers.confirmOrderArrivalController())
+        ),
+        RouteRegistry.fxml(
+            "account-management",
+            "/org/itss/prj_itss/view/admin/account/account-management-view.fxml",
+            (viewId, viewInstance, navigator) ->
+                ((AccountManagementView) viewInstance).init(
+                    navigator,
+                    adminControllers.accountManagementController()
+                )
         ),
         RouteRegistry.fxml(
             "role-workspace",
