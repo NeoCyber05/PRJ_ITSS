@@ -1,7 +1,7 @@
 package org.itss.prj_itss.model.site.application.self;
 
-import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.order.application.port.SiteOrderRepository;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
@@ -18,20 +18,20 @@ import java.util.Objects;
 public final class OverseasSiteApplicationService {
 
     private final SiteUseCase siteUseCase;
-    private final CatalogUseCase catalogUseCase;
+    private final MerchandiseUseCase MerchandiseUseCase;
     private final SiteProfileCommandPort profileCommandPort;
     private final SiteInventoryCommandPort inventoryCommandPort;
     private final SiteOrderRepository siteOrderRepository;
 
     public OverseasSiteApplicationService(
         SiteUseCase siteUseCase,
-        CatalogUseCase catalogUseCase,
+        MerchandiseUseCase MerchandiseUseCase,
         SiteProfileCommandPort profileCommandPort,
         SiteInventoryCommandPort inventoryCommandPort,
         SiteOrderRepository siteOrderRepository
     ) {
         this.siteUseCase = Objects.requireNonNull(siteUseCase, "siteUseCase");
-        this.catalogUseCase = Objects.requireNonNull(catalogUseCase, "catalogUseCase");
+        this.MerchandiseUseCase = Objects.requireNonNull(MerchandiseUseCase, "MerchandiseUseCase");
         this.profileCommandPort = Objects.requireNonNull(profileCommandPort, "profileCommandPort");
         this.inventoryCommandPort = Objects.requireNonNull(inventoryCommandPort, "inventoryCommandPort");
         this.siteOrderRepository = Objects.requireNonNull(siteOrderRepository, "siteOrderRepository");
@@ -44,8 +44,8 @@ public final class OverseasSiteApplicationService {
         }
 
         Map<Integer, Integer> inventory = siteUseCase.getInventoryBySiteId(siteId);
-        List<Merchandise> merchandise = catalogUseCase.findAll();
-        List<SiteInventoryRow> inventoryRows = merchandise.stream()
+        List<Merchandise> allMerchandise = MerchandiseUseCase.findAll();
+        List<SiteInventoryRow> inventoryRows = allMerchandise.stream()
             .filter(item -> inventory.containsKey(item.getId()))
             .map(item -> new SiteInventoryRow(
                 item.getId(),
@@ -56,11 +56,13 @@ public final class OverseasSiteApplicationService {
             ))
             .toList();
 
+        List<Merchandise> activeMerchandise = MerchandiseUseCase.findActive();
+
         List<SiteOrderRow> orderRows = siteOrderRepository.findBySiteId(siteId).stream()
             .map(this::toOrderRow)
             .toList();
 
-        return new SiteWorkspaceSnapshot(true, "", site, merchandise, inventoryRows, orderRows);
+        return new SiteWorkspaceSnapshot(true, "", site, activeMerchandise, inventoryRows, orderRows);
     }
 
     public SiteWorkspaceResult updateProfile(int siteId, SiteProfileDraft draft) {
@@ -85,7 +87,7 @@ public final class OverseasSiteApplicationService {
         if (siteUseCase.findById(siteId) == null) {
             return SiteWorkspaceResult.failure("Site không tồn tại.");
         }
-        if (catalogUseCase.findById(draft.merchandiseId()) == null) {
+        if (MerchandiseUseCase.findById(draft.merchandiseId()) == null) {
             return SiteWorkspaceResult.failure("Mặt hàng không tồn tại.");
         }
         if (draft.stockQuantity() < 0) {
@@ -152,7 +154,7 @@ public final class OverseasSiteApplicationService {
     }
 
     private SiteOrderItemRow toOrderItemRow(OrderMerchandise item) {
-        Merchandise merchandise = catalogUseCase.findById(item.getMerchandiseId());
+        Merchandise merchandise = MerchandiseUseCase.findById(item.getMerchandiseId());
         return new SiteOrderItemRow(
             item.getMerchandiseId(),
             merchandise == null ? "N/A" : merchandise.getCode(),

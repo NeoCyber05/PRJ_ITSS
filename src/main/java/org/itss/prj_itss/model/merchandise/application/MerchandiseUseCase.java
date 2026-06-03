@@ -1,20 +1,24 @@
-package org.itss.prj_itss.model.catalog.application;
+package org.itss.prj_itss.model.merchandise.application;
 
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
-import org.itss.prj_itss.model.catalog.application.port.MerchandiseRepository;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.application.port.MerchandiseRepository;
 
 import java.util.List;
 
-public final class CatalogUseCase {
+public final class MerchandiseUseCase {
 
     private final MerchandiseRepository merchandiseRepository;
 
-    public CatalogUseCase(MerchandiseRepository merchandiseRepository) {
+    public MerchandiseUseCase(MerchandiseRepository merchandiseRepository) {
         this.merchandiseRepository = merchandiseRepository;
     }
 
     public List<Merchandise> findAll() {
         return merchandiseRepository.findAll();
+    }
+
+    public List<Merchandise> findActive() {
+        return merchandiseRepository.findActive();
     }
 
     public Merchandise findById(int id) {

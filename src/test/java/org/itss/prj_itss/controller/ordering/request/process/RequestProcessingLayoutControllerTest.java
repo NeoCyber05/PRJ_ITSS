@@ -2,7 +2,7 @@ package org.itss.prj_itss.controller.ordering.request.process;
 
 import org.itss.prj_itss.model.shared.database.TransactionException;
 import org.itss.prj_itss.model.shared.database.TransactionRunner;
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.request.domain.request.Request;
@@ -18,7 +18,7 @@ import org.itss.prj_itss.view.ordering.request.process.state.RequestProcessingVi
 import org.itss.prj_itss.view.ordering.request.process.state.SuggestedPlanView;
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcRequestProcessingGateway;
 import org.itss.prj_itss.model.site.application.port.InventoryRepository;
-import org.itss.prj_itss.model.catalog.application.port.MerchandiseRepository;
+import org.itss.prj_itss.model.merchandise.application.port.MerchandiseRepository;
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
 import org.itss.prj_itss.model.request.application.processing.ProcessingRequestPort;
 import org.itss.prj_itss.model.site.application.port.SiteRepository;
@@ -235,11 +235,19 @@ class RequestProcessingLayoutControllerTest {
         @Override
         public List<Merchandise> findAll() { return new ArrayList<>(scenario.merchandiseById.values()); }
         @Override
+        public List<Merchandise> findActive() { return new ArrayList<>(scenario.merchandiseById.values()); }
+        @Override
         public Merchandise findById(int id) { return scenario.merchandiseById.get(id); }
         @Override
         public Merchandise findByCode(String code) { return scenario.merchandiseById.values().stream().filter(m -> m.getCode().equals(code)).findFirst().orElse(null); }
         @Override
         public int countAll() { return scenario.merchandiseById.size(); }
+        @Override
+        public int create(Merchandise merchandise) { return -1; }
+        @Override
+        public boolean update(Merchandise merchandise) { return false; }
+        @Override
+        public boolean setActive(int merchandiseId, boolean active) { return false; }
     }
 
     private static final class FakeOrderRepository implements OrderRepository {

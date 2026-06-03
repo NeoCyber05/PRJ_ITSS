@@ -1,6 +1,6 @@
 package org.itss.prj_itss.model.site.application.self;
 
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.site.domain.Site;
 
 import java.util.List;

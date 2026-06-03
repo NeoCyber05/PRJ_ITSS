@@ -19,7 +19,7 @@ import javafx.scene.layout.VBox;
 import javafx.util.StringConverter;
 import org.itss.prj_itss.controller.navigation.Navigator;
 import org.itss.prj_itss.controller.site.SiteWorkspaceController;
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.site.application.self.SiteInventoryDraft;
 import org.itss.prj_itss.model.site.application.self.SiteInventoryRow;
 import org.itss.prj_itss.model.site.application.self.SiteOrderItemRow;

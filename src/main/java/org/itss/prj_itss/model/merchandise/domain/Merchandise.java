@@ -1,4 +1,4 @@
-package org.itss.prj_itss.model.catalog.domain;
+package org.itss.prj_itss.model.merchandise.domain;
 
 public class Merchandise {
 
@@ -6,6 +6,7 @@ public class Merchandise {
     private String code;
     private String name;
     private String unit;
+    private boolean active;
 
     public Merchandise() {
     }
@@ -15,6 +16,15 @@ public class Merchandise {
         this.code = code;
         this.name = name;
         this.unit = unit;
+        this.active = true;
+    }
+
+    public Merchandise(int id, String code, String name, String unit, boolean active) {
+        this.id = id;
+        this.code = code;
+        this.name = name;
+        this.unit = unit;
+        this.active = active;
     }
 
     public int getId() {
@@ -49,6 +59,14 @@ public class Merchandise {
         this.unit = unit;
     }
 
+    public boolean isActive() {
+        return active;
+    }
+
+    public void setActive(boolean active) {
+        this.active = active;
+    }
+
     @Override
     public String toString() {
         return "Merchandise{" +
@@ -56,6 +74,7 @@ public class Merchandise {
                 ", code='" + code + '\'' +
                 ", name='" + name + '\'' +
                 ", unit='" + unit + '\'' +
+                ", active=" + active +
                 '}';
     }
 }

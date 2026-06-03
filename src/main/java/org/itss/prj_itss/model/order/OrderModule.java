@@ -1,7 +1,7 @@
 package org.itss.prj_itss.model.order;
 
 import org.itss.prj_itss.model.shared.database.ConnectionProvider;
-import org.itss.prj_itss.model.catalog.CatalogModule;
+import org.itss.prj_itss.model.merchandise.MerchandiseModule;
 import org.itss.prj_itss.model.order.application.OrderCancellationApplicationService;
 import org.itss.prj_itss.model.order.application.OrderManagementApplicationService;
 import org.itss.prj_itss.model.order.application.OrderUseCase;
@@ -17,13 +17,13 @@ public final class OrderModule {
     private final OrderManagementApplicationService orderManagementApplicationService;
     private final OrderCancellationApplicationService orderCancellationApplicationService;
 
-    public OrderModule(ConnectionProvider connectionProvider, SiteModule siteModule, CatalogModule catalogModule) {
+    public OrderModule(ConnectionProvider connectionProvider, SiteModule siteModule, MerchandiseModule merchandiseModule) {
         this.orderRepository = new JdbcOrderRepository(connectionProvider);
         this.orderUseCase = new OrderUseCase(orderRepository);
         this.orderManagementApplicationService = new OrderManagementApplicationService(
             orderUseCase,
             siteModule.siteUseCase(),
-            catalogModule.catalogUseCase()
+            merchandiseModule.merchandiseUseCase()
         );
         this.orderCancellationApplicationService = new OrderCancellationApplicationService(orderUseCase);
     }

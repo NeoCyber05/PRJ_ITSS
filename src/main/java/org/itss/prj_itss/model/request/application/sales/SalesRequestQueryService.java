@@ -1,7 +1,7 @@
 package org.itss.prj_itss.model.request.application.sales;
 
-import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
@@ -15,27 +15,27 @@ import java.util.List;
 public final class SalesRequestQueryService {
 
     private final SalesRequestQueryPort queryPort;
-    private final CatalogUseCase catalogUseCase;
+    private final MerchandiseUseCase MerchandiseUseCase;
 
-    public SalesRequestQueryService(SalesRequestQueryPort queryPort, CatalogUseCase catalogUseCase) {
+    public SalesRequestQueryService(SalesRequestQueryPort queryPort, MerchandiseUseCase MerchandiseUseCase) {
         this.queryPort = queryPort;
-        this.catalogUseCase = catalogUseCase;
+        this.MerchandiseUseCase = MerchandiseUseCase;
     }
 
     public List<MerchandiseOption> findMerchandiseOptions() {
-        return catalogUseCase.findAll().stream()
+        return MerchandiseUseCase.findActive().stream()
             .map(m -> new MerchandiseOption(m.getId(), m.getCode(), m.getName(), m.getUnit()))
             .toList();
     }
 
     public MerchandiseOption findMerchandiseOptionByCode(String code) {
-        Merchandise m = catalogUseCase.findByCode(code);
+        Merchandise m = MerchandiseUseCase.findByCode(code);
         if (m == null) return null;
         return new MerchandiseOption(m.getId(), m.getCode(), m.getName(), m.getUnit());
     }
 
     public MerchandiseOption findMerchandiseOptionById(int id) {
-        Merchandise m = catalogUseCase.findById(id);
+        Merchandise m = MerchandiseUseCase.findById(id);
         if (m == null) return null;
         return new MerchandiseOption(m.getId(), m.getCode(), m.getName(), m.getUnit());
     }

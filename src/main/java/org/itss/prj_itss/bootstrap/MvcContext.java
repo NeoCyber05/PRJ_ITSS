@@ -9,12 +9,13 @@ import org.itss.prj_itss.controller.navigation.SimpleNavigator;
 import org.itss.prj_itss.controller.ordering.order.OrderControllerModule;
 import org.itss.prj_itss.controller.ordering.request.RequestControllerModule;
 import org.itss.prj_itss.controller.ordering.site.SiteControllerModule;
+import org.itss.prj_itss.controller.sales.merchandise.SalesMerchandiseControllerModule;
 import org.itss.prj_itss.controller.sales.request.SalesRequestControllerModule;
 import org.itss.prj_itss.controller.warehouse.WarehouseControllerModule;
 import org.itss.prj_itss.model.auth.AuthModule;
 import org.itss.prj_itss.model.auth.application.AuthenticationService;
 import org.itss.prj_itss.model.auth.domain.AuthenticatedUser;
-import org.itss.prj_itss.model.catalog.CatalogModule;
+import org.itss.prj_itss.model.merchandise.MerchandiseModule;
 import org.itss.prj_itss.model.dashboard.DashboardModule;
 import org.itss.prj_itss.model.order.OrderModule;
 import org.itss.prj_itss.model.request.RequestModule;
@@ -35,9 +36,11 @@ import org.itss.prj_itss.view.ordering.order.OrderManagementView;
 import org.itss.prj_itss.view.ordering.request.ReceivedRequestsView;
 import org.itss.prj_itss.view.ordering.request.process.layout.RequestProcessingLayoutView;
 import org.itss.prj_itss.view.ordering.site.SiteManagementView;
+import org.itss.prj_itss.view.sales.merchandise.SalesMerchandiseManagementView;
 import org.itss.prj_itss.view.sales.request.list.SalesRequestListView;
 import org.itss.prj_itss.view.sales.request.update.SalesRequestEditDialog;
 import org.itss.prj_itss.view.site.workspace.SiteWorkspaceView;
+import org.itss.prj_itss.view.warehouse.WarehouseIncomingOrdersView;
 import org.itss.prj_itss.view.warehouse.ConfirmOrderArrivalView;
 
 import java.util.List;
@@ -56,19 +59,19 @@ public final class MvcContext {
         new WarehouseConnectionProvider(warehouseTransactionManager);
 
     private final AuthModule authModule = new AuthModule(connectionProvider);
-    private final CatalogModule catalogModule = new CatalogModule(connectionProvider);
+    private final MerchandiseModule merchandiseModule = new MerchandiseModule(connectionProvider);
     private final SiteModule siteModule = new SiteModule(
         connectionProvider,
         transactionManager,
-        catalogModule,
+        merchandiseModule,
         authModule.siteAccountProvisioningPort()
     );
-    private final OrderModule orderModule = new OrderModule(connectionProvider, siteModule, catalogModule);
+    private final OrderModule orderModule = new OrderModule(connectionProvider, siteModule, merchandiseModule);
     {
         siteModule.initializeSiteOrderRepository(orderModule.siteOrderRepository());
     }
     private final RequestModule requestModule =
-        new RequestModule(connectionProvider, transactionManager, orderModule, siteModule, catalogModule);
+        new RequestModule(connectionProvider, transactionManager, orderModule, siteModule, merchandiseModule);
     private final WarehouseModule warehouseModule =
         new WarehouseModule(
             warehouseConnectionProvider,
@@ -76,7 +79,7 @@ public final class MvcContext {
             authModule,
             orderModule,
             siteModule,
-            catalogModule
+            merchandiseModule
         );
     private final DashboardModule dashboardModule = new DashboardModule(requestModule, orderModule, siteModule);
 
@@ -90,13 +93,15 @@ public final class MvcContext {
     private final org.itss.prj_itss.controller.site.SiteControllerModule siteWorkspaceControllers =
         new org.itss.prj_itss.controller.site.SiteControllerModule(siteModule, this::currentAuthenticatedUser);
     private final OrderControllerModule orderControllers =
-        new OrderControllerModule(orderModule, siteModule, catalogModule);
+        new OrderControllerModule(orderModule, siteModule, merchandiseModule);
     private final RequestControllerModule requestControllers =
         new RequestControllerModule(requestModule, orderModule);
     private final SalesRequestControllerModule salesRequestControllers =
         new SalesRequestControllerModule(requestModule);
+    private final SalesMerchandiseControllerModule salesMerchandiseControllers =
+        new SalesMerchandiseControllerModule(merchandiseModule);
     private final WarehouseControllerModule warehouseControllers =
-        new WarehouseControllerModule(warehouseModule, siteModule, catalogModule);
+        new WarehouseControllerModule(warehouseModule, siteModule, merchandiseModule);
     private final AdminControllerModule adminControllers = new AdminControllerModule(authModule);
     private final RouteRegistry routeRegistry = new RouteRegistry(List.of(
         RouteRegistry.fxml(
@@ -179,6 +184,18 @@ public final class MvcContext {
             "sales-requests",
             "/org/itss/prj_itss/view/sales/request/list/sales-request-list-view.fxml",
             this::configureSalesRequestList
+        ),
+        RouteRegistry.fxml(
+            "merchandise-management",
+            "/org/itss/prj_itss/view/sales/merchandise/sales-merchandise-management-view.fxml",
+            (viewId, viewInstance, navigator) ->
+                ((SalesMerchandiseManagementView) viewInstance).init(navigator, salesMerchandiseControllers.salesMerchandiseController())
+        ),
+        RouteRegistry.fxml(
+            "warehouse-inbound-orders",
+            "/org/itss/prj_itss/view/warehouse/warehouse-incoming-orders-view.fxml",
+            (viewId, viewInstance, navigator) ->
+                ((WarehouseIncomingOrdersView) viewInstance).init(navigator, warehouseControllers.warehouseIncomingOrderController())
         ),
         RouteRegistry.fxml(
             "warehouse-order-confirm-arrival",
@@ -270,6 +287,10 @@ public final class MvcContext {
 
     public SalesRequestControllerModule salesRequestControllers() {
         return salesRequestControllers;
+    }
+
+    public SalesMerchandiseControllerModule salesMerchandiseControllers() {
+        return salesMerchandiseControllers;
     }
 
     public WarehouseControllerModule warehouseControllers() {
