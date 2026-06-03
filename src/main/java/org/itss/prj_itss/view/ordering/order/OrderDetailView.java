@@ -176,20 +176,9 @@ public final class OrderDetailView implements ViewLifecycle {
     }
 
     private Node loadOrdersBackground() {
-        try {
-            FXMLLoader loader = new FXMLLoader(App.class.getResource("/org/itss/prj_itss/view/ordering/order/order-management-view.fxml"));
-            Node background = loader.load();
-            Object controllerObj = loader.getController();
-            if (controllerObj instanceof OrderManagementView viewObj) {
-                viewObj.init(navigator, managementController);
-            }
-            return background;
-        } catch (Exception exception) {
-            Label errorLabel = new Label("Không thể tải danh sách đơn hàng.");
-            StackPane fallback = new StackPane(errorLabel);
-            fallback.getStyleClass().add("content-area");
-            return fallback;
-        }
+        Region bg = new Region();
+        bg.setStyle("-fx-background-color: #F8FAFC;");
+        return bg;
     }
 
     @FXML

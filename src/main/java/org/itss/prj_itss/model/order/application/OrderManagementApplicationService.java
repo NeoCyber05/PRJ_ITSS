@@ -38,9 +38,11 @@ public final class OrderManagementApplicationService {
             
         java.util.Map<Integer, Merchandise> merchandiseMap = merchandiseService.findAll().stream()
             .collect(Collectors.toMap(Merchandise::getId, java.util.function.Function.identity(), (a, b) -> a));
+
+        java.util.Map<Integer, Integer> itemCounts = orderService.countItemsGroupedByOrderId();
             
         return orders.stream()
-            .map(order -> toRow(order, siteMap, merchandiseMap))
+            .map(order -> toRow(order, siteMap, merchandiseMap, itemCounts))
             .toList();
     }
 
@@ -56,9 +58,11 @@ public final class OrderManagementApplicationService {
             
         java.util.Map<Integer, Merchandise> merchandiseMap = merchandiseService.findAll().stream()
             .collect(Collectors.toMap(Merchandise::getId, java.util.function.Function.identity(), (a, b) -> a));
+
+        java.util.Map<Integer, Integer> itemCounts = orderService.countItemsGroupedByOrderId();
             
         return orders.stream()
-            .map(order -> toRow(order, siteMap, merchandiseMap))
+            .map(order -> toRow(order, siteMap, merchandiseMap, itemCounts))
             .toList();
     }
 
@@ -71,10 +75,19 @@ public final class OrderManagementApplicationService {
     }
 
     public OrderRow toRow(Order order) {
-        return toRow(order, null, null);
+        return toRow(order, null, null, null);
     }
 
     public OrderRow toRow(Order order, java.util.Map<Integer, Site> siteMap, java.util.Map<Integer, Merchandise> merchandiseMap) {
+        return toRow(order, siteMap, merchandiseMap, null);
+    }
+
+    public OrderRow toRow(
+        Order order,
+        java.util.Map<Integer, Site> siteMap,
+        java.util.Map<Integer, Merchandise> merchandiseMap,
+        java.util.Map<Integer, Integer> itemCountsMap
+    ) {
         Site site = null;
         if (siteMap != null) {
             site = siteMap.get(order.getSiteId());
@@ -82,7 +95,13 @@ public final class OrderManagementApplicationService {
             site = siteService.findById(order.getSiteId());
         }
         
-        String itemSummary = itemSummary(order.getId(), merchandiseMap);
+        int count = 0;
+        if (itemCountsMap != null) {
+            count = itemCountsMap.getOrDefault(order.getId(), 0);
+        } else {
+            count = orderService.findItemsByOrderId(order.getId()).size();
+        }
+        String itemSummary = OrderingFormatters.formatItemTypes(count);
         String status = order.getStatus() == null ? "N/A" : order.getStatus();
         String statusKey = OrderingFormatters.normalizeStatusKey(order.getStatus());
         return new OrderRow(
@@ -99,15 +118,6 @@ public final class OrderManagementApplicationService {
             statusKey,
             OrderingFormatters.orderStatusText(order.getStatus())
         );
-    }
-
-    private String itemSummary(int orderId) {
-        return itemSummary(orderId, null);
-    }
-
-    private String itemSummary(int orderId, java.util.Map<Integer, Merchandise> merchandiseMap) {
-        List<OrderMerchandise> items = orderService.findItemsByOrderId(orderId);
-        return OrderingFormatters.formatItemTypes(items.size());
     }
 }
 

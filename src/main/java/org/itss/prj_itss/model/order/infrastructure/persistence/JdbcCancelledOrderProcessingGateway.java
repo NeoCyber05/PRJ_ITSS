@@ -79,8 +79,12 @@ public final class JdbcCancelledOrderProcessingGateway implements CancelledOrder
                 requestDesiredDates.put(ri.getMerchandiseId(), ri.getDesiredDeliveryDate());
             }
 
+            List<Merchandise> allMerch = merchandiseRepository.findAll();
+            Map<Integer, Merchandise> merchMap = allMerch.stream()
+                .collect(java.util.stream.Collectors.toMap(Merchandise::getId, java.util.function.Function.identity(), (a, b) -> a, LinkedHashMap::new));
+
             for (OrderMerchandise orderItem : orderItems) {
-                Merchandise merchandise = merchandiseRepository.findById(orderItem.getMerchandiseId());
+                Merchandise merchandise = merchMap.get(orderItem.getMerchandiseId());
                 if (merchandise != null) {
                     int quantity = orderItem.getQuantity().intValue();
                     items.add(new ItemRequirement(
