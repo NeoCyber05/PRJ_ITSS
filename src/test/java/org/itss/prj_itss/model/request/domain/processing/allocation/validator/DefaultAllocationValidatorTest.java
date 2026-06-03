@@ -1,13 +1,13 @@
 package org.itss.prj_itss.model.request.domain.processing.allocation.validator;
 
+import org.itss.prj_itss.model.request.domain.delivery.DeliveryMethod;
 import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
 import org.itss.prj_itss.model.request.domain.processing.allocation.Allocation;
-import org.itss.prj_itss.model.request.domain.delivery.DeliveryMethod;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,28 +15,14 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-public final class DefaultAllocationValidatorTest {
+@DisplayName("DefaultAllocationValidator")
+final class DefaultAllocationValidatorTest {
 
     private final DefaultAllocationValidator validator = new DefaultAllocationValidator();
 
-    // Helper method to create allocations map easily
-    private Map<Integer, Map<Integer, Allocation>> buildAllocations(int merchandiseId, Allocation... allocations) {
-        Map<Integer, Map<Integer, Allocation>> result = new LinkedHashMap<>();
-        Map<Integer, Allocation> siteAllocations = new LinkedHashMap<>();
-        for (Allocation allocation : allocations) {
-            siteAllocations.put(allocation.siteId, allocation);
-        }
-        result.put(merchandiseId, siteAllocations);
-        return result;
-    }
-
-    /**
-     * TC_01: testEmptyItems
-     * Nhánh rẽ phủ (C1): Vòng lặp items rỗng (1a)
-     * Kết quả mong đợi: Trả về null
-     */
     @Test
-    void testEmptyItems() {
+    @DisplayName("TC_01: empty items are valid")
+    void validateSubmission_shouldReturnNull_whenItemsAreEmpty() {
         String result = validator.validateSubmission(
             List.of(),
             List.of(),
@@ -44,20 +30,16 @@ public final class DefaultAllocationValidatorTest {
             Map.of(),
             7
         );
-        assertNull(result);
+
+        assertNull(result, "A request with no items has no invalid allocation to reject");
     }
 
-    /**
-     * TC_02: testMissingQuantity
-     * Nhánh rẽ phủ (C1): Lượng phân bổ nhỏ hơn yêu cầu (1b, 2a - TRUE)
-     * Kết quả mong đợi: Trả về "Chua du so luong hang can"
-     */
     @Test
-    void testMissingQuantity() {
+    @DisplayName("TC_02: missing quantity is rejected")
+    void validateSubmission_shouldReturnMissingQuantityMessage_whenAllocationBelowRequirement() {
         ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 10);
-        // Phân bổ 9 sản phẩm, thiếu so với yêu cầu là 10
         Allocation allocation = new Allocation(101, 1, 9, DeliveryMethod.SHIP.storageValue());
-        Map<Integer, Map<Integer, Allocation>> allocations = buildAllocations(1, allocation);
+        Map<Integer, Map<Integer, Allocation>> allocations = allocationsFor(1, allocation);
 
         String result = validator.validateSubmission(
             List.of(item),
@@ -66,20 +48,20 @@ public final class DefaultAllocationValidatorTest {
             Map.of(),
             7
         );
-        assertEquals("Chua du so luong hang can", result);
+
+        assertEquals(
+            "Chua du so luong hang can",
+            result,
+            "Allocated quantity below the requirement must be rejected"
+        );
     }
 
-    /**
-     * TC_03: testExcessQuantity
-     * Nhánh rẽ phủ (C1): Lượng phân bổ lớn hơn yêu cầu (1b, 2b - FALSE, 3a - TRUE)
-     * Kết quả mong đợi: Trả về "So luong phan bo vuot yeu cau"
-     */
     @Test
-    void testExcessQuantity() {
+    @DisplayName("TC_03: excess quantity is rejected")
+    void validateSubmission_shouldReturnExcessQuantityMessage_whenAllocationAboveRequirement() {
         ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 10);
-        // Phân bổ 11 sản phẩm, thừa so với yêu cầu là 10
         Allocation allocation = new Allocation(101, 1, 11, DeliveryMethod.SHIP.storageValue());
-        Map<Integer, Map<Integer, Allocation>> allocations = buildAllocations(1, allocation);
+        Map<Integer, Map<Integer, Allocation>> allocations = allocationsFor(1, allocation);
 
         String result = validator.validateSubmission(
             List.of(item),
@@ -88,102 +70,77 @@ public final class DefaultAllocationValidatorTest {
             Map.of(),
             7
         );
-        assertEquals("So luong phan bo vuot yeu cau", result);
+
+        assertEquals(
+            "So luong phan bo vuot yeu cau",
+            result,
+            "Allocated quantity above the requirement must be rejected"
+        );
     }
 
-    /**
-     * TC_04: testNoDesiredDateDeliverySuccess
-     * Nhánh rẽ phủ (C1): desiredDeliveryDates không có thông tin (desiredDate == null) (4a - TRUE), giao kịp hạn mặc định (7b - FALSE)
-     * Kết quả mong đợi: Trả về null
-     */
     @Test
-    void testNoDesiredDateDeliverySuccess() {
+    @DisplayName("TC_04: default deadline accepts on-time delivery")
+    void validateSubmission_shouldReturnNull_whenNoDesiredDateAndDeliveryMeetsDefaultDeadline() {
         ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 10);
-        // Phân bổ 10 sản phẩm (đúng yêu cầu)
         Allocation allocation = new Allocation(101, 1, 10, DeliveryMethod.SHIP.storageValue());
-        Map<Integer, Map<Integer, Allocation>> allocations = buildAllocations(1, allocation);
-
-        // Site 101 hỗ trợ shipDays = 5 (hợp lệ cho deadline 7 ngày)
+        Map<Integer, Map<Integer, Allocation>> allocations = allocationsFor(1, allocation);
         SiteStockOption site = new SiteStockOption(101, "S101", "Site 101", "", 5, 2, Map.of(1, 10));
 
         String result = validator.validateSubmission(
             List.of(item),
             List.of(site),
             allocations,
-            Map.of(), // desiredDeliveryDates trống -> desiredDate == null
-            7 // deadlineDays = 7
+            Map.of(),
+            7
         );
-        assertNull(result);
+
+        assertNull(result, "Ship delivery in 5 days should satisfy the default 7-day deadline");
     }
 
-    /**
-     * TC_05: testDesiredDateInPast
-     * Nhánh rẽ phủ (C1): desiredDate ở quá khứ (4b -> 4b.1 - TRUE), itemDeadlineDays = 1, giao hàng kịp hạn (7b - FALSE)
-     * Kết quả mong đợi: Trả về null
-     */
     @Test
-    void testDesiredDateInPast() {
+    @DisplayName("TC_05: past desired date falls back to one-day deadline")
+    void validateSubmission_shouldReturnNull_whenPastDesiredDateFallsBackToOneDayDeadline() {
         ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 10);
         Allocation allocation = new Allocation(101, 1, 10, DeliveryMethod.AIR.storageValue());
-        Map<Integer, Map<Integer, Allocation>> allocations = buildAllocations(1, allocation);
-
-        // Site 101 có airDays = 1 (kịp hạn 1 ngày)
+        Map<Integer, Map<Integer, Allocation>> allocations = allocationsFor(1, allocation);
         SiteStockOption site = new SiteStockOption(101, "S101", "Site 101", "", 5, 1, Map.of(1, 10));
 
-        // desiredDate là hôm qua -> itemDeadlineDays sẽ được tính bằng Math.max(1, số_ngày_âm) = 1
-        Map<Integer, LocalDate> desiredDates = new HashMap<>();
-        desiredDates.put(1, LocalDate.now().minusDays(1));
-
         String result = validator.validateSubmission(
             List.of(item),
             List.of(site),
             allocations,
-            desiredDates,
+            Map.of(1, LocalDate.now().minusDays(1)),
             7
         );
-        assertNull(result);
+
+        assertNull(result, "Air delivery in 1 day should satisfy the minimum one-day deadline");
     }
 
-    /**
-     * TC_06: testDesiredDateInFutureSuccess
-     * Nhánh rẽ phủ (C1): desiredDate ở tương lai (4b -> 4b.2 - FALSE), itemDeadlineDays = 5, giao hàng kịp hạn (7b - FALSE)
-     * Kết quả mong đợi: Trả về null
-     */
     @Test
-    void testDesiredDateInFutureSuccess() {
+    @DisplayName("TC_06: future desired date accepts on-time delivery")
+    void validateSubmission_shouldReturnNull_whenFutureDesiredDateCanBeMet() {
         ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 10);
         Allocation allocation = new Allocation(101, 1, 10, DeliveryMethod.AIR.storageValue());
-        Map<Integer, Map<Integer, Allocation>> allocations = buildAllocations(1, allocation);
-
-        // Site 101 có airDays = 3 (kịp hạn 5 ngày)
+        Map<Integer, Map<Integer, Allocation>> allocations = allocationsFor(1, allocation);
         SiteStockOption site = new SiteStockOption(101, "S101", "Site 101", "", 5, 3, Map.of(1, 10));
-
-        // desiredDate là 5 ngày sau -> itemDeadlineDays = 5
-        Map<Integer, LocalDate> desiredDates = new HashMap<>();
-        desiredDates.put(1, LocalDate.now().plusDays(5));
 
         String result = validator.validateSubmission(
             List.of(item),
             List.of(site),
             allocations,
-            desiredDates,
+            Map.of(1, LocalDate.now().plusDays(5)),
             7
         );
-        assertNull(result);
+
+        assertNull(result, "Air delivery in 3 days should satisfy a desired date 5 days ahead");
     }
 
-    /**
-     * TC_07: testSiteNotFound
-     * Nhánh rẽ phủ (C1): allocation chỉ định siteId không tồn tại trong allSites (6a - TRUE)
-     * Kết quả mong đợi: Trả về "Khong dap ung ngay nhan mong muon"
-     */
     @Test
-    void testSiteNotFound() {
+    @DisplayName("TC_07: unknown site is rejected")
+    void validateSubmission_shouldReturnDeliveryMessage_whenSiteCannotBeFound() {
         ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 10);
-        Allocation allocation = new Allocation(999, 1, 10, DeliveryMethod.SHIP.storageValue()); // siteId 999
-        Map<Integer, Map<Integer, Allocation>> allocations = buildAllocations(1, allocation);
-
-        // allSites chỉ chứa siteId 101
+        Allocation allocation = new Allocation(999, 1, 10, DeliveryMethod.SHIP.storageValue());
+        Map<Integer, Map<Integer, Allocation>> allocations = allocationsFor(1, allocation);
         SiteStockOption site = new SiteStockOption(101, "S101", "Site 101", "", 5, 2, Map.of(1, 10));
 
         String result = validator.validateSubmission(
@@ -193,21 +150,20 @@ public final class DefaultAllocationValidatorTest {
             Map.of(),
             7
         );
-        assertEquals("Khong dap ung ngay nhan mong muon", result);
+
+        assertEquals(
+            "Khong dap ung ngay nhan mong muon",
+            result,
+            "An allocation referencing a missing site must be rejected"
+        );
     }
 
-    /**
-     * TC_08: testDeliveryUnsupportedMethod
-     * Nhánh rẽ phủ (C1): deliveryDays >= 999 do site không hỗ trợ giao bằng đường biển (7a - TRUE)
-     * Kết quả mong đợi: Trả về "Khong dap ung ngay nhan mong muon"
-     */
     @Test
-    void testDeliveryUnsupportedMethod() {
+    @DisplayName("TC_08: unsupported transport is rejected")
+    void validateSubmission_shouldReturnDeliveryMessage_whenTransportIsUnsupported() {
         ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 10);
         Allocation allocation = new Allocation(101, 1, 10, DeliveryMethod.SHIP.storageValue());
-        Map<Integer, Map<Integer, Allocation>> allocations = buildAllocations(1, allocation);
-
-        // Site 101 có shipDays = 999 (không hỗ trợ giao đường biển)
+        Map<Integer, Map<Integer, Allocation>> allocations = allocationsFor(1, allocation);
         SiteStockOption site = new SiteStockOption(101, "S101", "Site 101", "", 999, 2, Map.of(1, 10));
 
         String result = validator.validateSubmission(
@@ -217,54 +173,64 @@ public final class DefaultAllocationValidatorTest {
             Map.of(),
             7
         );
-        assertEquals("Khong dap ung ngay nhan mong muon", result);
+
+        assertEquals(
+            "Khong dap ung ngay nhan mong muon",
+            result,
+            "A transport option with deliveryDays >= 999 is treated as unsupported"
+        );
     }
 
-    /**
-     * TC_09: testDeliveryLateThanDeadline
-     * Nhánh rẽ phủ (C1): deliveryDays > itemDeadlineDays do trễ hạn giao hàng (7a - TRUE)
-     * Kết quả mong đợi: Trả về "Khong dap ung ngay nhan mong muon"
-     */
     @Test
-    void testDeliveryLateThanDeadline() {
+    @DisplayName("TC_09: late delivery is rejected")
+    void validateSubmission_shouldReturnDeliveryMessage_whenDeliveryExceedsDesiredDeadline() {
         ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 10);
         Allocation allocation = new Allocation(101, 1, 10, DeliveryMethod.SHIP.storageValue());
-        Map<Integer, Map<Integer, Allocation>> allocations = buildAllocations(1, allocation);
-
-        // Site 101 giao mất 5 ngày, trong khi mong muốn là 3 ngày sau
+        Map<Integer, Map<Integer, Allocation>> allocations = allocationsFor(1, allocation);
         SiteStockOption site = new SiteStockOption(101, "S101", "Site 101", "", 5, 2, Map.of(1, 10));
-
-        Map<Integer, LocalDate> desiredDates = new HashMap<>();
-        desiredDates.put(1, LocalDate.now().plusDays(3)); // itemDeadlineDays = 3
 
         String result = validator.validateSubmission(
             List.of(item),
             List.of(site),
             allocations,
-            desiredDates,
+            Map.of(1, LocalDate.now().plusDays(3)),
             7
         );
-        assertEquals("Khong dap ung ngay nhan mong muon", result);
+
+        assertEquals(
+            "Khong dap ung ngay nhan mong muon",
+            result,
+            "Ship delivery in 5 days should not satisfy a desired date 3 days ahead"
+        );
     }
 
-    /**
-     * TC_10: testNoAllocationsForRequirement
-     * Nhánh rẽ phủ (C1): required = 0, allocations trống (vòng lặp allocations không chạy - 5a)
-     * Kết quả mong đợi: Trả về null
-     */
     @Test
-    void testNoAllocationsForRequirement() {
+    @DisplayName("TC_10: zero requirement accepts empty allocations")
+    void validateSubmission_shouldReturnNull_whenZeroRequirementHasNoAllocations() {
         ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 0);
-        // Không có phân bổ cho item 1
-        Map<Integer, Map<Integer, Allocation>> allocations = new LinkedHashMap<>();
 
         String result = validator.validateSubmission(
             List.of(item),
             List.of(),
-            allocations,
+            Map.of(),
             Map.of(),
             7
         );
-        assertNull(result);
+
+        assertNull(result, "An item requiring zero quantity can have no allocation");
+    }
+
+    private static Map<Integer, Map<Integer, Allocation>> allocationsFor(
+        int merchandiseId,
+        Allocation... allocations
+    ) {
+        Map<Integer, Allocation> siteAllocations = new LinkedHashMap<>();
+        for (Allocation allocation : allocations) {
+            siteAllocations.put(allocation.siteId, allocation);
+        }
+
+        Map<Integer, Map<Integer, Allocation>> result = new LinkedHashMap<>();
+        result.put(merchandiseId, siteAllocations);
+        return result;
     }
 }
