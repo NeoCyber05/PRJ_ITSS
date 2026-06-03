@@ -75,6 +75,7 @@ public final class StatusBadgeFactory {
             case OrderingFormatters.STATUS_SHIPPING -> new BadgeColors("#F2EAFF", "#7C3AED", "#A855F7");
             case OrderingFormatters.STATUS_COMPLETED -> new BadgeColors("#EAF8EF", "#15803D", "#22C55E");
             case OrderingFormatters.STATUS_CANCELLED -> new BadgeColors("#FEE2E2", "#B91C1C", "#EF4444");
+            case OrderingFormatters.STATUS_REMOVED -> new BadgeColors("#F3F4F6", "#4B5563", "#6B7280");
             default -> new BadgeColors("#F3F4F6", "#6B7280", "#9CA3AF");
         };
     }
@@ -86,6 +87,7 @@ public final class StatusBadgeFactory {
             case OrderingFormatters.STATUS_SHIPPING -> "status-badge-shipping";
             case OrderingFormatters.STATUS_COMPLETED -> "status-badge-completed";
             case OrderingFormatters.STATUS_CANCELLED -> "status-badge-cancelled";
+            case OrderingFormatters.STATUS_REMOVED -> "status-badge-removed";
             default -> "status-badge-default";
         };
     }

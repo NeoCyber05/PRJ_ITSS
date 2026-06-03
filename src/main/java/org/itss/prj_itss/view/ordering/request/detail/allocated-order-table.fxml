@@ -15,7 +15,7 @@
             <children>
                 <Label minWidth="115.0" prefWidth="115.0" styleClass="request-detail-table-header-cell" text="MÃ ĐƠN" wrapText="true" />
                 <Label minWidth="140.0" prefWidth="140.0" styleClass="request-detail-table-header-cell" text="SITE" wrapText="true" />
-                <Label minWidth="110.0" prefWidth="110.0" styleClass="request-detail-table-header-cell" text="VẬN CHUYỂN" wrapText="true" />
+                <Label minWidth="110.0" prefWidth="110.0" styleClass="request-detail-table-header-cell" text="SỐ LOẠI HÀNG" wrapText="true" />
                 <Label minWidth="110.0" prefWidth="110.0" styleClass="request-detail-table-header-cell" text="NGÀY TẠO" wrapText="true" />
                 <Label minWidth="120.0" prefWidth="120.0" styleClass="request-detail-table-header-cell" text="TRẠNG THÁI" wrapText="true" />
                 <Label minWidth="90.0" prefWidth="90.0" styleClass="request-detail-table-header-cell" text="" wrapText="true" />

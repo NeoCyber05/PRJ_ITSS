@@ -189,6 +189,11 @@ class JdbcRequestProcessingGatewayTest {
         public boolean updateStatus(int orderId, String newStatus) {
             return true;
         }
+
+        @Override
+        public java.time.LocalDate findDesiredDeliveryDate(int orderId, int merchandiseId) {
+            return null;
+        }
     }
 
     private static final class RecordingSiteRepository extends EmptySiteRepository {

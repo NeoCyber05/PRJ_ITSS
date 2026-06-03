@@ -90,6 +90,9 @@ public final class RoleAccessPolicy {
         if (viewId.startsWith("sales-request-detail:")) {
             return "sales-request-detail";
         }
+        if (viewId.startsWith("ordering-order-handle-cancellation:")) {
+            return "ordering-order-handle-cancellation";
+        }
         return viewId;
     }
 }

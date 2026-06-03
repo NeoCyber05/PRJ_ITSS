@@ -79,4 +79,8 @@ public final class RequestModule {
     public SalesRequestCommandService salesRequestCommandService() {
         return salesRequestCommandService;
     }
+
+    public org.itss.prj_itss.model.request.application.processing.ProcessingRequestPort requestRepository() {
+        return jdbcRequestRepository;
+    }
 }

@@ -268,5 +268,7 @@ class RequestProcessingLayoutControllerTest {
         public boolean addItem(OrderMerchandise item) { createdItems.add(item); return true; }
         @Override
         public boolean updateStatus(int orderId, String newStatus) { return true; }
+        @Override
+        public java.time.LocalDate findDesiredDeliveryDate(int orderId, int merchandiseId) { return null; }
     }
 }

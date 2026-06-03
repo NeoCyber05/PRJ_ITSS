@@ -33,4 +33,8 @@ public final class OrderUseCase {
     public boolean updateStatus(int orderId, String newStatus) {
         return orderRepository.updateStatus(orderId, newStatus);
     }
+
+    public java.time.LocalDate findDesiredDeliveryDate(int orderId, int merchandiseId) {
+        return orderRepository.findDesiredDeliveryDate(orderId, merchandiseId);
+    }
 }

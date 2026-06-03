@@ -40,7 +40,7 @@ public final class RequestDetailPopup {
         double sceneWidth = owner != null ? owner.getWidth() : 1440;
         double sceneHeight = owner != null ? owner.getHeight() : 900;
         double dialogMaxWidth = Math.min(sceneWidth - 64, 1660);
-        double requestExpandedWidth = Math.min(980, dialogMaxWidth);
+        double requestExpandedWidth = Math.min(1024, dialogMaxWidth);
         double requestCollapsedWidth = Math.max(720, Math.min(780, dialogMaxWidth * 0.46));
         double orderPanelWidth = Math.max(740, Math.min(880, dialogMaxWidth - requestCollapsedWidth - 20));
 

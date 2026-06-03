@@ -138,6 +138,11 @@ class WarehouseIncomingOrderQueryTest {
         public boolean updateStatus(int orderId, String newStatus) {
             return false;
         }
+
+        @Override
+        public java.time.LocalDate findDesiredDeliveryDate(int orderId, int merchandiseId) {
+            return null;
+        }
     }
 
     static final class FakeSiteRepository implements SiteRepository, InventoryRepository {

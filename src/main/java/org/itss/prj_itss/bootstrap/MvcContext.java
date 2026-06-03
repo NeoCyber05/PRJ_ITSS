@@ -25,6 +25,7 @@ import org.itss.prj_itss.model.shared.database.DatabaseConnectionProvider;
 import org.itss.prj_itss.model.shared.database.TransactionManager;
 import org.itss.prj_itss.model.shared.database.WarehouseConnectionProvider;
 import org.itss.prj_itss.model.shared.database.WarehouseTransactionManager;
+import org.itss.prj_itss.model.shared.database.TransactionRunner;
 import org.itss.prj_itss.model.warehouse.WarehouseModule;
 import org.itss.prj_itss.controller.admin.account.AdminControllerModule;
 import org.itss.prj_itss.view.admin.account.AccountManagementView;
@@ -141,11 +142,12 @@ public final class MvcContext {
             false,
             this::loadOrderDetailView
         ),
-        RouteRegistry.fxml(
-            "ordering-order-handle-cancellation",
-            "/org/itss/prj_itss/view/ordering/order/handle-order-cancellation-view.fxml",
-            (viewId, viewInstance, navigator) ->
-                ((OrderCancellationView) viewInstance).init(navigator, orderControllers.orderCancellationController())
+        RouteRegistry.dynamic(
+            viewId -> viewId.startsWith("ordering-order-handle-cancellation:"),
+            viewId -> viewId,
+            viewId -> "orders",
+            false,
+            this::loadOrderCancellationView
         ),
         RouteRegistry.dynamic(
             viewId -> "request-processing".equals(viewId) || viewId.startsWith(REQUEST_PROCESSING_PREFIX),
@@ -345,5 +347,23 @@ public final class MvcContext {
         } catch (NumberFormatException exception) {
             return fallback;
         }
+    }
+
+    public MvcContext() {
+        orderModule.initializeCancellationUseCase(requestModule.requestRepository(), transactionManager);
+    }
+
+    private LoadedView loadOrderCancellationView(String viewId, Navigator navigator) throws Exception {
+        int orderId = parsePositiveInt(viewId.substring("ordering-order-handle-cancellation:".length()), 1);
+        return RouteRegistry.loadFxml(
+            "/org/itss/prj_itss/view/ordering/order/handle-order-cancellation-view.fxml",
+            viewId,
+            navigator,
+            (requestedViewId, viewInstance, routeNavigator) -> {
+                OrderCancellationView view = (OrderCancellationView) viewInstance;
+                view.init(routeNavigator, orderControllers.newCancellationProcessingController());
+                view.setCancelledOrderId(orderId);
+            }
+        );
     }
 }

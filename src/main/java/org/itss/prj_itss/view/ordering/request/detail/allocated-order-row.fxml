@@ -12,7 +12,7 @@
     <children>
         <Label fx:id="orderCodeCell" minWidth="115.0" prefWidth="115.0" styleClass="request-detail-table-cell, request-detail-table-cell-strong" wrapText="true" />
         <Label fx:id="siteNameCell" minWidth="140.0" prefWidth="140.0" styleClass="request-detail-table-cell" wrapText="true" />
-        <HBox fx:id="transportBox" alignment="CENTER_LEFT" minWidth="110.0" prefWidth="110.0" />
+        <Label fx:id="itemCountCell" minWidth="110.0" prefWidth="110.0" styleClass="request-detail-table-cell" wrapText="true" />
         <Label fx:id="createdAtCell" minWidth="110.0" prefWidth="110.0" styleClass="request-detail-table-cell" wrapText="true" />
         <HBox fx:id="statusBox" alignment="CENTER_LEFT" minWidth="120.0" prefWidth="120.0" />
         <HBox fx:id="actionBox" alignment="CENTER_RIGHT" minWidth="90.0" prefWidth="90.0" spacing="8.0">

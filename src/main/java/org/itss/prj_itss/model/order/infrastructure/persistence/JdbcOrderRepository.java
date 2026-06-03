@@ -129,6 +129,29 @@ public class JdbcOrderRepository extends JdbcRepositorySupport implements OrderR
         return false;
     }
 
+    @Override
+    public java.time.LocalDate findDesiredDeliveryDate(int orderId, int merchandiseId) {
+        String sql = "SELECT rm.desired_delivery_date " +
+                     "FROM \"order\" o " +
+                     "JOIN request_merchandise rm ON o.request_id = rm.request_id " +
+                     "WHERE o.id = ? AND rm.merchandise_id = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            ps.setInt(2, merchandiseId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    java.sql.Date date = rs.getDate("desired_delivery_date");
+                    if (date != null) {
+                        return date.toLocalDate();
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("OrderRepository.findDesiredDeliveryDate: " + e.getMessage());
+        }
+        return null;
+    }
+
     private static final String FIND_BY_SITE_ID_SQL = """
         SELECT id, request_id, site_id, created_at, status
         FROM "order"
@@ -192,7 +215,6 @@ public class JdbcOrderRepository extends JdbcRepositorySupport implements OrderR
         }
         return false;
     }
-
     private Order mapOrder(ResultSet rs) throws SQLException {
         Order o = new Order();
         o.setId(rs.getInt("id"));
