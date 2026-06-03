@@ -1,6 +1,6 @@
 package org.itss.prj_itss.controller.ordering.order;
 
-import org.itss.prj_itss.model.catalog.CatalogModule;
+import org.itss.prj_itss.model.merchandise.MerchandiseModule;
 import org.itss.prj_itss.model.order.OrderModule;
 import org.itss.prj_itss.model.site.SiteModule;
 
@@ -11,14 +11,14 @@ public final class OrderControllerModule {
     private final OrderDetailController orderDetailController;
     private final OrderCancellationController orderCancellationController;
 
-    public OrderControllerModule(OrderModule orderModule, SiteModule siteModule, CatalogModule catalogModule) {
+    public OrderControllerModule(OrderModule orderModule, SiteModule siteModule, MerchandiseModule merchandiseModule) {
         this.orderModule = orderModule;
         this.orderManagementController = new OrderManagementController(orderModule.orderManagementApplicationService());
         this.orderDetailController = new OrderDetailController(
             orderModule.orderUseCase(),
             orderModule.orderCancellationApplicationService(),
             siteModule.siteUseCase(),
-            catalogModule.catalogUseCase()
+            merchandiseModule.merchandiseUseCase()
         );
         this.orderCancellationController =
             new OrderCancellationController(orderModule.orderCancellationApplicationService());

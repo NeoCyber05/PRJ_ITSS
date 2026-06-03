@@ -2,25 +2,29 @@ package org.itss.prj_itss.controller.ordering.request.process;
 
 import org.itss.prj_itss.model.shared.database.TransactionException;
 import org.itss.prj_itss.model.shared.database.TransactionRunner;
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
+import org.itss.prj_itss.model.request.domain.request.RequestStatus;
 import org.itss.prj_itss.model.site.domain.Site;
-import org.itss.prj_itss.model.request.application.processing.AllocationChangeCommand;
-import org.itss.prj_itss.model.request.application.processing.AllocationChangeResultView;
-import org.itss.prj_itss.model.request.application.processing.ProcessingItemView;
-import org.itss.prj_itss.model.request.application.processing.ProcessingSiteView;
+import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
+import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
+import org.itss.prj_itss.view.ordering.request.process.state.ProcessingItemView;
+import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
-import org.itss.prj_itss.model.request.application.processing.RequestProcessingViewModel;
-import org.itss.prj_itss.model.request.application.processing.SuggestedPlanView;
+import org.itss.prj_itss.view.ordering.request.process.state.RequestProcessingViewModel;
+import org.itss.prj_itss.view.ordering.request.process.state.SuggestedPlanView;
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcRequestProcessingGateway;
 import org.itss.prj_itss.model.site.application.port.InventoryRepository;
-import org.itss.prj_itss.model.catalog.application.port.MerchandiseRepository;
+import org.itss.prj_itss.model.merchandise.application.port.MerchandiseRepository;
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
-import org.itss.prj_itss.model.request.application.port.RequestRepository;
+import org.itss.prj_itss.model.request.application.processing.ProcessingRequestPort;
 import org.itss.prj_itss.model.site.application.port.SiteRepository;
+import org.itss.prj_itss.model.request.domain.processing.allocation.validator.DefaultAllocationValidator;
+import org.itss.prj_itss.model.request.domain.processing.suggestion.DefaultAllocationSuggester;
+import org.itss.prj_itss.model.request.domain.processing.allocation.policy.FastDeliveryObjective;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -135,13 +139,15 @@ class RequestProcessingLayoutControllerTest {
     private RequestProcessingLayoutController controllerWith(Scenario scenario) {
         RequestProcessingUseCase useCase = new RequestProcessingUseCase(
             new JdbcRequestProcessingGateway(
-                new FakeRequestRepository(scenario),
+                new FakeProcessingRequestPort(scenario),
                 new FakeOrderRepository(),
                 new FakeSiteRepository(scenario),
                 new FakeInventoryRepository(scenario),
                 new FakeMerchandiseRepository(scenario),
                 new RecordingTransactionRunner()
-            )
+            ),
+            new DefaultAllocationValidator(),
+            new DefaultAllocationSuggester(new FastDeliveryObjective())
         );
         return new RequestProcessingLayoutController(useCase);
     }
@@ -177,31 +183,22 @@ class RequestProcessingLayoutControllerTest {
         }
     }
 
-    private static final class FakeRequestRepository implements RequestRepository {
+    private static final class FakeProcessingRequestPort implements ProcessingRequestPort {
         private final Scenario scenario;
 
-        private FakeRequestRepository(Scenario scenario) {
+        private FakeProcessingRequestPort(Scenario scenario) {
             this.scenario = scenario;
         }
 
-        @Override
-        public List<Request> findAll() { return List.of(); }
-        @Override
-        public Request findById(int id) { return null; }
+
         @Override
         public List<RequestMerchandise> findItemsByRequestId(int requestId) { return scenario.requestItems; }
-        @Override
-        public int countItemTypes(int requestId) { return scenario.requestItems.size(); }
+
         @Override
         public LocalDate getEarliestDeliveryDate(int requestId) { return scenario.earliestDeliveryDate; }
+
         @Override
-        public boolean updateStatus(int requestId, String newStatus) { return true; }
-        @Override
-        public void updateRequestItems(int requestId, List<RequestMerchandise> items, String note) {}
-        @Override
-        public int createRequest(List<RequestMerchandise> items, String note) { return 1; }
-        @Override
-        public boolean deleteById(int requestId) { return true; }
+        public boolean updateStatus(int requestId, RequestStatus newStatus) { return true; }
     }
 
     private static final class FakeSiteRepository implements SiteRepository {
@@ -238,11 +235,19 @@ class RequestProcessingLayoutControllerTest {
         @Override
         public List<Merchandise> findAll() { return new ArrayList<>(scenario.merchandiseById.values()); }
         @Override
+        public List<Merchandise> findActive() { return new ArrayList<>(scenario.merchandiseById.values()); }
+        @Override
         public Merchandise findById(int id) { return scenario.merchandiseById.get(id); }
         @Override
         public Merchandise findByCode(String code) { return scenario.merchandiseById.values().stream().filter(m -> m.getCode().equals(code)).findFirst().orElse(null); }
         @Override
         public int countAll() { return scenario.merchandiseById.size(); }
+        @Override
+        public int create(Merchandise merchandise) { return -1; }
+        @Override
+        public boolean update(Merchandise merchandise) { return false; }
+        @Override
+        public boolean setActive(int merchandiseId, boolean active) { return false; }
     }
 
     private static final class FakeOrderRepository implements OrderRepository {

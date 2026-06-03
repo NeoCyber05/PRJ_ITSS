@@ -3,8 +3,8 @@ package org.itss.prj_itss.controller.ordering.order;
 import org.itss.prj_itss.model.order.application.cancellation.CancelledOrderProcessingException;
 import org.itss.prj_itss.model.order.application.cancellation.CancelledOrderProcessingSession;
 import org.itss.prj_itss.model.order.application.cancellation.CancelledOrderProcessingViewModel;
-import org.itss.prj_itss.model.request.application.processing.AllocationChangeCommand;
-import org.itss.prj_itss.model.request.application.processing.AllocationChangeResultView;
+import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
+import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
 
 import java.util.Objects;
 

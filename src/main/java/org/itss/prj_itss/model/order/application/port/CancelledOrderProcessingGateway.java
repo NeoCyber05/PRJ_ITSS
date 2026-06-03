@@ -1,7 +1,7 @@
 package org.itss.prj_itss.model.order.application.port;
 
 import org.itss.prj_itss.model.order.domain.cancellation.CancelledOrderProcessingData;
-import org.itss.prj_itss.model.request.domain.allocation.model.Allocation;
+import org.itss.prj_itss.model.request.domain.processing.allocation.Allocation;
 
 import java.util.Map;
 

@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.itss.prj_itss.view.admin.account.AccountManagementView"
+      spacing="18" styleClass="workspace-panel">
+    <padding><Insets top="24" right="24" bottom="24" left="24"/></padding>
+    <children>
+        <Label text="Quản lý tài khoản" styleClass="workspace-title"/>
+
+        <HBox spacing="16">
+            <children>
+                <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Tổng tài khoản" styleClass="stat-card-label"/>
+                    <Label fx:id="totalAccountsLabel" text="0" styleClass="stat-card-value"/>
+                </VBox>
+                <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Đang hoạt động" styleClass="stat-card-label"/>
+                    <Label fx:id="activeAccountsLabel" text="0" styleClass="stat-card-value"/>
+                </VBox>
+                <VBox styleClass="stat-card" spacing="4" HBox.hgrow="ALWAYS">
+                    <Label text="Đã vô hiệu hóa" styleClass="stat-card-label"/>
+                    <Label fx:id="disabledAccountsLabel" text="0" styleClass="stat-card-value"/>
+                </VBox>
+            </children>
+        </HBox>
+
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <children>
+                <TextField fx:id="searchField" promptText="Tìm kiếm tài khoản..." styleClass="search-field" HBox.hgrow="ALWAYS"/>
+                <Button fx:id="createAccountButton" text="Tạo tài khoản" styleClass="btn-primary"/>
+                <Button fx:id="editAccountButton" text="Sửa"/>
+                <Button fx:id="disableAccountButton" text="Vô hiệu hóa"/>
+                <Button fx:id="deleteAccountButton" text="Hủy tài khoản"/>
+            </children>
+        </HBox>
+
+        <TableView fx:id="accountTable" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="usernameColumn" text="Tên đăng nhập" prefWidth="160"/>
+                <TableColumn fx:id="fullNameColumn" text="Họ và tên" prefWidth="200"/>
+                <TableColumn fx:id="roleColumn" text="Vai trò" prefWidth="200"/>
+                <TableColumn fx:id="statusColumn" text="Trạng thái" prefWidth="120"/>
+            </columns>
+        </TableView>
+    </children>
+</VBox>

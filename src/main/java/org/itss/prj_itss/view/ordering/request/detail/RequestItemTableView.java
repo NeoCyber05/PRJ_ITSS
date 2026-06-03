@@ -4,7 +4,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
-import org.itss.prj_itss.model.request.application.sales.view.RequestDetailItemRow;
+import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailItemRow;
 
 import java.io.IOException;
 import java.util.List;
@@ -18,7 +18,7 @@ public final class RequestItemTableView {
     @FXML
     private VBox rowsContainer;
 
-    public static VBox load(List<RequestDetailItemRow> items) {
+    public static VBox load(List<ReceivedRequestDetailItemRow> items) {
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
                 RequestItemTableView.class.getResource(VIEW_RESOURCE),
@@ -33,7 +33,7 @@ public final class RequestItemTableView {
         }
     }
 
-    private void init(List<RequestDetailItemRow> items) {
+    private void init(List<ReceivedRequestDetailItemRow> items) {
         rowsContainer.getChildren().clear();
         if (items.isEmpty()) {
             Label emptyLabel = new Label("Không có mặt hàng.");
@@ -42,7 +42,7 @@ public final class RequestItemTableView {
             return;
         }
 
-        for (RequestDetailItemRow item : items) {
+        for (ReceivedRequestDetailItemRow item : items) {
             rowsContainer.getChildren().add(RequestItemRowView.load(item));
         }
     }

@@ -4,14 +4,19 @@ import org.itss.prj_itss.model.shared.database.JdbcRepositorySupport;
 
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
-import org.itss.prj_itss.model.request.application.port.RequestRepository;
+import org.itss.prj_itss.model.dashboard.application.port.DashboardRequestPort;
+import org.itss.prj_itss.model.request.application.listing.ReceivedRequestsPort;
+import org.itss.prj_itss.model.request.application.processing.ProcessingRequestPort;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestQueryPort;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestCommandPort;
+import org.itss.prj_itss.model.request.domain.request.RequestStatus;
 
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JdbcRequestRepository extends JdbcRepositorySupport implements RequestRepository {
+public class JdbcRequestRepository extends JdbcRepositorySupport implements SalesRequestQueryPort, SalesRequestCommandPort, ReceivedRequestsPort, DashboardRequestPort, ProcessingRequestPort {
 
     public JdbcRequestRepository(org.itss.prj_itss.model.shared.database.ConnectionProvider connectionProvider) {
         super(connectionProvider);
@@ -100,10 +105,10 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
     }
 
     @Override
-    public boolean updateStatus(int requestId, String newStatus) {
+    public boolean updateStatus(int requestId, RequestStatus newStatus) {
         String sql = "UPDATE request SET status = ? WHERE id = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
-            ps.setString(1, newStatus);
+            ps.setString(1, newStatus.storageValue());
             ps.setInt(2, requestId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
@@ -158,17 +163,18 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
     }
 
     @Override
-    public int createRequest(List<RequestMerchandise> items, String note) throws Exception {
+    public int createRequest(Request request) throws Exception {
         Connection conn = getConnection();
         boolean originalAutoCommit = conn.getAutoCommit();
         try {
             conn.setAutoCommit(false);
             
             int requestId = -1;
-            String insertRequestSql = "INSERT INTO request (status, note, created_at) VALUES (?, ?, CURRENT_TIMESTAMP)";
+            String insertRequestSql = "INSERT INTO request (status, note, created_at) VALUES (?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(insertRequestSql, Statement.RETURN_GENERATED_KEYS)) {
-                ps.setString(1, "pending");
-                ps.setString(2, note);
+                ps.setString(1, request.getStatus().storageValue());
+                ps.setString(2, request.getNote());
+                ps.setTimestamp(3, Timestamp.valueOf(request.getCreatedAt()));
                 ps.executeUpdate();
                 try (ResultSet rs = ps.getGeneratedKeys()) {
                     if (rs.next()) requestId = rs.getInt(1);
@@ -179,7 +185,7 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
 
             String insertItemSql = "INSERT INTO request_merchandise (request_id, merchandise_id, quantity_ordered, desired_delivery_date) VALUES (?, ?, ?, ?)";
             try (PreparedStatement ps = conn.prepareStatement(insertItemSql)) {
-                for (RequestMerchandise item : items) {
+                for (RequestMerchandise item : request.getItems()) {
                     ps.setInt(1, requestId);
                     ps.setInt(2, item.getMerchandiseId());
                     ps.setBigDecimal(3, item.getQuantityOrdered());
@@ -242,13 +248,12 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
     }
 
     private Request mapRequest(ResultSet rs) throws SQLException {
-        Request r = new Request();
-        r.setId(rs.getInt("id"));
+        int id = rs.getInt("id");
         Timestamp ts = rs.getTimestamp("created_at");
-        if (ts != null) r.setCreatedAt(ts.toLocalDateTime());
-        r.setStatus(rs.getString("status"));
-        r.setNote(rs.getString("note"));
-        return r;
+        java.time.LocalDateTime createdAt = ts != null ? ts.toLocalDateTime() : null;
+        RequestStatus status = RequestStatus.fromStorageValue(rs.getString("status"));
+        String note = rs.getString("note");
+        return Request.reconstituteFromDb(id, createdAt, status, note);
     }
 }
 

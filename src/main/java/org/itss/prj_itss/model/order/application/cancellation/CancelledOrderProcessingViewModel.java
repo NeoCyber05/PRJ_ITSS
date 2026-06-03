@@ -1,7 +1,7 @@
 package org.itss.prj_itss.model.order.application.cancellation;
 
-import org.itss.prj_itss.model.request.application.processing.ProcessingItemView;
-import org.itss.prj_itss.model.request.application.processing.ProcessingSiteView;
+import org.itss.prj_itss.view.ordering.request.process.state.ProcessingItemView;
+import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;
 
 import java.util.List;
 import java.util.Map;

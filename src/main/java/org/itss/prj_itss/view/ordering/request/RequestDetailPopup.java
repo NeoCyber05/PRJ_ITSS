@@ -12,7 +12,7 @@ import org.itss.prj_itss.controller.navigation.Navigator;
 import org.itss.prj_itss.controller.ordering.order.OrderDetailController;
 import org.itss.prj_itss.controller.ordering.order.OrderManagementController;
 import org.itss.prj_itss.controller.ordering.request.RequestDetailPopupController;
-import org.itss.prj_itss.model.request.application.sales.detail.RequestDetailViewModel;
+import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailViewModel;
 import org.itss.prj_itss.view.ordering.request.detail.RequestDetailPopupView;
 import org.itss.prj_itss.view.ordering.request.process.shared.AllocationViewSupport;
 
@@ -33,7 +33,7 @@ public final class RequestDetailPopup {
             OrderDetailController orderDetailController,
             OrderManagementController orderManagementController,
             Navigator navigator) {
-        RequestDetailViewModel detail = controller.load(requestCode);
+        ReceivedRequestDetailViewModel detail = controller.load(requestCode);
 
         Stage dialog = createDialog(owner);
 
@@ -87,7 +87,7 @@ public final class RequestDetailPopup {
             OrderDetailController orderDetailController,
             OrderManagementController orderManagementController,
             Navigator navigator,
-            RequestDetailViewModel detail,
+            ReceivedRequestDetailViewModel detail,
             double sceneWidth,
             double requestCollapsedWidth,
             double requestExpandedWidth,

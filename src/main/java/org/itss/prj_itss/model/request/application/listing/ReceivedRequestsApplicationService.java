@@ -1,16 +1,16 @@
 package org.itss.prj_itss.model.request.application.listing;
 
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
-import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
+import org.itss.prj_itss.model.request.application.listing.ReceivedRequestsPort;
 
 import java.time.LocalDate;
 import java.util.List;
 
 public final class ReceivedRequestsApplicationService {
 
-    private final RequestManagementUseCase requestService;
+    private final ReceivedRequestsPort requestService;
 
-    public ReceivedRequestsApplicationService(RequestManagementUseCase requestService) {
+    public ReceivedRequestsApplicationService(ReceivedRequestsPort requestService) {
         this.requestService = requestService;
     }
 
@@ -24,13 +24,13 @@ public final class ReceivedRequestsApplicationService {
                     OrderingFormatters.formatDateOrEmpty(request.getCreatedAt()),
                     OrderingFormatters.formatItemTypes(requestService.countItemTypes(request.getId())),
                     OrderingFormatters.formatDate(earliestDelivery),
-                    request.getStatus() == null ? "N/A" : request.getStatus()
+                    request.getStatus() == null ? "N/A" : request.getStatusKey()
                 );
             })
             .toList();
     }
 
     public boolean deleteRequest(int requestId) {
-        return requestService.deleteRequest(requestId);
+        return requestService.deleteById(requestId);
     }
 }

@@ -1,13 +1,13 @@
 package org.itss.prj_itss.model.order.application.cancellation;
 
-import org.itss.prj_itss.model.request.application.processing.AllocationChangeCommand;
-import org.itss.prj_itss.model.request.application.processing.AllocationChangeResultView;
-import org.itss.prj_itss.model.request.application.processing.ProcessingItemView;
-import org.itss.prj_itss.model.request.application.processing.ProcessingPreviewOrderView;
-import org.itss.prj_itss.model.request.application.processing.ProcessingSiteView;
-import org.itss.prj_itss.model.request.domain.allocation.AllocationControl;
-import org.itss.prj_itss.model.request.domain.allocation.model.Allocation;
-import org.itss.prj_itss.model.request.domain.allocation.model.AllocationDraft;
+import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
+import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
+import org.itss.prj_itss.view.ordering.request.process.state.ProcessingItemView;
+import org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView;
+import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;
+import org.itss.prj_itss.model.request.domain.processing.allocation.AllocationControl;
+import org.itss.prj_itss.model.request.domain.processing.allocation.Allocation;
+import org.itss.prj_itss.model.request.domain.processing.allocation.AllocationDraft;
 import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
 import org.itss.prj_itss.model.shared.formatting.DeliveryStatusFormatter;
@@ -173,7 +173,7 @@ public final class CancelledOrderProcessingSession {
             allSites,
             excludedSiteIds
         );
-        new org.itss.prj_itss.model.request.domain.allocation.algo.ApplyPlan(items, allocations).apply(drafts);
+        new org.itss.prj_itss.model.request.domain.processing.allocation.ApplyPlan(items, allocations).apply(drafts);
     }
 
     public AllocationChangeResultView handleAllocationInputChanged(AllocationChangeCommand command) {

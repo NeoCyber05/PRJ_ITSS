@@ -1,23 +1,23 @@
 package org.itss.prj_itss.controller.ordering.request;
 
 import org.itss.prj_itss.model.order.application.OrderCancellationApplicationService;
-import org.itss.prj_itss.model.request.application.sales.detail.AllocatedOrderRow;
-import org.itss.prj_itss.model.request.application.sales.detail.RequestDetailApplicationService;
-import org.itss.prj_itss.model.request.application.sales.detail.RequestDetailViewModel;
+import org.itss.prj_itss.model.request.application.international.detail.AllocatedOrderRow;
+import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailApplicationService;
+import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailViewModel;
 
 public final class RequestDetailPopupController {
 
-    private final RequestDetailApplicationService detailService;
+    private final ReceivedRequestDetailApplicationService detailService;
     private final OrderCancellationApplicationService orderCancellationService;
 
     public RequestDetailPopupController(
-            RequestDetailApplicationService detailService,
+            ReceivedRequestDetailApplicationService detailService,
             OrderCancellationApplicationService orderCancellationService) {
         this.detailService = detailService;
         this.orderCancellationService = orderCancellationService;
     }
 
-    public RequestDetailViewModel load(String requestCode) {
+    public ReceivedRequestDetailViewModel load(String requestCode) {
         return detailService.load(requestCode);
     }
 

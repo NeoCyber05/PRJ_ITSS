@@ -18,9 +18,9 @@ import org.itss.prj_itss.controller.navigation.Navigator;
 import org.itss.prj_itss.controller.ordering.order.OrderCancellationProcessingController;
 import org.itss.prj_itss.model.order.application.cancellation.CancelledOrderProcessingViewModel;
 import org.itss.prj_itss.model.order.application.cancellation.CancelledOrderProcessingSession;
-import org.itss.prj_itss.model.request.application.processing.AllocationChangeCommand;
-import org.itss.prj_itss.model.request.application.processing.AllocationChangeResultView;
-import org.itss.prj_itss.model.request.application.processing.ProcessingPreviewOrderView;
+import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
+import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
+import org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView;
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 

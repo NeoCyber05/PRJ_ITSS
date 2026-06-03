@@ -6,12 +6,11 @@ import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.model.request.application.processing.RequestProcessingViewModel;
-import org.itss.prj_itss.model.request.application.processing.SuggestedPlanView;
-import org.itss.prj_itss.model.request.application.processing.ProcessingPreviewOrderView;
+import org.itss.prj_itss.view.ordering.request.process.state.RequestProcessingViewModel;
+import org.itss.prj_itss.view.ordering.request.process.state.SuggestedPlanView;
+import org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView;
 import org.itss.prj_itss.controller.ordering.request.process.RequestProcessingLayoutController;
 import org.itss.prj_itss.view.ordering.request.process.items.ItemsSectionView;
-import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
 import org.itss.prj_itss.view.ordering.request.process.preview.RequestProcessingPreviewDialog;
 import org.itss.prj_itss.controller.ordering.request.process.preview.RequestProcessingPreviewDialogController;
 import org.itss.prj_itss.view.ordering.request.process.site.SiteFilterView;
@@ -45,10 +44,8 @@ public final class RequestProcessingLayoutView {
     @FXML
     private VBox allocationContainer;
 
-    public void init(RequestProcessingUseCase requestProcessingUseCase, Consumer<String> navigateToView) {
-        this.controller = new RequestProcessingLayoutController(
-            Objects.requireNonNull(requestProcessingUseCase, "requestProcessingUseCase")
-        );
+    public void init(RequestProcessingLayoutController controller, Consumer<String> navigateToView) {
+        this.controller = Objects.requireNonNull(controller, "controller");
         this.navigateToView = navigateToView == null ? viewId -> {} : navigateToView;
     }
 
@@ -146,7 +143,7 @@ public final class RequestProcessingLayoutView {
     private void handleSiteFilterChanged() {
         controller.handleSiteFilterChanged(
             siteFilterView.getExcludedSiteIds(),
-            siteFilterView.getPrioritySiteIds()
+            siteFilterView.getSelectedSiteIds()
         );
         renderItemsViewSection();
     }

@@ -23,7 +23,7 @@ import org.itss.prj_itss.App;
 import org.itss.prj_itss.controller.navigation.Navigator;
 import org.itss.prj_itss.controller.ordering.order.OrderDetailController;
 import org.itss.prj_itss.controller.ordering.order.OrderManagementController;
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.order.application.OrderCancellationApplicationService;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
@@ -60,6 +60,8 @@ public final class OrderDetailView implements ViewLifecycle {
 
     @FXML
     private BorderPane panelRoot;
+    private Runnable onCloseAction;
+    private boolean isEmbedded = false;
 
     @FXML
     private Label subtitleLabel;
@@ -103,16 +105,91 @@ public final class OrderDetailView implements ViewLifecycle {
         this.controller = controller;
         this.managementController = managementController;
         this.orderIdRaw = orderIdRaw;
-        this.onBackAction = onBackAction;
+        this.onBackAction = onBackAction != null ? onBackAction : () -> {
+            if (this.navigator != null) {
+                this.navigator.showView("orders");
+            }
+        };
+        this.onCloseAction = null;
 
-        backdrop.setOnMouseClicked(event -> handleBackAction());
-        configureBackground();
-        renderOrderDetail();
+        StackPane rootStack = (StackPane) this.view;
+        rootStack.getChildren().clear();
+
+        Node background = loadOrdersBackground();
+        background.setEffect(new GaussianBlur(14));
+        background.setOpacity(0.96);
+
+        Region backdropRegion = new Region();
+        backdropRegion.setStyle("-fx-background-color: rgba(15,23,42,0.34);");
+        backdropRegion.setOnMouseClicked(event -> {
+            if (this.onBackAction != null) {
+                this.onBackAction.run();
+            }
+        });
+
+        this.panelRoot = new BorderPane();
+        this.panelRoot.setMaxWidth(Double.MAX_VALUE);
+        this.panelRoot.setStyle("-fx-background-color: transparent;");
+
+        buildPanelContent();
+
+        VBox drawerContainer = new VBox(panelRoot);
+        drawerContainer.setStyle("-fx-background-color: white; -fx-background-radius: 24 0 0 24; -fx-border-radius: 24 0 0 24; -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.18), 28, 0, 0, 10);");
+        drawerContainer.setPrefWidth(920);
+        drawerContainer.setMinWidth(920);
+        VBox.setVgrow(panelRoot, Priority.ALWAYS);
+
+        HBox drawerLayer = new HBox();
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        drawerLayer.getChildren().addAll(spacer, drawerContainer);
+        drawerLayer.setAlignment(Pos.CENTER_RIGHT);
+
+        rootStack.getChildren().addAll(background, backdropRegion, drawerLayer);
+    }
+    
+    public void initAsEmbedded(OrderDetailController controller, String orderIdRaw, Runnable onBackAction, Runnable onCloseAction) {
+        this.controller = controller;
+        this.orderIdRaw = orderIdRaw;
+        this.onBackAction = onBackAction;
+        this.onCloseAction = onCloseAction;
+        this.isEmbedded = true;
+        this.navigator = null;
+        this.managementController = null;
+        
+        StackPane rootStack = (StackPane) this.view;
+        rootStack.getChildren().clear();
+        this.view.setStyle("-fx-background-color: transparent;");
+        
+        this.panelRoot = new BorderPane();
+        this.panelRoot.setMaxWidth(Double.MAX_VALUE);
+        this.panelRoot.setStyle("-fx-background-color: transparent;"); // container handles background
+        
+        buildPanelContent();
+        
+        rootStack.getChildren().add(this.panelRoot);
     }
 
     @Override
     public void onViewShown() {
-        renderOrderDetail();
+        buildPanelContent();
+    }
+
+    private Node loadOrdersBackground() {
+        try {
+            FXMLLoader loader = new FXMLLoader(App.class.getResource("/org/itss/prj_itss/view/ordering/order/order-management-view.fxml"));
+            Node background = loader.load();
+            Object controllerObj = loader.getController();
+            if (controllerObj instanceof OrderManagementView viewObj) {
+                viewObj.init(navigator, managementController);
+            }
+            return background;
+        } catch (Exception exception) {
+            Label errorLabel = new Label("Không thể tải danh sách đơn hàng.");
+            StackPane fallback = new StackPane(errorLabel);
+            fallback.getStyleClass().add("content-area");
+            return fallback;
+        }
     }
 
     @FXML
@@ -170,7 +247,7 @@ public final class OrderDetailView implements ViewLifecycle {
         // Disabled background reloading to eliminate performance lag when loading and exiting order details.
     }
 
-    private void renderOrderDetail() {
+    private void buildPanelContent() {
         if (controller == null) {
             return;
         }
@@ -188,22 +265,126 @@ public final class OrderDetailView implements ViewLifecycle {
         Site site = controller.findSiteById(order.getSiteId());
         List<OrderMerchandise> items = controller.findItemsByOrderId(orderId);
 
-        subtitleLabel.setText("Mã đơn hàng: " + formatOrderCode(order.getId()));
-        setCancellationVisible("pending".equalsIgnoreCase(order.getStatus()));
-        topStatusContainer.getChildren().setAll(buildTopStatusBadge(order.getStatus()));
-        contentBox.getChildren().setAll(
+        VBox header = new VBox(18);
+        header.setPadding(new Insets(28, 28, 22, 28));
+        header.setStyle("-fx-background-color: transparent; -fx-border-color: transparent transparent #E7EDF5 transparent; -fx-border-width: 0 0 1 0;");
+
+        HBox topRow = new HBox(14);
+        topRow.setAlignment(Pos.CENTER_LEFT);
+
+        Button backButton = new Button("‹");
+        backButton.setOnAction(event -> {
+            if (onBackAction != null) {
+                onBackAction.run();
+            }
+        });
+        backButton.setStyle(
+            "-fx-background-color: white;" +
+            "-fx-border-color: #D9E2EE;" +
+            "-fx-border-radius: 10;" +
+            "-fx-background-radius: 10;" +
+            "-fx-text-fill: #475569;" +
+            "-fx-font-size: 26px;" +
+            "-fx-font-weight: bold;" +
+            "-fx-min-width: 38;" +
+            "-fx-min-height: 38;" +
+            "-fx-cursor: hand;"
+        );
+
+        VBox titleBox = new VBox(6);
+        Label titleLabel = new Label("Chi tiết đơn hàng");
+        titleLabel.setStyle("-fx-font-size: 21px; -fx-font-weight: bold; -fx-text-fill: #1E293B;");
+        Label subtitleLabel = new Label("Mã đơn hàng: " + formatOrderCode(order.getId()));
+        subtitleLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #7B8DA6;");
+        titleBox.getChildren().addAll(titleLabel, subtitleLabel);
+
+        topRow.getChildren().addAll(backButton, titleBox);
+
+        Region topSpacer = new Region();
+        HBox.setHgrow(topSpacer, Priority.ALWAYS);
+        topRow.getChildren().add(topSpacer);
+
+        if ("pending".equalsIgnoreCase(order.getStatus())) {
+            Button cancelBtn = new Button("Hủy đơn hàng");
+            cancelBtn.setStyle(
+                "-fx-background-color: #FEF2F2; " +
+                "-fx-text-fill: #DC2626; " +
+                "-fx-border-color: #F87171; " +
+                "-fx-border-radius: 6; " +
+                "-fx-background-radius: 6; " +
+                "-fx-padding: 6 12; " +
+                "-fx-font-weight: bold; " +
+                "-fx-cursor: hand;"
+            );
+
+            cancelBtn.setOnAction(e -> {
+                Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+                alert.setTitle("Xác nhận hủy");
+                alert.setHeaderText("Bạn có chắc chắn muốn hủy đơn hàng này không?");
+                alert.setContentText("Hành động này không thể hoàn tác.");
+
+                alert.showAndWait().ifPresent(response -> {
+                    if (response == ButtonType.OK) {
+                        OrderCancellationApplicationService.CancellationResult result = controller.cancel(order.getId());
+                        if (result.success() && onBackAction != null) {
+                            onBackAction.run();
+                        }
+                    }
+                });
+            });
+            
+            topRow.getChildren().add(cancelBtn);
+        }
+
+        if (onCloseAction != null) {
+            Button closeBtn = new Button("✕");
+            closeBtn.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-text-fill: #94A3B8;" +
+                "-fx-font-size: 18px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-cursor: hand;"
+            );
+            closeBtn.setOnAction(e -> onCloseAction.run());
+            topRow.getChildren().add(closeBtn);
+        }
+
+        Label topStatusBadge = buildTopStatusBadge(order.getStatus());
+        header.getChildren().addAll(topRow, topStatusBadge);
+
+        VBox content = new VBox(22);
+        content.setPadding(new Insets(16, 24, 16, 24));
+        content.getChildren().addAll(
             buildOverviewCard(order, site, items),
             buildProgressCard(order.getStatus()),
             buildItemsCard(items)
         );
+
+        ScrollPane scrollPane = new ScrollPane(content);
+        scrollPane.setFitToWidth(true);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        scrollPane.setStyle("-fx-background-color: transparent; -fx-background: transparent;");
+
+        scrollPane.addEventFilter(ScrollEvent.SCROLL, event -> {
+            if (event.getDeltaY() != 0) {
+                double contentHeight = scrollPane.getContent().getBoundsInLocal().getHeight();
+                double viewportHeight = scrollPane.getViewportBounds().getHeight();
+                double scrollRange = contentHeight - viewportHeight;
+                if (scrollRange > 0) {
+                    double deltaY = event.getDeltaY() * 3;
+                    scrollPane.setVvalue(scrollPane.getVvalue() - deltaY / scrollRange);
+                }
+                event.consume();
+            }
+        });
+
+        panelRoot.setTop(header);
+        panelRoot.setCenter(scrollPane);
+        
+        BorderPane.setMargin(scrollPane, new Insets(0, 4, 24, 4));
     }
 
-    private void setCancellationVisible(boolean visible) {
-        cancelSpacer.setManaged(visible);
-        cancelSpacer.setVisible(visible);
-        cancelButton.setManaged(visible);
-        cancelButton.setVisible(visible);
-    }
+
 
     private VBox buildOverviewCard(Order order, Site site, List<OrderMerchandise> items) {
         VBox card = buildCard("Thông tin tổng quan");

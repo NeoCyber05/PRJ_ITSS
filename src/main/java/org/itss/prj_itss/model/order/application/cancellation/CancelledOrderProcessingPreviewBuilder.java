@@ -1,10 +1,10 @@
 package org.itss.prj_itss.model.order.application.cancellation;
 
-import org.itss.prj_itss.model.request.domain.allocation.model.Allocation;
-import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
 import org.itss.prj_itss.model.request.domain.delivery.DeliveryMethod;
-import org.itss.prj_itss.model.request.domain.allocation.model.AllocationPlan;
+import org.itss.prj_itss.model.request.domain.processing.allocation.AllocationPlan;
+import org.itss.prj_itss.model.request.domain.processing.allocation.Allocation;
+import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.model.request.domain.delivery.DeliveryOptions;
 
 import java.time.LocalDate;
