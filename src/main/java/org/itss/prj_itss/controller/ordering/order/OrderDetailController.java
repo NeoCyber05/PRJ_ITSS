@@ -48,4 +48,8 @@ public final class OrderDetailController {
     public Merchandise findMerchandiseById(int id) {
         return merchandiseService.findById(id);
     }
+
+    public java.time.LocalDate findDesiredDeliveryDate(int orderId, int merchandiseId) {
+        return orderService.findDesiredDeliveryDate(orderId, merchandiseId);
+    }
 }

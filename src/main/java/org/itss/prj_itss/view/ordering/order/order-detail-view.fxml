@@ -17,12 +17,14 @@
         <StackPane fx:id="backgroundContainer"/>
         <Region fx:id="backdrop"
                 style="-fx-background-color: rgba(15,23,42,0.34);"/>
-        <HBox alignment="CENTER_RIGHT">
+        <HBox alignment="CENTER">
+            <padding>
+                <Insets top="30" right="30" bottom="30" left="30"/>
+            </padding>
             <children>
-                <Region HBox.hgrow="ALWAYS"/>
-                <VBox minWidth="540"
-                      prefWidth="540"
-                      style="-fx-background-color: white; -fx-background-radius: 24 0 0 24; -fx-border-radius: 24 0 0 24;">
+                <VBox minWidth="920"
+                      prefWidth="920"
+                      style="-fx-background-color: white; -fx-background-radius: 24; -fx-border-radius: 24; -fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.14), 20, 0, 0, 8);">
                     <children>
                         <BorderPane fx:id="panelRoot"
                                     maxWidth="1.7976931348623157E308"

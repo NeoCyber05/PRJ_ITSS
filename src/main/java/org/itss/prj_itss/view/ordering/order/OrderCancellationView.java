@@ -141,11 +141,110 @@ public final class OrderCancellationView implements ViewLifecycle {
 
     @FXML
     private void handleSuggestAction() {
-        if (controller != null) {
-            controller.handleSuggestAllocation();
-            showFeedback("Đã tự động tính toán phương án phân bổ tối ưu.", FeedbackKind.SUCCESS);
+        if (controller == null) return;
+
+        modalIconLabel.setText("✦");
+        modalTitleLabel.setText("Gợi ý phân bổ tự động");
+        modalSubtitleLabel.setText("Chọn chiến lược phân bổ phù hợp với nhu cầu");
+        
+        modalBody.getChildren().clear();
+        
+        HBox cardsBox = new HBox(14);
+        cardsBox.setAlignment(Pos.CENTER);
+        cardsBox.setPadding(new Insets(10, 0, 10, 0));
+        
+        // Option 1 Card
+        VBox card1 = buildSuggestionCard(
+            "Option 1",
+            "Chi phí vận chuyển thấp",
+            "Khuyên dùng",
+            "Tuân thủ tuyệt đối ưu tiên đường tàu, chọn site có tồn kho lớn nhất trước. Chi phí vận chuyển tối ưu nhất.",
+            "cancelled-order-plan-low-cost",
+            1
+        );
+        
+        // Option 2 Card
+        VBox card2 = buildSuggestionCard(
+            "Option 2",
+            "Quản lý đơn giản",
+            "Ít điểm nhập",
+            "Số lượng điểm nhập hàng ít nhất bằng cách chọn site tồn kho lớn nhất, sử dụng hàng không để giao nhanh.",
+            "cancelled-order-plan-simple",
+            2
+        );
+        
+        // Option 3 Card
+        VBox card3 = buildSuggestionCard(
+            "Option 3",
+            "Cân bằng",
+            "Kết hợp",
+            "Lô hàng lớn (≥ 50% nhu cầu) dùng tàu, lô hàng nhỏ dùng máy bay — cân bằng chi phí và tốc độ.",
+            "cancelled-order-plan-balanced",
+            3
+        );
+        
+        cardsBox.getChildren().addAll(card1, card2, card3);
+        modalBody.getChildren().add(cardsBox);
+        
+        modalCancelButton.setText("Đóng");
+        modalConfirmButton.setManaged(false);
+        modalConfirmButton.setVisible(false);
+        modalFooter.setManaged(true);
+        modalFooter.setVisible(true);
+        
+        showModal();
+    }
+
+    private VBox buildSuggestionCard(
+        String labelText,
+        String titleText,
+        String badgeText,
+        String descText,
+        String borderStyleClass,
+        int optionId
+    ) {
+        VBox card = new VBox(12);
+        card.getStyleClass().addAll("cancelled-order-suggestion-card", borderStyleClass);
+        card.setPrefWidth(240);
+        card.setMinWidth(240);
+        card.setPadding(new Insets(14));
+        
+        HBox header = new HBox(6);
+        header.setAlignment(Pos.CENTER_LEFT);
+        Label label = new Label(labelText);
+        label.getStyleClass().add("cancelled-order-muted-text");
+        label.setStyle("-fx-font-size: 11px;");
+        Region spacer = new Region();
+        HBox.setHgrow(spacer, Priority.ALWAYS);
+        Label badge = new Label(badgeText);
+        badge.getStyleClass().addAll("cancelled-order-pill", "cancelled-order-pill-warning");
+        badge.setStyle("-fx-font-size: 10px; -fx-padding: 2 6;");
+        header.getChildren().addAll(label, spacer, badge);
+        
+        Label title = new Label(titleText);
+        title.getStyleClass().add("cancelled-order-section-title");
+        title.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+        title.setWrapText(true);
+        
+        Label desc = new Label(descText);
+        desc.getStyleClass().add("cancelled-order-muted-text");
+        desc.setStyle("-fx-font-size: 12px;");
+        desc.setWrapText(true);
+        desc.setMinHeight(80);
+        desc.setPrefHeight(80);
+        
+        Button applyBtn = new Button("Áp dụng Option " + optionId);
+        applyBtn.getStyleClass().add("cancelled-order-primary-button");
+        applyBtn.setMaxWidth(Double.MAX_VALUE);
+        applyBtn.setOnAction(event -> {
+            closeModal();
+            controller.handleSuggestAllocation(optionId);
+            showFeedback("Đã áp dụng Option " + optionId + " thành công.", FeedbackKind.SUCCESS);
             showAllocationScreen();
-        }
+        });
+        
+        card.getChildren().addAll(header, title, desc, applyBtn);
+        return card;
     }
 
     @FXML
@@ -273,7 +372,7 @@ public final class OrderCancellationView implements ViewLifecycle {
         nameLabel.getStyleClass().add("cancelled-order-section-title");
         
         String desiredDateText = currentViewModel.desiredDeliveryDates().get(group.merchandiseId());
-        Label desiredDateLabel = new Label("Ngày cần giao: " + (desiredDateText == null ? "" : desiredDateText));
+        Label desiredDateLabel = new Label("Ngày cần: " + (desiredDateText == null ? "" : desiredDateText));
         desiredDateLabel.getStyleClass().add("cancelled-order-deadline-badge");
         Label metaLabel = new Label(group.siteRows().size() + " site  •  Tổng tồn: " + group.totalStock());
         metaLabel.getStyleClass().add("cancelled-order-muted-text");

@@ -2445,3 +2445,25 @@
     -fx-text-fill: #D97706;
 }
 
+/* Delivery ETA Status Styles */
+.allocation-eta-early {
+    -fx-text-fill: #10B981;
+    -fx-font-weight: bold;
+}
+
+.allocation-eta-on-time {
+    -fx-text-fill: #0F766E;
+    -fx-font-weight: bold;
+}
+
+.allocation-eta-late {
+    -fx-text-fill: #EF4444;
+    -fx-font-weight: bold;
+}
+
+.allocation-eta-unavailable {
+    -fx-text-fill: #9CA3AF;
+    -fx-font-weight: bold;
+}
+
+

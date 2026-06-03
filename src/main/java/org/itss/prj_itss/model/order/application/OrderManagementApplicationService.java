@@ -107,18 +107,7 @@ public final class OrderManagementApplicationService {
 
     private String itemSummary(int orderId, java.util.Map<Integer, Merchandise> merchandiseMap) {
         List<OrderMerchandise> items = orderService.findItemsByOrderId(orderId);
-        String summary = items.stream()
-            .map(item -> {
-                Merchandise merchandise = null;
-                if (merchandiseMap != null) {
-                    merchandise = merchandiseMap.get(item.getMerchandiseId());
-                } else {
-                    merchandise = merchandiseService.findById(item.getMerchandiseId());
-                }
-                return merchandise == null ? "?" : merchandise.getCode();
-            })
-            .collect(Collectors.joining(", "));
-        return summary.isBlank() ? "-" : summary;
+        return OrderingFormatters.formatItemTypes(items.size());
     }
 }
 

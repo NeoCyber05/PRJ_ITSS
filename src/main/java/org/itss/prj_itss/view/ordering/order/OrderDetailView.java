@@ -29,6 +29,9 @@ import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.site.domain.Site;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
+import org.itss.prj_itss.model.shared.formatting.DeliveryStatusFormatter;
+import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
+import java.time.temporal.ChronoUnit;
 
 import java.io.IOException;
 import java.time.format.DateTimeFormatter;
@@ -47,6 +50,7 @@ public final class OrderDetailView implements ViewLifecycle {
     private OrderManagementController managementController;
     private String orderIdRaw;
     private Order currentOrder;
+    private Runnable onBackAction;
 
     @FXML
     private StackPane backgroundContainer;
@@ -85,12 +89,23 @@ public final class OrderDetailView implements ViewLifecycle {
         OrderManagementController managementController,
         String orderIdRaw
     ) {
+        init(navigator, controller, managementController, orderIdRaw, null);
+    }
+
+    public void init(
+        Navigator navigator,
+        OrderDetailController controller,
+        OrderManagementController managementController,
+        String orderIdRaw,
+        Runnable onBackAction
+    ) {
         this.navigator = navigator;
         this.controller = controller;
         this.managementController = managementController;
         this.orderIdRaw = orderIdRaw;
+        this.onBackAction = onBackAction;
 
-        backdrop.setOnMouseClicked(event -> navigateToOrders());
+        backdrop.setOnMouseClicked(event -> handleBackAction());
         configureBackground();
         renderOrderDetail();
     }
@@ -107,7 +122,11 @@ public final class OrderDetailView implements ViewLifecycle {
 
     @FXML
     private void handleBackAction() {
-        navigateToOrders();
+        if (onBackAction != null) {
+            onBackAction.run();
+        } else {
+            navigateToOrders();
+        }
     }
 
     @FXML
@@ -148,29 +167,7 @@ public final class OrderDetailView implements ViewLifecycle {
     }
 
     private void configureBackground() {
-        Node background = loadOrdersBackground();
-        background.setEffect(new GaussianBlur(14));
-        background.setOpacity(0.96);
-        backgroundContainer.getChildren().setAll(background);
-    }
-
-    private Node loadOrdersBackground() {
-        try {
-            FXMLLoader loader = new FXMLLoader(
-                App.class.getResource("/org/itss/prj_itss/view/ordering/order/order-management-view.fxml")
-            );
-            Node background = loader.load();
-            Object controllerObj = loader.getController();
-            if (controllerObj instanceof OrderManagementView viewObj) {
-                viewObj.init(navigator, managementController);
-            }
-            return background;
-        } catch (Exception exception) {
-            Label errorLabel = new Label("Không thể tải danh sách đơn hàng.");
-            StackPane fallback = new StackPane(errorLabel);
-            fallback.getStyleClass().add("content-area");
-            return fallback;
-        }
+        // Disabled background reloading to eliminate performance lag when loading and exiting order details.
     }
 
     private void renderOrderDetail() {
@@ -252,12 +249,14 @@ public final class OrderDetailView implements ViewLifecycle {
     private VBox buildItemsCard(List<OrderMerchandise> items) {
         VBox card = buildCard("Danh sách mặt hàng");
 
-        double indexWidth = 42;
-        double codeWidth = 90;
-        double nameWidth = 170;
-        double quantityWidth = 92;
-        double unitWidth = 88;
-        double transportWidth = 120;
+        double indexWidth = 35;
+        double codeWidth = 80;
+        double nameWidth = 160;
+        double quantityWidth = 80;
+        double unitWidth = 70;
+        double transportWidth = 100;
+        double desiredDateWidth = 105;
+        double deliveryStatusWidth = 110;
 
         VBox table = new VBox(0);
         table.setStyle(
@@ -278,7 +277,9 @@ public final class OrderDetailView implements ViewLifecycle {
             headerCell("TÊN MẶT HÀNG", nameWidth),
             headerCell("SỐ LƯỢNG ĐẶT", quantityWidth),
             headerCell("ĐƠN VỊ TÍNH", unitWidth),
-            headerCell("PHƯƠNG THỨC VẬN CHUYỂN", transportWidth)
+            headerCell("PHƯƠNG THỨC VẬN CHUYỂN", transportWidth),
+            headerCell("NGÀY CẦN", desiredDateWidth),
+            headerCell("TRẠNG THÁI ETA", deliveryStatusWidth)
         );
         table.getChildren().add(header);
 
@@ -289,7 +290,7 @@ public final class OrderDetailView implements ViewLifecycle {
         } else {
             int index = 1;
             for (OrderMerchandise item : items) {
-                table.getChildren().add(buildItemRow(item, index++, indexWidth, codeWidth, nameWidth, quantityWidth, unitWidth, transportWidth));
+                table.getChildren().add(buildItemRow(item, index++, indexWidth, codeWidth, nameWidth, quantityWidth, unitWidth, transportWidth, desiredDateWidth, deliveryStatusWidth));
             }
         }
 
@@ -305,9 +306,43 @@ public final class OrderDetailView implements ViewLifecycle {
         double nameWidth,
         double quantityWidth,
         double unitWidth,
-        double transportWidth
+        double transportWidth,
+        double desiredDateWidth,
+        double deliveryStatusWidth
     ) {
         Merchandise merchandise = controller.findMerchandiseById(item.getMerchandiseId());
+        
+        // Retrieve desired delivery date
+        java.time.LocalDate desiredDeliveryDate = controller.findDesiredDeliveryDate(currentOrder.getId(), item.getMerchandiseId());
+        String desiredDateText = desiredDeliveryDate != null ? OrderingFormatters.formatDate(desiredDeliveryDate) : "N/A";
+        
+        // Calculate delivery ETA status
+        String statusTextVal = "N/A";
+        String statusStyleClass = "allocation-eta-unavailable";
+        
+        if (desiredDeliveryDate != null && currentOrder.getCreatedAt() != null) {
+            Site site = controller.findSiteById(currentOrder.getSiteId());
+            int deadlineDays = (int) ChronoUnit.DAYS.between(currentOrder.getCreatedAt().toLocalDate(), desiredDeliveryDate);
+            int deliveryDays = 999;
+            if (site != null) {
+                boolean isSea = "ship".equalsIgnoreCase(item.getDeliveryMethod());
+                deliveryDays = isSea 
+                    ? (site.getShipDeliveryDays() == null ? 999 : site.getShipDeliveryDays())
+                    : (site.getAirDeliveryDays() == null ? 999 : site.getAirDeliveryDays());
+            }
+            int dayDelta = deadlineDays - deliveryDays;
+            
+            DeliveryStatusFormatter.DeliveryStatusView statusView = DeliveryStatusFormatter.format(dayDelta, deliveryDays < 999);
+            statusTextVal = statusView.text();
+            statusStyleClass = statusView.styleClass();
+        }
+        
+        Label statusLabel = new Label(statusTextVal);
+        statusLabel.getStyleClass().add(statusStyleClass);
+        statusLabel.setWrapText(true);
+        statusLabel.setMinWidth(deliveryStatusWidth);
+        statusLabel.setPrefWidth(deliveryStatusWidth);
+
         HBox row = new HBox();
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(16, 18, 16, 18));
@@ -318,7 +353,9 @@ public final class OrderDetailView implements ViewLifecycle {
             tableCell(merchandise != null ? merchandise.getName() : "N/A", nameWidth, false),
             tableCell(item.getQuantity() != null ? item.getQuantity().toPlainString() : "0", quantityWidth, true),
             tableCell(merchandise != null && merchandise.getUnit() != null ? merchandise.getUnit() : "N/A", unitWidth, false),
-            buildTransportCell(displayTransportMethod(item.getDeliveryMethod()), transportWidth)
+            buildTransportCell(displayTransportMethod(item.getDeliveryMethod()), transportWidth),
+            tableCell(desiredDateText, desiredDateWidth, false),
+            statusLabel
         );
         return row;
     }

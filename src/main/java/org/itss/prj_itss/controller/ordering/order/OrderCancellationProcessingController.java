@@ -24,8 +24,8 @@ public final class OrderCancellationProcessingController {
         return session.buildViewModel();
     }
 
-    public void handleSuggestAllocation() {
-        session.handleSuggestAllocation();
+    public void handleSuggestAllocation(int optionId) {
+        session.handleSuggestAllocation(optionId);
     }
 
     public AllocationChangeResultView handleAllocationInputChanged(AllocationChangeCommand command) {

@@ -7,6 +7,7 @@ import org.itss.prj_itss.model.request.application.processing.ProcessingPreviewO
 import org.itss.prj_itss.model.request.application.processing.ProcessingSiteView;
 import org.itss.prj_itss.model.request.domain.allocation.AllocationControl;
 import org.itss.prj_itss.model.request.domain.allocation.model.Allocation;
+import org.itss.prj_itss.model.request.domain.allocation.model.AllocationDraft;
 import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
 import org.itss.prj_itss.model.shared.formatting.DeliveryStatusFormatter;
@@ -164,8 +165,15 @@ public final class CancelledOrderProcessingSession {
         );
     }
 
-    public void handleSuggestAllocation() {
-        allocationControl.applyOptimalAllocation();
+    public void handleSuggestAllocation(int optionId) {
+        OrderCancellationSuggester suggester = new OrderCancellationSuggester();
+        Map<Integer, Map<Integer, AllocationDraft>> drafts = suggester.suggest(
+            optionId,
+            items,
+            allSites,
+            excludedSiteIds
+        );
+        new org.itss.prj_itss.model.request.domain.allocation.algo.ApplyPlan(items, allocations).apply(drafts);
     }
 
     public AllocationChangeResultView handleAllocationInputChanged(AllocationChangeCommand command) {

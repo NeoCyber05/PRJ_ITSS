@@ -95,13 +95,14 @@ public final class RequestDetailApplicationService {
 
     private AllocatedOrderRow toOrderRow(Order order) {
         Site site = siteService.findById(order.getSiteId());
-        String deliveryMethod = resolvePrimaryDeliveryMethod(orderService.findItemsByOrderId(order.getId()));
+        List<OrderMerchandise> items = orderService.findItemsByOrderId(order.getId());
+        String itemCountText = OrderingFormatters.formatItemTypes(items.size());
         String statusKey = OrderingFormatters.normalizeStatusKey(order.getStatus());
         return new AllocatedOrderRow(
             order.getId(),
             OrderingFormatters.formatOrderCode(order.getId()),
             site != null ? site.getName() : "N/A",
-            OrderingFormatters.deliveryMethodText(deliveryMethod),
+            itemCountText,
             OrderingFormatters.formatDateOrEmpty(order.getCreatedAt()),
             order.getStatus(),
             OrderingFormatters.orderStatusText(order.getStatus()),

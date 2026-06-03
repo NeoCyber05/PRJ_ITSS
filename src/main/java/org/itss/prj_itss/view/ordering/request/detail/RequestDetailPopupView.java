@@ -126,7 +126,9 @@ public final class RequestDetailPopupView implements ViewLifecycle {
 
     private void showOrderDetail(int orderId) {
         OrderDetailView orderDetailView = new OrderDetailView();
-        orderDetailView.init(navigator, orderDetailController, orderManagementController, String.valueOf(orderId));
+        orderDetailView.init(navigator, orderDetailController, orderManagementController, String.valueOf(orderId), () -> {
+            hideOrderDetail();
+        });
         orderDetailContainer.getChildren().setAll(orderDetailView.getView());
 
         requestCard.setVisible(false);
