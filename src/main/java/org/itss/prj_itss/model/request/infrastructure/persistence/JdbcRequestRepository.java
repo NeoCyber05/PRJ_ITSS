@@ -28,7 +28,7 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
             while (rs.next())
                 list.add(mapRequest(rs));
         } catch (SQLException e) {
-            System.err.println("RequestRepository.findAll: " + e.getMessage());
+            System.err.println("JdbcRequestRepository.findAll: " + e.getMessage());
         }
         return list;
     }
@@ -43,7 +43,7 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
                     return mapRequest(rs);
             }
         } catch (SQLException e) {
-            System.err.println("RequestRepository.findById: " + e.getMessage());
+            System.err.println("JdbcRequestRepository.findById: " + e.getMessage());
         }
         return null;
     }
@@ -68,7 +68,7 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
                 }
             }
         } catch (SQLException e) {
-            System.err.println("RequestRepository.findItemsByRequestId: " + e.getMessage());
+            System.err.println("JdbcRequestRepository.findItemsByRequestId: " + e.getMessage());
         }
         return list;
     }
@@ -83,7 +83,7 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
                     return rs.getInt(1);
             }
         } catch (SQLException e) {
-            System.err.println("RequestRepository.countItemTypes: " + e.getMessage());
+            System.err.println("JdbcRequestRepository.countItemTypes: " + e.getMessage());
         }
         return 0;
     }
@@ -101,7 +101,7 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
                 }
             }
         } catch (SQLException e) {
-            System.err.println("RequestRepository.getEarliestDeliveryDate: " + e.getMessage());
+            System.err.println("JdbcRequestRepository.getEarliestDeliveryDate: " + e.getMessage());
         }
         return null;
     }
@@ -114,7 +114,7 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
             ps.setInt(2, requestId);
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
-            System.err.println("RequestRepository.updateStatus: " + e.getMessage());
+            System.err.println("JdbcRequestRepository.updateStatus: " + e.getMessage());
         }
         return false;
     }
@@ -239,7 +239,7 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
                 conn.commit();
                 return affected > 0;
             } catch (SQLException e) {
-                System.err.println("RequestRepository.deleteById: " + e.getMessage());
+                System.err.println("JdbcRequestRepository.deleteById: " + e.getMessage());
                 try {
                     conn.rollback();
                 } catch (SQLException ex) {
@@ -252,7 +252,7 @@ public class JdbcRequestRepository extends JdbcRepositorySupport implements Requ
                     /* ignore */ }
             }
         } catch (SQLException e) {
-            System.err.println("RequestRepository.deleteById (connection): " + e.getMessage());
+            System.err.println("JdbcRequestRepository.deleteById (connection): " + e.getMessage());
             return false;
         }
     }
