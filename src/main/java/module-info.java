@@ -33,6 +33,7 @@ module org.itss.prj_itss {
     opens org.itss.prj_itss.view.sales.request.shared to javafx.fxml;
     opens org.itss.prj_itss.view.warehouse to javafx.fxml;
     opens org.itss.prj_itss.view.admin.account to javafx.fxml;
+    opens org.itss.prj_itss.view.site.workspace to javafx.fxml;
 
     exports org.itss.prj_itss;
     exports org.itss.prj_itss.bootstrap;

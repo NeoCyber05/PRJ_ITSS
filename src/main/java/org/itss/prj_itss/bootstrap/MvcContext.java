@@ -37,6 +37,7 @@ import org.itss.prj_itss.view.ordering.request.process.layout.RequestProcessingL
 import org.itss.prj_itss.view.ordering.site.SiteManagementView;
 import org.itss.prj_itss.view.sales.request.list.SalesRequestListView;
 import org.itss.prj_itss.view.sales.request.update.SalesRequestEditDialog;
+import org.itss.prj_itss.view.site.workspace.SiteWorkspaceView;
 import org.itss.prj_itss.view.warehouse.ConfirmOrderArrivalView;
 
 import java.util.List;
@@ -63,6 +64,9 @@ public final class MvcContext {
         authModule.siteAccountProvisioningPort()
     );
     private final OrderModule orderModule = new OrderModule(connectionProvider, siteModule, catalogModule);
+    {
+        siteModule.initializeSiteOrderRepository(orderModule.siteOrderRepository());
+    }
     private final RequestModule requestModule =
         new RequestModule(connectionProvider, transactionManager, orderModule, siteModule, catalogModule);
     private final WarehouseModule warehouseModule =
@@ -81,7 +85,10 @@ public final class MvcContext {
     private final AuthControllerModule authControllers = new AuthControllerModule(navigator);
     private final HomeControllerModule homeControllers =
         new HomeControllerModule(navigator, dashboardModule, requestModule);
-    private final SiteControllerModule siteControllers = new SiteControllerModule(siteModule);
+    private final org.itss.prj_itss.controller.ordering.site.SiteControllerModule orderingSiteControllers =
+        new org.itss.prj_itss.controller.ordering.site.SiteControllerModule(siteModule);
+    private final org.itss.prj_itss.controller.site.SiteControllerModule siteWorkspaceControllers =
+        new org.itss.prj_itss.controller.site.SiteControllerModule(siteModule, this::currentAuthenticatedUser);
     private final OrderControllerModule orderControllers =
         new OrderControllerModule(orderModule, siteModule, catalogModule);
     private final RequestControllerModule requestControllers =
@@ -102,7 +109,7 @@ public final class MvcContext {
             "site-management",
             "/org/itss/prj_itss/view/ordering/site/site-management-view.fxml",
             (viewId, viewInstance, navigator) ->
-                ((SiteManagementView) viewInstance).init(navigator, siteControllers.siteManagementController())
+                ((SiteManagementView) viewInstance).init(navigator, orderingSiteControllers.siteManagementController())
         ),
         RouteRegistry.fxml(
             "received-requests",
@@ -190,6 +197,15 @@ public final class MvcContext {
                 )
         ),
         RouteRegistry.fxml(
+            "site-workspace",
+            "/org/itss/prj_itss/view/site/workspace/site-workspace-view.fxml",
+            (viewId, viewInstance, navigator) ->
+                ((SiteWorkspaceView) viewInstance).init(
+                    navigator,
+                    siteWorkspaceControllers.siteWorkspaceController()
+                )
+        ),
+        RouteRegistry.fxml(
             "role-workspace",
             "/org/itss/prj_itss/view/auth/role-workspace-view.fxml",
             (viewId, viewInstance, navigator) -> {
@@ -236,8 +252,12 @@ public final class MvcContext {
         return homeControllers;
     }
 
-    public SiteControllerModule siteControllers() {
-        return siteControllers;
+    public org.itss.prj_itss.controller.ordering.site.SiteControllerModule orderingSiteControllers() {
+        return orderingSiteControllers;
+    }
+
+    public org.itss.prj_itss.controller.site.SiteControllerModule siteWorkspaceControllers() {
+        return siteWorkspaceControllers;
     }
 
     public OrderControllerModule orderControllers() {
