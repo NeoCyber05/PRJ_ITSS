@@ -215,6 +215,22 @@ public class JdbcOrderRepository extends JdbcRepositorySupport implements OrderR
         }
         return false;
     }
+
+    @Override
+    public java.util.Map<Integer, Integer> countItemsGroupedByOrderId() {
+        java.util.Map<Integer, Integer> map = new java.util.HashMap<>();
+        String sql = "SELECT order_id, COUNT(*) as count FROM order_merchandise GROUP BY order_id";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                map.put(rs.getInt("order_id"), rs.getInt("count"));
+            }
+        } catch (SQLException e) {
+            System.err.println("OrderRepository.countItemsGroupedByOrderId: " + e.getMessage());
+        }
+        return map;
+    }
+
     private Order mapOrder(ResultSet rs) throws SQLException {
         Order o = new Order();
         o.setId(rs.getInt("id"));
