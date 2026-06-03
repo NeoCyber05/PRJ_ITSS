@@ -57,9 +57,9 @@ public final class RoleWorkspaceContentFactory {
                 "Tổng quan quyền",
                 "Không gian làm việc theo phân quyền của site",
                 "Không gian site",
-                "Tài khoản đã được xác thực đúng role. Module nghiệp vụ riêng cho site chưa được triển khai trong phiên bản này.",
+                "Tài khoản đã được xác thực đúng role. Module nghiệp vụ riêng cho site đã được triển khai trong phiên bản này.",
                 "Quyền chính: cập nhật thông tin site, tồn kho và phản hồi đơn hàng.",
-                "Chưa triển khai",
+                "Đã triển khai",
                 List.of(
                     "Cập nhật thông tin site và thời gian vận chuyển",
                     "Quản lý mặt hàng kinh doanh và tồn kho",

@@ -6,6 +6,7 @@ import org.itss.prj_itss.model.order.application.OrderCancellationApplicationSer
 import org.itss.prj_itss.model.order.application.OrderManagementApplicationService;
 import org.itss.prj_itss.model.order.application.OrderUseCase;
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
+import org.itss.prj_itss.model.order.application.port.SiteOrderRepository;
 import org.itss.prj_itss.model.order.infrastructure.persistence.JdbcOrderRepository;
 import org.itss.prj_itss.model.site.SiteModule;
 
@@ -29,6 +30,10 @@ public final class OrderModule {
 
     public OrderRepository orderRepository() {
         return orderRepository;
+    }
+
+    public SiteOrderRepository siteOrderRepository() {
+        return (SiteOrderRepository) orderRepository;
     }
 
     public OrderUseCase orderUseCase() {

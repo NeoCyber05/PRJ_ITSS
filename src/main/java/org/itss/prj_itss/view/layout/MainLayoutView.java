@@ -71,6 +71,12 @@ public class MainLayoutView implements Navigator {
     private Button accountManagementButton;
 
     @FXML
+    private VBox siteNavContainer;
+
+    @FXML
+    private Button siteWorkspaceButton;
+
+    @FXML
     private void initialize() {
         registerNavButton("home", homeButton);
         registerNavButton("site-management", siteManagementButton);
@@ -78,6 +84,7 @@ public class MainLayoutView implements Navigator {
         registerNavButton("orders", ordersButton);
         registerNavButton("sales-requests", salesRequestsButton);
         registerNavButton("account-management", accountManagementButton);
+        registerNavButton("site-workspace", siteWorkspaceButton);
     }
 
     public void init(
@@ -183,6 +190,10 @@ public class MainLayoutView implements Navigator {
         boolean adminRole = role.isAdminRole();
         adminNavContainer.setVisible(adminRole);
         adminNavContainer.setManaged(adminRole);
+
+        boolean siteRole = role.isSiteRole();
+        siteNavContainer.setVisible(siteRole);
+        siteNavContainer.setManaged(siteRole);
     }
 
     @FXML

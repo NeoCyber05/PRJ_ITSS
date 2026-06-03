@@ -5,12 +5,13 @@ import org.itss.prj_itss.model.shared.database.JdbcRepositorySupport;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
+import org.itss.prj_itss.model.order.application.port.SiteOrderRepository;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JdbcOrderRepository extends JdbcRepositorySupport implements OrderRepository {
+public class JdbcOrderRepository extends JdbcRepositorySupport implements OrderRepository, SiteOrderRepository {
 
     public JdbcOrderRepository(org.itss.prj_itss.model.shared.database.ConnectionProvider connectionProvider) {
         super(connectionProvider);
@@ -124,6 +125,70 @@ public class JdbcOrderRepository extends JdbcRepositorySupport implements OrderR
             return ps.executeUpdate() > 0;
         } catch (SQLException e) {
             System.err.println("OrderRepository.updateStatus: " + e.getMessage());
+        }
+        return false;
+    }
+
+    private static final String FIND_BY_SITE_ID_SQL = """
+        SELECT id, request_id, site_id, created_at, status
+        FROM "order"
+        WHERE site_id = ?
+        ORDER BY id DESC
+        """;
+
+    private static final String FIND_BY_ID_FOR_SITE_SQL = """
+        SELECT id, request_id, site_id, created_at, status
+        FROM "order"
+        WHERE id = ? AND site_id = ?
+        """;
+
+    private static final String UPDATE_STATUS_FOR_SITE_SQL = """
+        UPDATE "order"
+        SET status = ?
+        WHERE id = ? AND site_id = ?
+        """;
+
+    @Override
+    public List<Order> findBySiteId(int siteId) {
+        List<Order> list = new ArrayList<>();
+        try (PreparedStatement ps = getConnection().prepareStatement(FIND_BY_SITE_ID_SQL)) {
+            ps.setInt(1, siteId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapOrder(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SiteOrderRepository.findBySiteId: " + e.getMessage());
+        }
+        return list;
+    }
+
+    @Override
+    public Order findByIdForSite(int orderId, int siteId) {
+        try (PreparedStatement ps = getConnection().prepareStatement(FIND_BY_ID_FOR_SITE_SQL)) {
+            ps.setInt(1, orderId);
+            ps.setInt(2, siteId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapOrder(rs);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SiteOrderRepository.findByIdForSite: " + e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public boolean updateStatusForSite(int orderId, int siteId, String newStatus) {
+        try (PreparedStatement ps = getConnection().prepareStatement(UPDATE_STATUS_FOR_SITE_SQL)) {
+            ps.setString(1, newStatus);
+            ps.setInt(2, orderId);
+            ps.setInt(3, siteId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("SiteOrderRepository.updateStatusForSite: " + e.getMessage());
         }
         return false;
     }

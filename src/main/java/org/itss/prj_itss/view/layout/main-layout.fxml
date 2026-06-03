@@ -74,6 +74,15 @@
                                         styleClass="shell-nav-button"/>
                             </children>
                         </VBox>
+                        <VBox fx:id="siteNavContainer" spacing="10">
+                            <children>
+                                <Button fx:id="siteWorkspaceButton"
+                                        text="Không gian Site"
+                                        alignment="CENTER_LEFT"
+                                        maxWidth="1.7976931348623157E308"
+                                        styleClass="shell-nav-button"/>
+                            </children>
+                        </VBox>
                     </children>
                 </VBox>
 

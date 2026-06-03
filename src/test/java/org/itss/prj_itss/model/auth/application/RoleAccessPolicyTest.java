@@ -40,8 +40,17 @@ class RoleAccessPolicyTest {
     }
 
     @Test
+    void siteRoleUsesSiteWorkspaceOnly() {
+        assertEquals("site-workspace", RoleAccessPolicy.defaultViewId(RoleType.SITE));
+        assertTrue(RoleAccessPolicy.canAccess(RoleType.SITE, "site-workspace"));
+        assertFalse(RoleAccessPolicy.canAccess(RoleType.SITE, "role-workspace"));
+        assertFalse(RoleAccessPolicy.canAccess(RoleType.SITE, "site-management"));
+        assertFalse(RoleAccessPolicy.canAccess(RoleType.SITE, "orders"));
+        assertFalse(RoleAccessPolicy.canAccess(RoleType.SITE, "received-requests"));
+    }
+
+    @Test
     void unknownAndUnsupportedRolesUseRoleWorkspaceOnly() {
-        assertEquals("role-workspace", RoleAccessPolicy.defaultViewId(RoleType.SITE));
         assertEquals("role-workspace", RoleAccessPolicy.defaultViewId(RoleType.UNKNOWN));
         assertTrue(RoleAccessPolicy.canAccess(RoleType.UNKNOWN, "role-workspace"));
         assertFalse(RoleAccessPolicy.canAccess(RoleType.UNKNOWN, "home"));
