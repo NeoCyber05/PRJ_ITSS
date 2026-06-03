@@ -3,7 +3,7 @@ package org.itss.prj_itss.model.warehouse.application;
 import org.itss.prj_itss.model.auth.domain.AuthenticatedUser;
 import org.itss.prj_itss.model.shared.database.TransactionException;
 import org.itss.prj_itss.model.shared.database.TransactionRunner;
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.site.domain.Site;
@@ -12,7 +12,7 @@ import org.itss.prj_itss.model.warehouse.domain.WarehouseReceiptItem;
 import org.itss.prj_itss.model.warehouse.domain.InspectionResult;
 import org.itss.prj_itss.model.order.domain.OrderStatus;
 import org.itss.prj_itss.model.warehouse.application.port.WarehouseReceiptRepository;
-import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
+import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
 import org.itss.prj_itss.model.order.application.OrderUseCase;
 import org.itss.prj_itss.model.site.application.SiteUseCase;
 
@@ -29,7 +29,7 @@ public final class WarehouseReceivingUseCase {
 
     private final OrderUseCase orderService;
     private final SiteUseCase siteService;
-    private final CatalogUseCase merchandiseService;
+    private final MerchandiseUseCase merchandiseService;
     private final WarehouseReceiptRepository warehouseReceiptRepository;
     private final TransactionRunner warehouseTransactionRunner;
     private final Supplier<AuthenticatedUser> authenticatedUserSupplier;
@@ -37,7 +37,7 @@ public final class WarehouseReceivingUseCase {
     public WarehouseReceivingUseCase(
         OrderUseCase orderService,
         SiteUseCase siteService,
-        CatalogUseCase merchandiseService,
+        MerchandiseUseCase merchandiseService,
         WarehouseReceiptRepository warehouseReceiptRepository,
         TransactionRunner warehouseTransactionRunner,
         Supplier<AuthenticatedUser> authenticatedUserSupplier

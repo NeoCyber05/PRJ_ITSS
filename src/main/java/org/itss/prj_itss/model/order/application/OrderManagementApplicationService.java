@@ -1,12 +1,12 @@
 package org.itss.prj_itss.model.order.application;
 
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.site.domain.Site;
 import org.itss.prj_itss.model.order.application.OrderRow;
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
-import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
+import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
 import org.itss.prj_itss.model.order.application.OrderUseCase;
 import org.itss.prj_itss.model.site.application.SiteUseCase;
 
@@ -18,12 +18,12 @@ public final class OrderManagementApplicationService {
 
     private final OrderUseCase orderService;
     private final SiteUseCase siteService;
-    private final CatalogUseCase merchandiseService;
+    private final MerchandiseUseCase merchandiseService;
 
     public OrderManagementApplicationService(
         OrderUseCase orderService,
         SiteUseCase siteService,
-        CatalogUseCase merchandiseService
+        MerchandiseUseCase merchandiseService
     ) {
         this.orderService = Objects.requireNonNull(orderService, "orderService");
         this.siteService = Objects.requireNonNull(siteService, "siteService");

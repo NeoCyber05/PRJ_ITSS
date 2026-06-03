@@ -2,7 +2,7 @@ package org.itss.prj_itss.model.request;
 
 import org.itss.prj_itss.model.shared.database.ConnectionProvider;
 import org.itss.prj_itss.model.shared.database.TransactionRunner;
-import org.itss.prj_itss.model.catalog.CatalogModule;
+import org.itss.prj_itss.model.merchandise.MerchandiseModule;
 import org.itss.prj_itss.model.order.OrderModule;
 import org.itss.prj_itss.model.dashboard.application.port.DashboardRequestPort;
 import org.itss.prj_itss.model.request.application.listing.ReceivedRequestsApplicationService;
@@ -32,7 +32,7 @@ public final class RequestModule {
         TransactionRunner transactionRunner,
         OrderModule orderModule,
         SiteModule siteModule,
-        CatalogModule catalogModule
+        MerchandiseModule merchandiseModule
     ) {
         this.jdbcRequestRepository = new JdbcRequestRepository(connectionProvider);
         this.requestProcessingUseCase = new RequestProcessingUseCase(
@@ -41,7 +41,7 @@ public final class RequestModule {
                 orderModule.orderRepository(),
                 siteModule.siteRepository(),
                 siteModule.inventoryRepository(),
-                catalogModule.merchandiseRepository(),
+                merchandiseModule.merchandiseRepository(),
                 transactionRunner
             ),
             new DefaultAllocationValidator(),
@@ -52,7 +52,7 @@ public final class RequestModule {
         this.receivedRequestDetailApplicationService = new ReceivedRequestDetailApplicationService(
             new JdbcReceivedRequestDetailQuery(connectionProvider)
         );
-        this.salesRequestQueryService = new SalesRequestQueryService(jdbcRequestRepository, catalogModule.catalogUseCase());
+        this.salesRequestQueryService = new SalesRequestQueryService(jdbcRequestRepository, merchandiseModule.merchandiseUseCase());
         this.salesRequestCommandService = new SalesRequestCommandService(jdbcRequestRepository);
     }
 

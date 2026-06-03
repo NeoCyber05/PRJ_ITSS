@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx/17"
+      xmlns:fx="http://javafx.com/fxml/1"
+      fx:controller="org.itss.prj_itss.view.warehouse.WarehouseIncomingOrdersView"
+      spacing="18"
+      styleClass="workspace-shell"
+      stylesheets="@/org/itss/prj_itss/view/shared/styles.css">
+    <padding>
+        <Insets top="24" right="24" bottom="24" left="24"/>
+    </padding>
+
+    <children>
+        <HBox spacing="12" alignment="CENTER_LEFT">
+            <Label text="Đơn giao tới kho" styleClass="section-title"/>
+            <HBox HBox.hgrow="ALWAYS"/>
+            <TextField fx:id="searchField" promptText="Tìm kiếm..." prefWidth="280"/>
+        </HBox>
+
+        <Label fx:id="listInfoLabel" text=""/>
+        <Label fx:id="messageLabel" text="" managed="false" visible="false"/>
+
+        <TableView fx:id="orderTable" VBox.vgrow="ALWAYS">
+            <columns>
+                <TableColumn fx:id="orderCodeColumn" text="Mã đơn hàng" prefWidth="120"/>
+                <TableColumn fx:id="requestCodeColumn" text="Mã yêu cầu" prefWidth="120"/>
+                <TableColumn fx:id="siteCodeColumn" text="Mã site" prefWidth="100"/>
+                <TableColumn fx:id="siteNameColumn" text="Tên site" prefWidth="180"/>
+                <TableColumn fx:id="createdAtColumn" text="Ngày tạo" prefWidth="100"/>
+                <TableColumn fx:id="statusColumn" text="Trạng thái" prefWidth="120"/>
+                <TableColumn fx:id="actionColumn" text="Hành động" prefWidth="200"/>
+            </columns>
+        </TableView>
+    </children>
+</VBox>

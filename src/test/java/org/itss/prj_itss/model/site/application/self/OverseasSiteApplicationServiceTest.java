@@ -1,8 +1,8 @@
 package org.itss.prj_itss.model.site.application.self;
 
-import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
-import org.itss.prj_itss.model.catalog.application.port.MerchandiseRepository;
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
+import org.itss.prj_itss.model.merchandise.application.port.MerchandiseRepository;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.order.application.port.SiteOrderRepository;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
@@ -212,7 +212,7 @@ class OverseasSiteApplicationServiceTest {
     ) {
         return new OverseasSiteApplicationService(
             new SiteUseCase(siteRepository, siteRepository),
-            new CatalogUseCase(catalogRepository),
+            new MerchandiseUseCase(catalogRepository),
             siteRepository,
             siteRepository,
             orderRepository
@@ -306,6 +306,13 @@ class OverseasSiteApplicationServiceTest {
         }
 
         @Override
+        public List<Merchandise> findActive() {
+            return merchandise.values().stream()
+                .filter(Merchandise::isActive)
+                .toList();
+        }
+
+        @Override
         public Merchandise findById(int id) {
             return merchandise.get(id);
         }
@@ -321,6 +328,21 @@ class OverseasSiteApplicationServiceTest {
         @Override
         public int countAll() {
             return merchandise.size();
+        }
+
+        @Override
+        public int create(Merchandise m) {
+            return -1;
+        }
+
+        @Override
+        public boolean update(Merchandise m) {
+            return false;
+        }
+
+        @Override
+        public boolean setActive(int merchandiseId, boolean active) {
+            return false;
         }
     }
 

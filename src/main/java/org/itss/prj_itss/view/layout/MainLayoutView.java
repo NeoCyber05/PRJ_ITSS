@@ -62,6 +62,9 @@ public class MainLayoutView implements Navigator {
     private Button salesRequestsButton;
 
     @FXML
+    private Button merchandiseManagementButton;
+
+    @FXML
     private VBox salesNavContainer;
 
     @FXML
@@ -69,6 +72,12 @@ public class MainLayoutView implements Navigator {
 
     @FXML
     private Button accountManagementButton;
+
+    @FXML
+    private VBox warehouseNavContainer;
+
+    @FXML
+    private Button warehouseIncomingOrdersButton;
 
     @FXML
     private VBox siteNavContainer;
@@ -83,7 +92,9 @@ public class MainLayoutView implements Navigator {
         registerNavButton("received-requests", receivedRequestsButton);
         registerNavButton("orders", ordersButton);
         registerNavButton("sales-requests", salesRequestsButton);
+        registerNavButton("merchandise-management", merchandiseManagementButton);
         registerNavButton("account-management", accountManagementButton);
+        registerNavButton("warehouse-inbound-orders", warehouseIncomingOrdersButton);
         registerNavButton("site-workspace", siteWorkspaceButton);
     }
 
@@ -190,6 +201,10 @@ public class MainLayoutView implements Navigator {
         boolean adminRole = role.isAdminRole();
         adminNavContainer.setVisible(adminRole);
         adminNavContainer.setManaged(adminRole);
+
+        boolean warehouseRole = role.isWarehouseRole();
+        warehouseNavContainer.setVisible(warehouseRole);
+        warehouseNavContainer.setManaged(warehouseRole);
 
         boolean siteRole = role.isSiteRole();
         siteNavContainer.setVisible(siteRole);

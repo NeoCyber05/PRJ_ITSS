@@ -29,12 +29,14 @@ class RoleAccessPolicyTest {
         assertTrue(RoleAccessPolicy.canAccess(RoleType.SALES, "sales-request-create"));
         assertTrue(RoleAccessPolicy.canAccess(RoleType.SALES, "sales-request-update:9"));
         assertTrue(RoleAccessPolicy.canAccess(RoleType.SALES, "sales-request-detail:9"));
+        assertTrue(RoleAccessPolicy.canAccess(RoleType.SALES, "merchandise-management"));
         assertFalse(RoleAccessPolicy.canAccess(RoleType.SALES, "orders"));
     }
 
     @Test
     void warehouseRoleOnlyGetsWarehouseArrivalView() {
-        assertEquals("warehouse-order-confirm-arrival", RoleAccessPolicy.defaultViewId(RoleType.WAREHOUSE));
+        assertEquals("warehouse-inbound-orders", RoleAccessPolicy.defaultViewId(RoleType.WAREHOUSE));
+        assertTrue(RoleAccessPolicy.canAccess(RoleType.WAREHOUSE, "warehouse-inbound-orders"));
         assertTrue(RoleAccessPolicy.canAccess(RoleType.WAREHOUSE, "warehouse-order-confirm-arrival"));
         assertFalse(RoleAccessPolicy.canAccess(RoleType.WAREHOUSE, "home"));
     }

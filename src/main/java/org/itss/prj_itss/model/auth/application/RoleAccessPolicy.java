@@ -31,13 +31,14 @@ public final class RoleAccessPolicy {
         if (roleType.isSalesRole()) {
             return switch (normalizedViewId) {
                 case "sales-requests", "sales-request-create",
-                    "sales-request-update", "sales-request-detail" -> true;
+                    "sales-request-update", "sales-request-detail",
+                    "merchandise-management" -> true;
                 default -> false;
             };
         }
         if (roleType.isWarehouseRole()) {
             return switch (normalizedViewId) {
-                case "warehouse-order-confirm-arrival" -> true;
+                case "warehouse-inbound-orders", "warehouse-order-confirm-arrival" -> true;
                 default -> false;
             };
         }
@@ -65,7 +66,7 @@ public final class RoleAccessPolicy {
             return "sales-requests";
         }
         if (roleType.isWarehouseRole()) {
-            return "warehouse-order-confirm-arrival";
+            return "warehouse-inbound-orders";
         }
         if (roleType.isSiteRole()) {
             return "site-workspace";

@@ -1,8 +1,8 @@
 package org.itss.prj_itss.model.site.application;
 
-import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
-import org.itss.prj_itss.model.catalog.application.port.MerchandiseRepository;
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
+import org.itss.prj_itss.model.merchandise.application.port.MerchandiseRepository;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.shared.database.TransactionRunner;
 import org.itss.prj_itss.model.site.application.port.InventoryRepository;
 import org.itss.prj_itss.model.site.application.port.SiteAccountProvisioningPort;
@@ -125,11 +125,11 @@ class SiteManagementApplicationServiceTest {
             FakeSiteCommandRepository siteRepository,
             SiteAccountProvisioningPort accountPort) {
         SiteUseCase siteUseCase = new SiteUseCase(siteRepository, siteRepository);
-        CatalogUseCase catalogUseCase = new CatalogUseCase(stubMerchandiseRepo());
+        MerchandiseUseCase MerchandiseUseCase = new MerchandiseUseCase(stubMerchandiseRepo());
         TransactionRunner transactionRunner = callback -> callback.execute();
         return new SiteManagementApplicationService(
             siteUseCase,
-            catalogUseCase,
+            MerchandiseUseCase,
             siteRepository,
             accountPort,
             transactionRunner
@@ -139,9 +139,13 @@ class SiteManagementApplicationServiceTest {
     private MerchandiseRepository stubMerchandiseRepo() {
         return new MerchandiseRepository() {
             @Override public List<Merchandise> findAll() { return List.of(); }
+            @Override public List<Merchandise> findActive() { return List.of(); }
             @Override public Merchandise findById(int id) { return null; }
             @Override public Merchandise findByCode(String code) { return null; }
             @Override public int countAll() { return 0; }
+            @Override public int create(Merchandise merchandise) { return -1; }
+            @Override public boolean update(Merchandise merchandise) { return false; }
+            @Override public boolean setActive(int merchandiseId, boolean active) { return false; }
         };
     }
 

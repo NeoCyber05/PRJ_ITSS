@@ -6,7 +6,7 @@ import org.itss.prj_itss.model.shared.database.TransactionRunner;
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 import org.itss.prj_itss.model.site.application.port.SiteAccountProvisioningPort;
 import org.itss.prj_itss.model.site.application.port.SiteCommandRepository;
-import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
+import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
 
 import java.util.List;
 import java.util.Objects;
@@ -14,14 +14,14 @@ import java.util.Objects;
 public final class SiteManagementApplicationService {
 
     private final SiteUseCase siteService;
-    private final CatalogUseCase merchandiseService;
+    private final MerchandiseUseCase merchandiseService;
     private final SiteCommandRepository siteCommandRepository;
     private final SiteAccountProvisioningPort siteAccountProvisioningPort;
     private final TransactionRunner transactionRunner;
 
     public SiteManagementApplicationService(
             SiteUseCase siteService,
-            CatalogUseCase merchandiseService,
+            MerchandiseUseCase merchandiseService,
             SiteCommandRepository siteCommandRepository,
             SiteAccountProvisioningPort siteAccountProvisioningPort,
             TransactionRunner transactionRunner) {

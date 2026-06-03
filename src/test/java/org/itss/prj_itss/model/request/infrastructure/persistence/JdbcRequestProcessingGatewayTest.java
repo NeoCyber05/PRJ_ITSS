@@ -2,7 +2,7 @@ package org.itss.prj_itss.model.request.infrastructure.persistence;
 
 import org.itss.prj_itss.model.shared.database.TransactionException;
 import org.itss.prj_itss.model.shared.database.TransactionRunner;
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
@@ -13,7 +13,7 @@ import org.itss.prj_itss.model.request.domain.delivery.DeliveryMethod;
 import org.itss.prj_itss.model.request.domain.processing.RequestProcessingData;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingGatewayException;
 import org.itss.prj_itss.model.site.application.port.InventoryRepository;
-import org.itss.prj_itss.model.catalog.application.port.MerchandiseRepository;
+import org.itss.prj_itss.model.merchandise.application.port.MerchandiseRepository;
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
 import org.itss.prj_itss.model.request.application.processing.ProcessingRequestPort;
 import org.itss.prj_itss.model.site.application.port.SiteRepository;
@@ -293,6 +293,11 @@ class JdbcRequestProcessingGatewayTest {
         }
 
         @Override
+        public List<Merchandise> findActive() {
+            return List.of();
+        }
+
+        @Override
         public Merchandise findById(int id) {
             return null;
         }
@@ -305,6 +310,21 @@ class JdbcRequestProcessingGatewayTest {
         @Override
         public int countAll() {
             return 0;
+        }
+
+        @Override
+        public int create(Merchandise merchandise) {
+            return -1;
+        }
+
+        @Override
+        public boolean update(Merchandise merchandise) {
+            return false;
+        }
+
+        @Override
+        public boolean setActive(int merchandiseId, boolean active) {
+            return false;
         }
     }
 }

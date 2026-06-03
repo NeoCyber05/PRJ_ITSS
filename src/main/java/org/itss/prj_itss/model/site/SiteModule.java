@@ -2,7 +2,7 @@ package org.itss.prj_itss.model.site;
 
 import org.itss.prj_itss.model.shared.database.ConnectionProvider;
 import org.itss.prj_itss.model.shared.database.TransactionRunner;
-import org.itss.prj_itss.model.catalog.CatalogModule;
+import org.itss.prj_itss.model.merchandise.MerchandiseModule;
 import org.itss.prj_itss.model.order.application.port.SiteOrderRepository;
 import org.itss.prj_itss.model.site.application.SiteManagementApplicationService;
 import org.itss.prj_itss.model.site.application.SiteUseCase;
@@ -17,30 +17,30 @@ public final class SiteModule {
     private final JdbcSiteRepository siteRepository;
     private final SiteUseCase siteUseCase;
     private final SiteManagementApplicationService siteManagementApplicationService;
-    private final CatalogModule catalogModule;
+    private final MerchandiseModule merchandiseModule;
     private OverseasSiteApplicationService overseasSiteApplicationService;
 
     public SiteModule(
             ConnectionProvider connectionProvider,
             TransactionRunner transactionRunner,
-            CatalogModule catalogModule,
+            MerchandiseModule merchandiseModule,
             SiteAccountProvisioningPort siteAccountProvisioningPort) {
         this.siteRepository = new JdbcSiteRepository(connectionProvider);
         this.siteUseCase = new SiteUseCase(siteRepository, siteRepository);
         this.siteManagementApplicationService = new SiteManagementApplicationService(
             siteUseCase,
-            catalogModule.catalogUseCase(),
+            merchandiseModule.merchandiseUseCase(),
             siteRepository,
             siteAccountProvisioningPort,
             transactionRunner
         );
-        this.catalogModule = catalogModule;
+        this.merchandiseModule = merchandiseModule;
     }
 
     public void initializeSiteOrderRepository(SiteOrderRepository siteOrderRepository) {
         this.overseasSiteApplicationService = new OverseasSiteApplicationService(
             siteUseCase,
-            catalogModule.catalogUseCase(),
+            merchandiseModule.merchandiseUseCase(),
             siteRepository,
             siteRepository,
             siteOrderRepository
