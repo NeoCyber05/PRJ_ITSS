@@ -48,12 +48,10 @@ Nội dung cần có:
   - vòng lặp allocation rỗng/không rỗng;
   - `site == null`;
   - điều kiện giao hàng không đáp ứng.
-- Bảng test case ánh xạ từng TC sang:
-  - kỹ thuật thiết kế;
-  - dữ liệu vào;
-  - nhánh C1;
-  - kết quả mong đợi;
-  - tên test JUnit.
+- Chia test case thành hai lượt riêng:
+  - lượt 1: test case sinh bằng hộp đen, dựa trên phân vùng tương đương và giá trị biên;
+  - lượt 2: test case bổ sung bằng hộp trắng C1, chỉ dùng sau khi đã rà soát nhánh còn thiếu.
+- Không ghi một test case là "hộp đen + hộp trắng". Nếu test hộp đen đi qua một nhánh C1, chỉ ghi nhận ở phần rà soát độ phủ, không coi là sinh đồng thời bởi hai kỹ thuật.
 - Ghi rõ full name của class test:
 
 ```text
@@ -72,10 +70,12 @@ Yêu cầu:
 
 - Dùng JUnit 5.
 - Dùng `@Test`.
-- Dùng `@DisplayName` nếu muốn hiển thị tên test case rõ hơn.
+- Dùng `@DisplayName` để hiển thị mã test case và mục đích kiểm thử rõ hơn.
+- Đặt tên method theo mẫu `methodName_shouldExpectedBehavior_whenScenario`.
 - Dùng Arrange - Act - Assert.
 - Dùng `assertNull(...)` cho trường hợp hợp lệ.
 - Dùng `assertEquals(...)` cho trường hợp có thông báo lỗi.
+- Thêm message cho assertion để lỗi test dễ đọc hơn.
 - Mỗi test độc lập.
 - Không phụ thuộc DB/JavaFX.
 - Không thêm dependency mới vì không cần parameterized test.

@@ -126,22 +126,35 @@ Các nhánh cần phủ:
 | C1_08 | `site == null` | Đúng và sai |
 | C1_09 | `deliveryDays >= 999 || deliveryDays > itemDeadlineDays` | Đúng và sai |
 
-Một test case có thể phủ nhiều nhánh cùng lúc. Ví dụ, trường hợp phân bổ đúng và giao kịp hạn sẽ phủ nhánh sai của điều kiện thiếu/thừa số lượng, nhánh tìm thấy site và nhánh giao hàng hợp lệ.
+Ở bước này, tôi không thiết kế lại các test case hộp đen. Tôi chỉ dùng mã nguồn để rà soát độ phủ C1 sau khi đã có bộ test hộp đen, rồi bổ sung các test còn thiếu để phủ các nhánh chưa được đi qua. Như vậy hai kỹ thuật được dùng lần lượt, không gộp chung trong cùng một bước thiết kế.
 
 ## 5. Danh sách test case
 
-| Mã TC | Tên test JUnit | Kỹ thuật áp dụng | Dữ liệu kiểm thử | Kết quả mong đợi | Nhánh C1 chính |
+### 5.1. Lượt 1 - Test case sinh bằng kỹ thuật hộp đen
+
+Các test case ở bảng này được sinh từ phân vùng tương đương và giá trị biên của đầu vào/đầu ra. Ở bước này chưa xét cấu trúc nhánh trong code.
+
+| Mã TC | Tên test JUnit | Cơ sở thiết kế hộp đen | Dữ liệu kiểm thử | Kết quả mong đợi |
+|---|---|---|---|---|
+| TC_02 | `validateSubmission_shouldReturnMissingQuantityMessage_whenAllocationBelowRequirement` | Biên dưới của số lượng yêu cầu | Yêu cầu 10, phân bổ 9 | `"Chua du so luong hang can"` |
+| TC_03 | `validateSubmission_shouldReturnExcessQuantityMessage_whenAllocationAboveRequirement` | Biên trên của số lượng yêu cầu | Yêu cầu 10, phân bổ 11 | `"So luong phan bo vuot yeu cau"` |
+| TC_04 | `validateSubmission_shouldReturnNull_whenNoDesiredDateAndDeliveryMeetsDefaultDeadline` | Phân vùng hợp lệ: phân bổ đủ và giao đúng hạn mặc định | Phân bổ đúng, không có `desiredDate`, `deadlineDays = 7`, `shipDays = 5` | `null` |
+| TC_06 | `validateSubmission_shouldReturnNull_whenFutureDesiredDateCanBeMet` | Phân vùng hợp lệ: ngày mong muốn tương lai và giao kịp hạn | `desiredDate` tương lai 5 ngày, `airDays = 3` | `null` |
+| TC_07 | `validateSubmission_shouldReturnDeliveryMessage_whenSiteCannotBeFound` | Phân vùng không hợp lệ: site không tồn tại | Allocation dùng `siteId` không tồn tại | `"Khong dap ung ngay nhan mong muon"` |
+| TC_08 | `validateSubmission_shouldReturnDeliveryMessage_whenTransportIsUnsupported` | Phân vùng không hợp lệ: phương thức vận chuyển không hỗ trợ | Phương thức vận chuyển không hỗ trợ, `shipDays = 999` | `"Khong dap ung ngay nhan mong muon"` |
+| TC_09 | `validateSubmission_shouldReturnDeliveryMessage_whenDeliveryExceedsDesiredDeadline` | Phân vùng không hợp lệ: giao trễ hạn | `shipDays = 5`, deadline item là 3 ngày | `"Khong dap ung ngay nhan mong muon"` |
+
+### 5.2. Lượt 2 - Test case bổ sung bằng kỹ thuật hộp trắng C1
+
+Sau khi có bộ test hộp đen, tôi đọc cấu trúc điều kiện trong `validateSubmission(...)` và kiểm tra các nhánh C1 còn thiếu. Các test dưới đây được bổ sung riêng cho mục tiêu phủ nhánh, không phải test sinh từ hộp đen.
+
+| Mã TC | Tên test JUnit | Lý do bổ sung theo C1 | Dữ liệu kiểm thử | Kết quả mong đợi | Nhánh C1 chính |
 |---|---|---|---|---|---|
-| TC_01 | `testEmptyItems` | Hộp trắng | `items` rỗng | `null` | C1_01 không chạy, C1_04 không chạy |
-| TC_02 | `testMissingQuantity` | Hộp đen + hộp trắng | Yêu cầu 10, phân bổ 9 | `"Chua du so luong hang can"` | C1_02 đúng |
-| TC_03 | `testExcessQuantity` | Hộp đen + hộp trắng | Yêu cầu 10, phân bổ 11 | `"So luong phan bo vuot yeu cau"` | C1_02 sai, C1_03 đúng |
-| TC_04 | `testNoDesiredDateDeliverySuccess` | Hộp đen + hộp trắng | Phân bổ đúng, không có `desiredDate`, `deadlineDays = 7`, `shipDays = 5` | `null` | C1_05 đúng, C1_09 sai |
-| TC_05 | `testDesiredDateInPast` | Hộp trắng | `desiredDate` quá khứ, deadline bị chặn về 1, `airDays = 1` | `null` | C1_05 sai, C1_06 nhánh quá khứ |
-| TC_06 | `testDesiredDateInFutureSuccess` | Hộp đen + hộp trắng | `desiredDate` tương lai 5 ngày, `airDays = 3` | `null` | C1_06 nhánh tương lai |
-| TC_07 | `testSiteNotFound` | Hộp đen + hộp trắng | Allocation dùng `siteId` không tồn tại | `"Khong dap ung ngay nhan mong muon"` | C1_08 đúng |
-| TC_08 | `testDeliveryUnsupportedMethod` | Hộp đen + hộp trắng | Phương thức vận chuyển không hỗ trợ, `shipDays = 999` | `"Khong dap ung ngay nhan mong muon"` | C1_09 đúng do `deliveryDays >= 999` |
-| TC_09 | `testDeliveryLateThanDeadline` | Hộp đen + hộp trắng | `shipDays = 5`, deadline item là 3 ngày | `"Khong dap ung ngay nhan mong muon"` | C1_09 đúng do `deliveryDays > itemDeadlineDays` |
-| TC_10 | `testNoAllocationsForRequirement` | Hộp trắng | Item yêu cầu 0, không có allocation | `null` | C1_07 không chạy |
+| TC_01 | `validateSubmission_shouldReturnNull_whenItemsAreEmpty` | Hộp trắng | `items` rỗng | `null` | C1_01 không chạy, C1_04 không chạy |
+| TC_05 | `validateSubmission_shouldReturnNull_whenPastDesiredDateFallsBackToOneDayDeadline` | Hộp trắng | `desiredDate` quá khứ, deadline bị chặn về 1, `airDays = 1` | `null` | C1_05 sai, C1_06 nhánh quá khứ |
+| TC_10 | `validateSubmission_shouldReturnNull_whenZeroRequirementHasNoAllocations` | Hộp trắng | Item yêu cầu 0, không có allocation | `null` | C1_07 không chạy |
+
+Các nhánh C1 còn lại đã được đi qua bởi các test hộp đen ở lượt 1. Ở lượt 2, tôi chỉ ghi nhận độ phủ của chúng khi rà soát, không xem các test đó là được sinh đồng thời bởi hai kỹ thuật.
 
 ## 6. Cài đặt kiểm thử tự động bằng JUnit
 
@@ -161,16 +174,19 @@ Cách cài đặt:
 
 - Dùng JUnit 5.
 - Dùng `@Test` cho từng test case.
+- Dùng `@DisplayName` để hiển thị mã test case và mục đích kiểm thử.
+- Đặt tên method theo mẫu `methodName_shouldExpectedBehavior_whenScenario`.
 - Dùng Arrange - Act - Assert.
 - Dùng `assertNull(...)` cho trường hợp hợp lệ.
 - Dùng `assertEquals(...)` cho trường hợp trả về thông báo lỗi.
+- Thêm message cho assertion để khi test fail có thể hiểu lỗi nhanh hơn.
 - Mỗi test case tự chuẩn bị dữ liệu riêng, không phụ thuộc database hoặc JavaFX.
 
 Không cần thêm dependency mới vì các test case hiện tại không cần parameterized test.
 
 ## 7. Kết quả thực thi kiểm thử
 
-Thời gian chạy: 2026-06-03
+Thời gian chạy: 2026-06-03T19:39:12+07:00
 
 Lệnh sử dụng:
 
@@ -189,16 +205,16 @@ Bảng kết quả chi tiết từng test case:
 
 | Mã TC | Tên test JUnit | Kết quả thực tế | Ghi chú |
 |---|---|---|---|
-| TC_01 | `testEmptyItems` | **PASS** | Trả về `null` như mong đợi |
-| TC_02 | `testMissingQuantity` | **PASS** | Trả về `"Chua du so luong hang can"` như mong đợi |
-| TC_03 | `testExcessQuantity` | **PASS** | Trả về `"So luong phan bo vuot yeu cau"` như mong đợi |
-| TC_04 | `testNoDesiredDateDeliverySuccess` | **PASS** | Trả về `null` như mong đợi |
-| TC_05 | `testDesiredDateInPast` | **PASS** | Trả về `null` như mong đợi |
-| TC_06 | `testDesiredDateInFutureSuccess` | **PASS** | Trả về `null` như mong đợi |
-| TC_07 | `testSiteNotFound` | **PASS** | Trả về `"Khong dap ung ngay nhan mong muon"` như mong đợi |
-| TC_08 | `testDeliveryUnsupportedMethod` | **PASS** | Trả về `"Khong dap ung ngay nhan mong muon"` như mong đợi |
-| TC_09 | `testDeliveryLateThanDeadline` | **PASS** | Trả về `"Khong dap ung ngay nhan mong muon"` như mong đợi |
-| TC_10 | `testNoAllocationsForRequirement` | **PASS** | Trả về `null` như mong đợi |
+| TC_01 | `validateSubmission_shouldReturnNull_whenItemsAreEmpty` | **PASS** | Trả về `null` như mong đợi |
+| TC_02 | `validateSubmission_shouldReturnMissingQuantityMessage_whenAllocationBelowRequirement` | **PASS** | Trả về `"Chua du so luong hang can"` như mong đợi |
+| TC_03 | `validateSubmission_shouldReturnExcessQuantityMessage_whenAllocationAboveRequirement` | **PASS** | Trả về `"So luong phan bo vuot yeu cau"` như mong đợi |
+| TC_04 | `validateSubmission_shouldReturnNull_whenNoDesiredDateAndDeliveryMeetsDefaultDeadline` | **PASS** | Trả về `null` như mong đợi |
+| TC_05 | `validateSubmission_shouldReturnNull_whenPastDesiredDateFallsBackToOneDayDeadline` | **PASS** | Trả về `null` như mong đợi |
+| TC_06 | `validateSubmission_shouldReturnNull_whenFutureDesiredDateCanBeMet` | **PASS** | Trả về `null` như mong đợi |
+| TC_07 | `validateSubmission_shouldReturnDeliveryMessage_whenSiteCannotBeFound` | **PASS** | Trả về `"Khong dap ung ngay nhan mong muon"` như mong đợi |
+| TC_08 | `validateSubmission_shouldReturnDeliveryMessage_whenTransportIsUnsupported` | **PASS** | Trả về `"Khong dap ung ngay nhan mong muon"` như mong đợi |
+| TC_09 | `validateSubmission_shouldReturnDeliveryMessage_whenDeliveryExceedsDesiredDeadline` | **PASS** | Trả về `"Khong dap ung ngay nhan mong muon"` như mong đợi |
+| TC_10 | `validateSubmission_shouldReturnNull_whenZeroRequirementHasNoAllocations` | **PASS** | Trả về `null` như mong đợi |
 
 Tất cả 10 test case đều chạy thành công, không có failure hay error. Độ đo C1 được phủ đầy đủ qua các nhánh đã thiết kế.
 
