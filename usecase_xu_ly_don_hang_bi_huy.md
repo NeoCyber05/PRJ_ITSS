@@ -17,8 +17,8 @@ Trong hệ thống, mỗi yêu cầu đặt hàng có thể được phân bổ 
 | Tên use case | Xử lý đơn hàng bị hủy |
 | Tác nhân chính | Bộ phận đặt hàng quốc tế |
 | Mục tiêu | Phân bổ lại các mặt hàng trong đơn hàng bị hủy sang các site khác, sau đó tạo và gửi các đơn hàng mới. |
-| Tiền điều kiện | Người dùng đã đăng nhập thành công và đang ở màn hình chi tiết yêu cầu đặt hàng. Tại yêu cầu này có ít nhất một đơn hàng ở trạng thái `Đã hủy`. |
-| Hậu điều kiện thành công | Một hoặc nhiều đơn hàng mới được tạo với trạng thái `Chờ xác nhận`, hiển thị cho Bộ phận đặt hàng quốc tế và các site tương ứng. |
+| Tiền điều kiện | Người dùng đã đăng nhập thành công và đang ở màn hình chi tiết yêu cầu đặt hàng. Tại yêu cầu này có ít nhất một đơn hàng ở trạng thái `DA_HUY`. |
+| Hậu điều kiện thành công | Một hoặc nhiều đơn hàng mới được tạo với trạng thái `CHO_XAC_NHAN`, hiển thị cho Bộ phận đặt hàng quốc tế và các site tương ứng. |
 | Hậu điều kiện thất bại | Không tạo đơn hàng mới. Dữ liệu phân bổ tạm thời không được lưu hoặc vẫn được giữ trên màn hình tùy ngữ cảnh lỗi. |
 
 ---
@@ -141,7 +141,7 @@ Site hợp lệ được sắp xếp theo thứ tự ưu tiên giảm dần:
 2. Ưu tiên site có tồn kho lớn hơn.
 3. Ưu tiên phương án dùng số lượng site ít nhất có thể.
 
-> Gợi ý thiết kế: nên tách logic này thành một service riêng, ví dụ `AllocationSuggestionService`, để dễ kiểm thử và thay đổi thuật toán.
+> Logic sắp xếp và gợi ý này được tách vào `AllocationControl` (domain) và `DefaultAllocationSuggester` (strategy), tương tự cách `AllocationControl` + `AllocationSuggester` đang được dùng trong luồng xử lý yêu cầu đặt hàng mới.
 
 ---
 
@@ -169,15 +169,10 @@ function goiYPhanBoTuDong(cancelledOrderId):
     for each item in cancelledOrder.items:
         requiredQty = item.quantity
 
-        candidateSites = siteRepository.findCandidateSites(
-            merchandiseCode = item.merchandiseCode,
-            excludedSiteId = cancelledOrder.siteId,
-            desiredDeliveryDate = request.desiredDeliveryDate
-        )
-
-        candidateSites = filter candidateSites where:
-            site.stock[item] > 0
-            and estimatedDeliveryDate(site, selectedDeliveryMethod) <= request.desiredDeliveryDate
+        candidateSites = siteRepository.findAll()
+            .exclude(cancelledOrder.siteId)
+            .filter(site => site.stock[item] > 0)
+            .filter(site => estimatedDeliveryDate(site) <= request.desiredDeliveryDate)
 
         sort candidateSites by:
             deliveryMethodPriority(ship before air),
@@ -187,9 +182,7 @@ function goiYPhanBoTuDong(cancelledOrderId):
         allocations = []
 
         for each site in candidateSites:
-            if allocatedQty == requiredQty:
-                break
-
+            if allocatedQty == requiredQty: break
             qty = min(site.stock[item], requiredQty - allocatedQty)
             allocations.add(site, item, qty, deliveryMethod)
             allocatedQty += qty
@@ -204,7 +197,7 @@ function goiYPhanBoTuDong(cancelledOrderId):
 
 ### 8.3. Lưu ý khi triển khai
 
-Không nên lưu ngay kết quả gợi ý vào database. Kết quả gợi ý nên được giữ ở client state hoặc server-side draft/session cho tới khi người dùng bấm `Tạo các đơn hàng` hoặc `Gửi yêu cầu`.
+Không nên lưu ngay kết quả gợi ý vào database. Kết quả gợi ý nên được giữ trong `CancelledOrderProcessingSession` (tương tự `RequestProcessingSession`) cho tới khi người dùng bấm `Tạo các đơn hàng` hoặc `Gửi yêu cầu`.
 
 ---
 
@@ -281,309 +274,434 @@ Xác nhận lần cuối trước khi gửi các đơn hàng mới tới site.
 
 ---
 
-## 10. Thiết kế subsystem
+## 10. Thiết kế kiến trúc module
 
-### 10.1. Thông tin subsystem
+Module này tuân theo **Clean Architecture** phân lớp rõ ràng, nhất quán với các module `order` và `request` đang có trong dự án:
 
-| Mục | Nội dung |
-|---|---|
-| Tên subsystem | `PhanBoDonHangBiHuySubsystem` |
-| Interface | `IPhanBoDonHangBiHuy` |
-| Client sử dụng | `Ctrl_ChiTietYeuCau` |
+```
+model/order/                         ← module đơn hàng hiện tại (tái sử dụng)
+│
+model/cancelledorder/                ← module mới cho UC-DHQT-02
+├── CancelledOrderModule.java        ← wiring thủ công (manual DI), tương tự OrderModule
+│
+├── domain/
+│   ├── CancelledOrderAllocationControl.java   ← domain logic: lọc site, validate, gợi ý
+│   ├── AllocationLine.java                    ← value object: (siteId, merchandiseId, qty, deliveryMethod)
+│   └── CancelledOrderAllocationState.java     ← enum: NONE, PARTIAL, COMPLETE, OVER
+│
+├── application/
+│   ├── CancelledOrderProcessingUseCase.java   ← điều phối use case, tương tự RequestProcessingUseCase
+│   ├── CancelledOrderProcessingSession.java   ← trạng thái phiên làm việc, tương tự RequestProcessingSession
+│   ├── CancelledOrderProcessingViewModel.java ← dữ liệu render cho View
+│   ├── CancelledOrderPreviewBuilder.java      ← build preview orders, tương tự RequestProcessingPreviewBuilder
+│   └── port/
+│       └── CancelledOrderProcessingGateway.java  ← interface: load data + submit orders
+│
+├── infrastructure/
+│   └── persistence/
+│       └── JdbcCancelledOrderProcessingGateway.java  ← implements gateway, thực thi SQL + transaction
+│
+└── (không có controller trong model — controller nằm ở tầng controller/)
 
-### 10.2. Các hành vi chính
-
-```java
-public interface IPhanBoDonHangBiHuy {
-    PhanBoKhoiTaoDTO khoiTaoPhanBoDonHang(Long cancelledOrderId);
-
-    PhuongAnPhanBoDTO goiYPhanBoTuDong(Long cancelledOrderId);
-
-    KetQuaTaoDonHangDTO taoDonHangMoi(Long cancelledOrderId, TaoDonHangMoiRequest request);
-
-    GuiDonHangMoiResult guiDonHangMoi(Long requestId, GuiDonHangMoiRequest request);
-}
+controller/ordering/cancelledorder/
+├── CancelledOrderControllerModule.java        ← wiring controller
+└── CancelledOrderProcessingController.java    ← nhận sự kiện UI, gọi Session
 ```
 
 ---
 
-## 11. Gợi ý kiến trúc module
-
-```text
-cancelled-order-allocation/
-├── controller/
-│   └── CancelledOrderAllocationController.java
-├── service/
-│   ├── CancelledOrderAllocationService.java
-│   ├── AllocationSuggestionService.java
-│   ├── OrderCreationService.java
-│   └── OrderSubmissionService.java
-├── repository/
-│   ├── OrderRepository.java
-│   ├── OrderItemRepository.java
-│   ├── SiteRepository.java
-│   ├── SiteStockRepository.java
-│   └── DeliveryInfoRepository.java
-├── dto/
-│   ├── AllocationInitResponse.java
-│   ├── AllocationSuggestionResponse.java
-│   ├── CreateNewOrdersRequest.java
-│   ├── CreateNewOrdersResponse.java
-│   ├── SubmitNewOrdersRequest.java
-│   └── SubmitNewOrdersResponse.java
-├── entity/
-│   ├── PurchaseRequest.java
-│   ├── Order.java
-│   ├── OrderItem.java
-│   ├── Site.java
-│   ├── SiteStock.java
-│   └── DeliveryInfo.java
-└── exception/
-    ├── CancelledOrderNotFoundException.java
-    ├── InvalidAllocationException.java
-    ├── InsufficientStockException.java
-    └── DeliveryDateNotSatisfiedException.java
-```
-
----
-
-## 12. Thiết kế class mức phân tích
+## 11. Thiết kế class mức phân tích
 
 ```mermaid
 classDiagram
-    class Ctrl_ChiTietYeuCau {
-        +xuLyDonHangBiHuy(cancelledOrderId)
+    class CancelledOrderProcessingController {
+        -session: CancelledOrderProcessingSession
+        +start(cancelledOrderId)
+        +handleSuggestAllocation()
+        +handleAllocationInputChanged(command)
+        +handleConfirm() ConfirmResult
+        +handleSubmit()
     }
 
-    class IPhanBoDonHangBiHuy {
+    class CancelledOrderProcessingSession {
+        -useCase: CancelledOrderProcessingUseCase
+        -allocationControl: CancelledOrderAllocationControl
+        -items: List~AllocationLine~
+        -allSites: List~SiteStockOption~
+        -allocations: Map
+        +start(cancelledOrderId)
+        +buildViewModel() CancelledOrderProcessingViewModel
+        +handleSuggestAllocation()
+        +handleAllocationInputChanged(command) AllocationChangeResult
+        +handleConfirm() ConfirmResult
+        +submitAllocatedOrders()
+    }
+
+    class CancelledOrderProcessingUseCase {
+        -gateway: CancelledOrderProcessingGateway
+        -allocationValidator: AllocationValidator
+        -allocationSuggester: AllocationSuggester
+        +loadProcessingData(cancelledOrderId) CancelledOrderProcessingData
+        +validateAllocations(items, allocations) List~String~
+        +buildPreviewOrders(...) List~PreviewOrder~
+        +createAllocatedOrders(cancelledOrderId, allocations)
+    }
+
+    class CancelledOrderProcessingGateway {
         <<interface>>
-        +khoiTaoPhanBoDonHang(cancelledOrderId)
-        +goiYPhanBoTuDong(cancelledOrderId)
-        +taoDonHangMoi(cancelledOrderId, request)
-        +guiDonHangMoi(requestId, request)
+        +loadProcessingData(cancelledOrderId) CancelledOrderProcessingData
+        +createAllocatedOrders(cancelledOrderId, allocations)
     }
 
-    class PhanBoDonHangBiHuySubsystem {
-        +khoiTaoPhanBoDonHang(cancelledOrderId)
-        +goiYPhanBoTuDong(cancelledOrderId)
-        +taoDonHangMoi(cancelledOrderId, request)
-        +guiDonHangMoi(requestId, request)
+    class JdbcCancelledOrderProcessingGateway {
+        -orderRepository: OrderRepository
+        -siteRepository: SiteRepository
+        -inventoryRepository: InventoryRepository
+        -transactionRunner: TransactionRunner
+        +loadProcessingData(cancelledOrderId)
+        +createAllocatedOrders(cancelledOrderId, allocations)
     }
 
-    class DonHang {
-        +id
-        +maDonHang
-        +trangThai
-        +siteId
-        +requestId
+    class CancelledOrderAllocationControl {
+        -items: List~AllocationLine~
+        -allSites: List~SiteStockOption~
+        -excludedSiteIds: Set~Integer~
+        -deadlineDays: int
+        -allocationSuggester: AllocationSuggester
+        +applyOptimalAllocation()
+        +applyAllocationChange(request) AllocationChangeResult
+        +allocationSummary(item) ItemAllocationSummary
+        +siteRowState(item, site) AllocationSiteRowState
     }
 
-    class MatHangDonHang {
-        +merchandiseCode
-        +quantity
-        +unit
+    class Order {
+        +id: int
+        +requestId: int
+        +siteId: int
+        +status: String
+        +createdAt: LocalDateTime
+    }
+
+    class OrderMerchandise {
+        +orderId: int
+        +merchandiseId: int
+        +quantity: BigDecimal
+        +deliveryMethod: String
     }
 
     class Site {
-        +id
-        +siteCode
-        +siteName
+        +id: int
+        +siteCode: String
+        +name: String
+        +shipDeliveryDays: Integer
+        +airDeliveryDays: Integer
     }
 
-    class TonKhoSite {
-        +siteId
-        +merchandiseCode
-        +inStockQuantity
-        +unit
+    class SiteInventory {
+        +siteId: int
+        +merchandiseId: int
+        +stockQuantity: int
     }
 
-    class ThongTinVanChuyen {
-        +siteId
-        +shipDeliveryDays
-        +airDeliveryDays
-    }
-
-    class PhuongAnPhanBo {
-        +cancelledOrderId
-        +items
-        +isValid()
-    }
-
-    class DongPhanBo {
-        +siteId
-        +merchandiseCode
-        +quantity
-        +deliveryMeans
-        +estimatedDeliveryDate
-    }
-
-    Ctrl_ChiTietYeuCau --> IPhanBoDonHangBiHuy
-    IPhanBoDonHangBiHuy <|.. PhanBoDonHangBiHuySubsystem
-    PhanBoDonHangBiHuySubsystem --> DonHang
-    PhanBoDonHangBiHuySubsystem --> Site
-    PhanBoDonHangBiHuySubsystem --> TonKhoSite
-    PhanBoDonHangBiHuySubsystem --> ThongTinVanChuyen
-    DonHang "1" --> "many" MatHangDonHang
-    PhuongAnPhanBo "1" --> "many" DongPhanBo
+    CancelledOrderProcessingController --> CancelledOrderProcessingSession
+    CancelledOrderProcessingSession --> CancelledOrderProcessingUseCase
+    CancelledOrderProcessingSession --> CancelledOrderAllocationControl
+    CancelledOrderProcessingUseCase --> CancelledOrderProcessingGateway
+    CancelledOrderProcessingGateway <|.. JdbcCancelledOrderProcessingGateway
+    JdbcCancelledOrderProcessingGateway --> Order
+    JdbcCancelledOrderProcessingGateway --> OrderMerchandise
+    JdbcCancelledOrderProcessingGateway --> Site
+    JdbcCancelledOrderProcessingGateway --> SiteInventory
+    Order "1" --> "many" OrderMerchandise
 ```
 
 ---
 
-## 13. Trạng thái đơn hàng
-
-Gợi ý state machine:
+## 12. Trạng thái đơn hàng
 
 ```mermaid
 stateDiagram-v2
-    [*] --> ChoXacNhan
-    ChoXacNhan --> DaXacNhan
-    ChoXacNhan --> DaHuy
-    DaHuy --> DangXuLyLai
-    DangXuLyLai --> ChoXacNhan: tạo đơn hàng mới
-    DangXuLyLai --> DaHuy: hủy xử lý
-    DaXacNhan --> DangVanChuyen
-    DangVanChuyen --> DaNhapKho
+    [*] --> CHO_XAC_NHAN
+    CHO_XAC_NHAN --> DA_XAC_NHAN
+    CHO_XAC_NHAN --> DA_HUY
+    DA_HUY --> CHO_XAC_NHAN : tạo đơn hàng mới thay thế
+    DA_XAC_NHAN --> DANG_VAN_CHUYEN
+    DANG_VAN_CHUYEN --> DA_NHAP_KHO
 ```
 
-Các trạng thái cần dùng trong module:
+Các trạng thái liên quan đến module này:
 
-| Trạng thái | Ý nghĩa |
-|---|---|
-| `DA_HUY` | Đơn hàng cũ đã bị hủy, cần xử lý lại. |
-| `DANG_XU_LY_LAI` | Người dùng đang phân bổ lại đơn hàng bị hủy. |
-| `CHO_XAC_NHAN` | Đơn hàng mới đã được gửi tới site và chờ site xác nhận. |
+| Trạng thái | Hằng số trong code | Ý nghĩa |
+|---|---|---|
+| `DA_HUY` | `OrderingFormatters.STATUS_CANCELLED` | Đơn hàng cũ đã bị hủy, cần xử lý lại. |
+| `CHO_XAC_NHAN` | `OrderingFormatters.STATUS_PENDING` | Đơn hàng mới đã được gửi tới site, chờ site xác nhận. |
+
+> Sử dụng lại hằng số `OrderingFormatters.STATUS_CANCELLED` và `STATUS_PENDING` từ `model/shared/formatting/OrderingFormatters.java`, nhất quán với `OrderCancellationApplicationService`.
 
 ---
 
-## 14. Gợi ý API thiết kế
+## 13. Sequence diagram
 
-### 14.1. Khởi tạo màn hình phân bổ
+### 13.1. Khởi tạo màn hình phân bổ đơn hàng bị hủy
 
-```http
-GET /api/cancelled-orders/{cancelledOrderId}/allocation/init
+```mermaid
+sequenceDiagram
+    actor User as Bộ phận đặt hàng quốc tế
+    participant Ctrl as CancelledOrderProcessingController
+    participant Session as CancelledOrderProcessingSession
+    participant UseCase as CancelledOrderProcessingUseCase
+    participant Gateway as JdbcCancelledOrderProcessingGateway
+    participant DB as Database
+
+    User->>Ctrl: start(cancelledOrderId)
+    Ctrl->>Session: start(cancelledOrderId)
+    Session->>UseCase: loadProcessingData(cancelledOrderId)
+    UseCase->>Gateway: loadProcessingData(cancelledOrderId)
+    Gateway->>DB: SELECT order, order_merchandise, site, site_inventory
+    DB-->>Gateway: raw data
+    Gateway-->>UseCase: CancelledOrderProcessingData
+    UseCase-->>Session: data (items, allSites, deadlineDays)
+    Session->>Session: rebuildAllocationControl()
+    Session-->>Ctrl: buildViewModel()
+    Ctrl-->>User: hiển thị màn hình phân bổ
 ```
 
-Response:
+### 13.2. Gợi ý phân bổ tự động
 
-```json
-{
-  "requestId": 421,
-  "requestCode": "YC-2026-00421",
-  "cancelledOrderId": 1001,
-  "cancelledSiteId": 1,
-  "desiredDeliveryDate": "2026-06-10",
-  "items": [
-    {
-      "merchandiseCode": "A001",
-      "merchandiseName": "Mặt hàng A",
-      "requiredQuantity": 20,
-      "unit": "pcs",
-      "candidateSites": [
-        {
-          "siteId": 2,
-          "siteCode": "ST-002",
-          "siteName": "Site 2",
-          "inStockQuantity": 25,
-          "availableDeliveryMeans": ["SHIP", "AIR"]
-        }
-      ]
-    }
-  ]
+```mermaid
+sequenceDiagram
+    actor User as Bộ phận đặt hàng quốc tế
+    participant Ctrl as CancelledOrderProcessingController
+    participant Session as CancelledOrderProcessingSession
+    participant Control as CancelledOrderAllocationControl
+    participant Suggester as AllocationSuggester
+
+    User->>Ctrl: handleSuggestAllocation()
+    Ctrl->>Session: handleSuggestAllocation()
+    Session->>Control: applyOptimalAllocation()
+    Control->>Suggester: buildOptimalDrafts(items, allSites, excludedSiteIds, deadlineDays)
+    Suggester-->>Control: allocationDrafts
+    Control->>Control: applyPlan(drafts)
+    Control-->>Session: done
+    Session-->>Ctrl: buildViewModel()
+    Ctrl-->>User: cập nhật bảng phân bổ
+```
+
+### 13.3. Tạo và gửi đơn hàng mới
+
+```mermaid
+sequenceDiagram
+    actor User as Bộ phận đặt hàng quốc tế
+    participant Ctrl as CancelledOrderProcessingController
+    participant Session as CancelledOrderProcessingSession
+    participant UseCase as CancelledOrderProcessingUseCase
+    participant Gateway as JdbcCancelledOrderProcessingGateway
+    participant DB as Database
+
+    User->>Ctrl: handleConfirm()
+    Ctrl->>Session: handleConfirm()
+    Session->>UseCase: validateAllocations(items, allocations)
+    UseCase-->>Session: errors (nếu có)
+    alt Hợp lệ
+        Session->>UseCase: buildPreviewOrders(...)
+        UseCase-->>Session: previewOrders
+        Session-->>Ctrl: ConfirmResult.valid(previewOrders)
+        Ctrl-->>User: hiển thị màn hình kết quả
+        User->>Ctrl: handleSubmit()
+        Ctrl->>Session: submitAllocatedOrders()
+        Session->>UseCase: createAllocatedOrders(cancelledOrderId, allocations)
+        UseCase->>Gateway: createAllocatedOrders(...)
+        Gateway->>DB: BEGIN TRANSACTION
+        Gateway->>DB: UPDATE order SET status = 'DA_HUY' (xác nhận lại)
+        Gateway->>DB: INSERT INTO "order" (request_id, site_id, status='CHO_XAC_NHAN')
+        Gateway->>DB: INSERT INTO order_merchandise (order_id, merchandise_id, quantity, delivery_method)
+        Gateway->>DB: COMMIT
+        DB-->>Gateway: success
+        Gateway-->>UseCase: done
+        UseCase-->>Session: done
+        Session-->>Ctrl: success
+        Ctrl-->>User: "Xử lý gửi đơn thành công"
+    else Không hợp lệ
+        Session-->>Ctrl: ConfirmResult.invalid(message)
+        Ctrl-->>User: hiển thị lỗi validate
+    end
+```
+
+---
+
+## 14. Thiết kế các lớp chính
+
+### 14.1. `CancelledOrderProcessingData` — dữ liệu load từ gateway
+
+```java
+// model/cancelledorder/application/
+public record CancelledOrderProcessingData(
+    int cancelledOrderId,
+    int requestId,
+    int cancelledSiteId,
+    LocalDate desiredDeliveryDate,
+    int deadlineDays,
+    List<ItemRequirement> items,       // tái sử dụng từ model/request/domain/processing/
+    List<SiteStockOption> sites        // tái sử dụng từ model/request/domain/processing/
+) {}
+```
+
+### 14.2. `CancelledOrderProcessingGateway` — port interface
+
+```java
+// model/cancelledorder/application/port/
+public interface CancelledOrderProcessingGateway {
+    CancelledOrderProcessingData loadProcessingData(int cancelledOrderId)
+        throws CancelledOrderGatewayException;
+
+    void createAllocatedOrders(int cancelledOrderId,
+        Map<Integer, Map<Integer, Allocation>> allocations)
+        throws CancelledOrderGatewayException;
 }
 ```
 
-### 14.2. Gợi ý phân bổ tự động
+### 14.3. `CancelledOrderProcessingUseCase` — điều phối use case
 
-```http
-POST /api/cancelled-orders/{cancelledOrderId}/allocation/suggest
-```
+```java
+// model/cancelledorder/application/
+public final class CancelledOrderProcessingUseCase {
 
-Response:
+    private final CancelledOrderProcessingGateway gateway;
+    private final AllocationValidator allocationValidator;    // tái sử dụng
+    private final AllocationSuggester allocationSuggester;   // tái sử dụng
 
-```json
-{
-  "items": [
-    {
-      "merchandiseCode": "A001",
-      "requiredQuantity": 20,
-      "allocatedQuantity": 20,
-      "allocations": [
-        {
-          "siteId": 2,
-          "deliveryMeans": "SHIP",
-          "quantity": 20,
-          "estimatedDeliveryDate": "2026-06-09"
-        }
-      ]
-    }
-  ]
+    public CancelledOrderProcessingData loadProcessingData(int cancelledOrderId) { ... }
+
+    public List<String> validateAllocations(
+        List<ItemRequirement> items,
+        Map<Integer, Map<Integer, Allocation>> allocations
+    ) { ... }
+
+    public List<PreviewOrder> buildPreviewOrders(
+        List<ItemRequirement> items,
+        List<SiteStockOption> allSites,
+        Map<Integer, Map<Integer, Allocation>> allocations,
+        LocalDate desiredDeliveryDate
+    ) { ... }
+
+    public void createAllocatedOrders(
+        int cancelledOrderId,
+        Map<Integer, Map<Integer, Allocation>> allocations
+    ) throws CancelledOrderProcessingException { ... }
 }
 ```
 
-### 14.3. Tạo các đơn hàng mới tạm thời
+### 14.4. `CancelledOrderProcessingSession` — trạng thái phiên làm việc
 
-```http
-POST /api/cancelled-orders/{cancelledOrderId}/new-orders/preview
-```
+```java
+// model/cancelledorder/application/
+public final class CancelledOrderProcessingSession {
 
-Request:
+    private final CancelledOrderProcessingUseCase useCase;
+    private final List<ItemRequirement> items = new ArrayList<>();
+    private final List<SiteStockOption> allSites = new ArrayList<>();
+    private final Map<Integer, Map<Integer, Allocation>> allocations = new LinkedHashMap<>();
 
-```json
-{
-  "allocations": [
-    {
-      "merchandiseCode": "A001",
-      "siteId": 2,
-      "deliveryMeans": "SHIP",
-      "quantity": 20
+    private int cancelledOrderId = -1;
+    private int cancelledSiteId = -1;
+    private int deadlineDays = 14;
+    private LocalDate desiredDeliveryDate;
+    private CancelledOrderAllocationControl allocationControl;
+
+    public void start(int cancelledOrderId) { ... }
+
+    public CancelledOrderProcessingViewModel buildViewModel() { ... }
+
+    public void handleSuggestAllocation() {
+        allocationControl.applyOptimalAllocation();
     }
-  ]
+
+    public AllocationChangeResultView handleAllocationInputChanged(AllocationChangeCommand command) { ... }
+
+    public ConfirmResult handleConfirm() { ... }
+
+    public void submitAllocatedOrders() throws CancelledOrderProcessingException {
+        useCase.createAllocatedOrders(cancelledOrderId, allocations);
+    }
+
+    public record ConfirmResult(String validationMessage, List<ProcessingPreviewOrderView> previewOrders) {
+        public static ConfirmResult invalid(String message) { ... }
+        public static ConfirmResult valid(List<ProcessingPreviewOrderView> orders) { ... }
+        public boolean valid() { return validationMessage == null; }
+    }
 }
 ```
 
-Response:
+### 14.5. `CancelledOrderProcessingController` — tầng controller
 
-```json
-{
-  "requestId": 421,
-  "groupBy": "SITE",
-  "newOrders": [
-    {
-      "temporaryOrderCode": "TEMP-DH-001",
-      "siteId": 2,
-      "siteName": "Site 2",
-      "items": [
-        {
-          "merchandiseCode": "A001",
-          "quantity": 20,
-          "unit": "pcs",
-          "deliveryMeans": "SHIP"
-        }
-      ]
+```java
+// controller/ordering/cancelledorder/
+public final class CancelledOrderProcessingController {
+
+    private final CancelledOrderProcessingSession session;
+
+    public CancelledOrderProcessingController(CancelledOrderProcessingSession session) {
+        this.session = Objects.requireNonNull(session, "session");
     }
-  ]
+
+    public void start(int cancelledOrderId) {
+        session.start(cancelledOrderId);
+    }
+
+    public CancelledOrderProcessingViewModel buildViewModel() {
+        return session.buildViewModel();
+    }
+
+    public void handleSuggestAllocation() {
+        session.handleSuggestAllocation();
+    }
+
+    public AllocationChangeResultView handleAllocationInputChanged(AllocationChangeCommand command) {
+        return session.handleAllocationInputChanged(command);
+    }
+
+    public CancelledOrderProcessingSession.ConfirmResult handleConfirm() {
+        return session.handleConfirm();
+    }
+
+    public void handleSubmit() throws CancelledOrderProcessingException {
+        session.submitAllocatedOrders();
+    }
 }
 ```
 
-### 14.4. Gửi yêu cầu tạo đơn hàng mới
+### 14.6. `CancelledOrderModule` — wiring thủ công
 
-```http
-POST /api/cancelled-orders/{cancelledOrderId}/new-orders/submit
-```
+```java
+// model/cancelledorder/
+public final class CancelledOrderModule {
 
-Response:
+    private final CancelledOrderProcessingUseCase cancelledOrderProcessingUseCase;
 
-```json
-{
-  "message": "Xử lý gửi đơn thành công",
-  "createdOrders": [
-    {
-      "orderId": 2001,
-      "orderCode": "DH-2026-001",
-      "siteId": 2,
-      "status": "CHO_XAC_NHAN"
+    public CancelledOrderModule(
+        ConnectionProvider connectionProvider,
+        TransactionRunner transactionRunner,
+        OrderModule orderModule,
+        SiteModule siteModule,
+        CatalogModule catalogModule
+    ) {
+        CancelledOrderProcessingGateway gateway = new JdbcCancelledOrderProcessingGateway(
+            orderModule.orderRepository(),
+            siteModule.siteRepository(),
+            siteModule.inventoryRepository(),
+            transactionRunner
+        );
+        this.cancelledOrderProcessingUseCase = new CancelledOrderProcessingUseCase(gateway);
     }
-  ]
+
+    public CancelledOrderProcessingUseCase cancelledOrderProcessingUseCase() {
+        return cancelledOrderProcessingUseCase;
+    }
+
+    // Session không phải singleton — khởi tạo mới mỗi lần mở màn hình
+    public CancelledOrderProcessingSession newSession() {
+        return new CancelledOrderProcessingSession(cancelledOrderProcessingUseCase);
+    }
 }
 ```
 
@@ -591,141 +709,72 @@ Response:
 
 ## 15. Quy tắc transaction khi gửi đơn hàng mới
 
-Khi người dùng bấm `Ok` ở popup xác nhận, hệ thống nên xử lý trong một transaction:
+Khi người dùng bấm `Ok` ở popup xác nhận, `JdbcCancelledOrderProcessingGateway.createAllocatedOrders()` thực thi trong một transaction duy nhất (dùng `TransactionRunner`, tương tự `JdbcRequestProcessingGateway`):
 
-1. Kiểm tra đơn hàng bị hủy còn tồn tại.
+1. Kiểm tra đơn hàng bị hủy còn tồn tại (`OrderRepository.findById`).
 2. Kiểm tra trạng thái đơn hàng cũ vẫn là `DA_HUY`.
 3. Validate lại toàn bộ phân bổ ở server.
-4. Kiểm tra tồn kho hiện tại của site.
-5. Tạo các đơn hàng mới theo từng site.
-6. Tạo các dòng mặt hàng trong từng đơn hàng.
+4. Kiểm tra tồn kho hiện tại của từng site (`InventoryRepository.getStockQuantity`).
+5. Tạo các đơn hàng mới theo từng site (`OrderRepository.create`).
+6. Tạo các dòng mặt hàng trong từng đơn hàng (`OrderRepository.addItem`).
 7. Gán trạng thái đơn hàng mới là `CHO_XAC_NHAN`.
 8. Ghi log xử lý đơn hàng bị hủy.
 9. Trả kết quả thành công.
 
-Nếu bất kỳ bước nào lỗi, rollback toàn bộ đơn hàng mới.
+Nếu bất kỳ bước nào lỗi, rollback toàn bộ — không có đơn hàng nào được tạo dở dang.
 
 ---
 
-## 16. Gợi ý database schema
+## 16. Tái sử dụng từ các module hiện có
 
-### 16.1. Bảng `orders`
+| Thành phần cần | Lấy từ đâu |
+|---|---|
+| `OrderRepository` (findById, create, addItem, updateStatus) | `model/order/application/port/OrderRepository` |
+| `SiteRepository` (findAll) | `model/site/application/port/SiteRepository` |
+| `InventoryRepository` (getStockQuantity) | `model/site/application/port/InventoryRepository` |
+| `ItemRequirement` | `model/request/domain/processing/ItemRequirement` |
+| `SiteStockOption` | `model/request/domain/processing/SiteStockOption` |
+| `Allocation` | `model/request/domain/allocation/model/Allocation` |
+| `AllocationValidator` / `DefaultAllocationValidator` | `model/request/domain/allocation/validator/` |
+| `AllocationSuggester` / `DefaultAllocationSuggester` | `model/request/domain/allocation/suggester/` |
+| `AllocationChangeCommand` | `model/request/application/processing/AllocationChangeCommand` |
+| `TransactionRunner` | `model/shared/database/TransactionRunner` |
+| `OrderingFormatters` (status constants) | `model/shared/formatting/OrderingFormatters` |
+
+> Tái sử dụng tối đa các lớp đã có. **Không** tạo lại `AllocationSuggester`, `AllocationValidator`, `Allocation`, `ItemRequirement`, `SiteStockOption` — chỉ tạo module mới bao bọc chúng cho use case cụ thể này.
+
+---
+
+## 17. Gợi ý database schema
+
+### 17.1. Bảng `order` (hiện có)
 
 | Cột | Kiểu | Ghi chú |
 |---|---|---|
 | `id` | bigint | PK |
-| `order_code` | varchar | Mã đơn hàng |
-| `request_id` | bigint | FK tới yêu cầu đặt hàng |
+| `request_id` | bigint | FK tới purchase_request |
 | `site_id` | bigint | FK tới site |
 | `status` | varchar | `DA_HUY`, `CHO_XAC_NHAN`, ... |
-| `parent_cancelled_order_id` | bigint | Liên kết đơn hàng mới với đơn hàng bị hủy ban đầu |
 | `created_at` | datetime | Ngày tạo |
-| `updated_at` | datetime | Ngày cập nhật |
 
-### 16.2. Bảng `order_items`
+> Không cần thêm cột `parent_cancelled_order_id` nếu chỉ cần truy vết qua `request_id`. Nếu cần liên kết rõ ràng giữa đơn hàng mới và đơn hàng bị hủy, thêm cột `source_cancelled_order_id bigint NULL`.
 
-| Cột | Kiểu | Ghi chú |
-|---|---|---|
-| `id` | bigint | PK |
-| `order_id` | bigint | FK tới orders |
-| `merchandise_code` | varchar | Mã hàng |
-| `quantity` | int | Số lượng đặt |
-| `unit` | varchar | Đơn vị |
-| `delivery_means` | varchar | `SHIP` hoặc `AIR` |
-| `estimated_delivery_date` | date | Ngày dự kiến nhận |
-
-### 16.3. Bảng `site_stock`
+### 17.2. Bảng `order_merchandise` (hiện có)
 
 | Cột | Kiểu | Ghi chú |
 |---|---|---|
-| `site_id` | bigint | FK tới site |
-| `merchandise_code` | varchar | Mã hàng |
-| `in_stock_quantity` | int | Số lượng tồn kho |
-| `unit` | varchar | Đơn vị |
+| `order_id` | bigint | FK tới order |
+| `merchandise_id` | bigint | FK tới merchandise |
+| `quantity` | numeric | Số lượng đặt |
+| `delivery_method` | varchar | `SHIP` hoặc `AIR` |
 
-### 16.4. Bảng `delivery_info`
+### 17.3. Bảng `site_inventory` (hiện có — dùng `InventoryRepository`)
 
 | Cột | Kiểu | Ghi chú |
 |---|---|---|
 | `site_id` | bigint | FK tới site |
-| `ship_delivery_days` | int | Số ngày vận chuyển bằng tàu |
-| `air_delivery_days` | int | Số ngày vận chuyển bằng hàng không |
-| `other_information` | text | Thông tin khác |
-
----
-
-## 17. Sequence diagram gợi ý
-
-### 17.1. Khởi tạo phân bổ đơn hàng bị hủy
-
-```mermaid
-sequenceDiagram
-    actor User as Bộ phận đặt hàng quốc tế
-    participant UI as Màn hình chi tiết yêu cầu
-    participant Ctrl as Ctrl_ChiTietYeuCau
-    participant Sub as PhanBoDonHangBiHuySubsystem
-    participant OrderRepo as OrderRepository
-    participant SiteRepo as SiteRepository
-    participant StockRepo as SiteStockRepository
-    participant DeliveryRepo as DeliveryInfoRepository
-
-    User->>UI: Bấm Xử lý
-    UI->>Ctrl: xuLyDonHangBiHuy(cancelledOrderId)
-    Ctrl->>Sub: khoiTaoPhanBoDonHang(cancelledOrderId)
-    Sub->>OrderRepo: findCancelledOrder(cancelledOrderId)
-    Sub->>SiteRepo: findSitesExceptCancelledSite()
-    Sub->>StockRepo: findStockByItems()
-    Sub->>DeliveryRepo: findDeliveryInfoBySites()
-    Sub-->>Ctrl: dữ liệu phân bổ khởi tạo
-    Ctrl-->>UI: hiển thị màn hình phân bổ
-```
-
-### 17.2. Gợi ý phân bổ tự động
-
-```mermaid
-sequenceDiagram
-    actor User as Bộ phận đặt hàng quốc tế
-    participant UI as Màn hình phân bổ
-    participant Ctrl as AllocationController
-    participant Service as AllocationSuggestionService
-    participant Validator as AllocationValidator
-
-    User->>UI: Bấm Gợi ý phân bổ
-    UI->>Ctrl: POST /allocation/suggest
-    Ctrl->>Service: suggest(cancelledOrderId)
-    Service->>Service: lọc site hợp lệ
-    Service->>Service: sắp xếp theo ưu tiên
-    Service->>Service: phân bổ số lượng
-    Service->>Validator: validateSuggestion(result)
-    Validator-->>Service: hợp lệ
-    Service-->>Ctrl: phương án phân bổ
-    Ctrl-->>UI: cập nhật bảng phân bổ
-```
-
-### 17.3. Tạo và gửi đơn hàng mới
-
-```mermaid
-sequenceDiagram
-    actor User as Bộ phận đặt hàng quốc tế
-    participant UI as Màn hình kết quả
-    participant Ctrl as AllocationController
-    participant Service as CancelledOrderAllocationService
-    participant OrderService as OrderCreationService
-    participant DB as Database
-
-    User->>UI: Bấm Gửi yêu cầu
-    UI->>User: Hiển thị popup xác nhận
-    User->>UI: Bấm Ok
-    UI->>Ctrl: POST /new-orders/submit
-    Ctrl->>Service: guiDonHangMoi(cancelledOrderId, request)
-    Service->>Service: validate lại phân bổ
-    Service->>OrderService: createOrdersGroupedBySite()
-    OrderService->>DB: insert orders, order_items
-    DB-->>OrderService: success
-    OrderService-->>Service: createdOrders
-    Service-->>Ctrl: kết quả gửi thành công
-    Ctrl-->>UI: Xử lý gửi đơn thành công
-```
+| `merchandise_id` | bigint | FK tới merchandise |
+| `stock_quantity` | int | Số lượng tồn kho |
 
 ---
 
@@ -733,14 +782,14 @@ sequenceDiagram
 
 | Tình huống lỗi | Cách xử lý đề xuất |
 |---|---|
-| Không tìm thấy đơn hàng bị hủy | Trả lỗi `404 - Cancelled order not found`. |
-| Đơn hàng không ở trạng thái `DA_HUY` | Trả lỗi nghiệp vụ, không cho xử lý. |
-| Không có site thay thế | Hiển thị thông báo không thể phân bổ. |
-| Tổng tồn kho không đủ | Hiển thị mặt hàng bị thiếu số lượng. |
-| Ngày giao dự kiến vượt ngày mong muốn | Loại site/phương thức khỏi danh sách chọn. |
-| Người dùng nhập số lượng vượt tồn kho | Báo lỗi tại dòng site. |
-| Lỗi khi gửi yêu cầu | Không mất dữ liệu màn hình kết quả; cho phép gửi lại. |
-| Người dùng bấm Cancel ở popup | Đóng popup và giữ nguyên màn hình kết quả. |
+| Không tìm thấy đơn hàng bị hủy | Ném `CancelledOrderGatewayException`, Session trả về màn hình rỗng. |
+| Đơn hàng không ở trạng thái `DA_HUY` | Validate trong gateway, rollback và báo lỗi nghiệp vụ. |
+| Không có site thay thế | `allSites` rỗng sau lọc — Session hiển thị thông báo không thể phân bổ. |
+| Tổng tồn kho không đủ | `AllocationValidator` báo lỗi khi `validateAllocations`. |
+| Người dùng nhập số lượng vượt tồn | `AllocationControl.applyAllocationChange` trả `EXCEEDS_STOCK`. |
+| Thiếu phương thức vận chuyển | `AllocationValidator` báo lỗi thiếu transport khi validate. |
+| Lỗi khi submit | `CancelledOrderProcessingException` — không mất dữ liệu Session, cho phép thử lại. |
+| Người dùng bấm Cancel ở popup | Đóng popup, Session vẫn giữ nguyên trạng thái. |
 
 ---
 
@@ -749,70 +798,36 @@ sequenceDiagram
 | ID | Trường hợp kiểm thử | Input | Kết quả mong đợi |
 |---|---|---|---|
 | TC01 | Khởi tạo phân bổ thành công | Đơn hàng bị hủy có mặt hàng A, B | Hiển thị danh sách mặt hàng và site khả dụng. |
-| TC02 | Loại site vừa hủy | Site cũ vẫn còn tồn kho | Site cũ không xuất hiện trong danh sách thay thế. |
-| TC03 | Ưu tiên đường tàu | Một site có ship kịp ngày nhận | Gợi ý chọn ship trước air. |
+| TC02 | Loại site vừa hủy | Site cũ vẫn còn tồn kho | Site cũ không xuất hiện trong danh sách thay thế (`excludedSiteIds`). |
+| TC03 | Ưu tiên đường tàu | Một site có ship kịp ngày nhận | `DefaultAllocationSuggester` gợi ý chọn ship trước air. |
 | TC04 | Chọn site tồn kho lớn | Nhiều site cùng phương thức ship | Site tồn kho lớn được ưu tiên trước. |
 | TC05 | Phân bổ nhiều site | Không site nào đủ toàn bộ số lượng | Hệ thống chia số lượng sang nhiều site. |
-| TC06 | Không đủ tồn kho | Tổng tồn kho < số lượng cần đặt | Hiển thị lỗi không đủ tồn kho. |
-| TC07 | Nhập số lượng vượt tồn | Người dùng nhập 30, tồn kho 20 | Báo lỗi tại dòng site. |
-| TC08 | Thiếu phương thức vận chuyển | SL đặt > 0 nhưng chưa chọn vận chuyển | Không cho tạo đơn hàng. |
-| TC09 | Quay lại chỉnh sửa | Từ màn hình kết quả bấm Quay lại | Quay về màn hình phân bổ, giữ dữ liệu đã nhập. |
-| TC10 | Cancel popup | Bấm Cancel ở popup xác nhận | Đóng popup, không gửi yêu cầu. |
+| TC06 | Không đủ tồn kho | Tổng tồn kho < số lượng cần đặt | `AllocationValidator` báo lỗi không đủ tồn kho. |
+| TC07 | Nhập số lượng vượt tồn | Người dùng nhập 30, tồn kho 20 | `AllocationControl` trả `EXCEEDS_STOCK`. |
+| TC08 | Thiếu phương thức vận chuyển | SL đặt > 0 nhưng chưa chọn vận chuyển | `AllocationValidator` không cho tạo đơn hàng. |
+| TC09 | Quay lại chỉnh sửa | Từ màn hình kết quả bấm Quay lại | Session giữ nguyên `allocations`, quay về màn hình phân bổ. |
+| TC10 | Cancel popup | Bấm Cancel ở popup xác nhận | Đóng popup, Session không thay đổi. |
 | TC11 | Gửi thành công | Dữ liệu hợp lệ | Tạo đơn hàng mới trạng thái `CHO_XAC_NHAN`. |
-| TC12 | Lỗi submit | Database lỗi hoặc validation server fail | Không tạo đơn hàng dở dang, hiển thị lỗi. |
+| TC12 | Lỗi submit (DB lỗi) | Database exception | Rollback toàn bộ, không tạo đơn hàng dở dang, hiển thị lỗi. |
 
 ---
 
-## 20. Prompt có thể đưa vào IDE/AI coding assistant
+## 20. Tóm tắt ngắn gọn cho developer
 
-```text
-Bạn là senior software engineer. Hãy dựa trên tài liệu use case UC-DHQT-02 "Xử lý đơn hàng bị hủy" dưới đây để thiết kế module xử lý đơn hàng bị hủy trong hệ thống đặt hàng nhập khẩu.
+Module này xử lý đơn hàng bị hủy bằng cách:
 
-Yêu cầu:
-1. Thiết kế backend theo kiến trúc Controller - Service - Repository.
-2. Tạo các DTO request/response cần thiết.
-3. Tạo service xử lý các hành vi:
-   - khoiTaoPhanBoDonHang
-   - goiYPhanBoTuDong
-   - taoDonHangMoi
-   - guiDonHangMoi
-4. Tách riêng thuật toán gợi ý phân bổ vào AllocationSuggestionService.
-5. Validate đầy đủ:
-   - số lượng không âm
-   - không vượt tồn kho
-   - tổng phân bổ phải đủ số lượng cần đặt
-   - phải chọn phương thức vận chuyển nếu số lượng > 0
-   - site phải khác site của đơn hàng bị hủy
-   - thời gian giao hàng phải kịp ngày nhận mong muốn
-6. Khi submit đơn hàng mới, xử lý trong transaction và rollback nếu lỗi.
-7. Tạo unit test cho thuật toán phân bổ và validation.
-8. Code cần rõ ràng, dễ đọc, dễ bảo trì.
-
-Use case chi tiết nằm trong file markdown này.
-```
-
----
-
-## 21. Ghi chú triển khai thực tế
-
-- Không tin tưởng hoàn toàn dữ liệu từ frontend; mọi validate quan trọng phải kiểm tra lại ở backend.
-- Chức năng `preview` tạo đơn hàng mới chỉ nên tạo dữ liệu xem trước, chưa nên ghi đơn hàng chính thức.
-- Chỉ khi người dùng xác nhận `Ok`, hệ thống mới ghi đơn hàng mới vào database.
-- Cần lưu liên kết giữa đơn hàng mới và đơn hàng bị hủy bằng `parent_cancelled_order_id` để truy vết.
-- Nên ghi log lịch sử xử lý để biết ai đã xử lý đơn hàng bị hủy, xử lý lúc nào và tạo ra những đơn hàng mới nào.
-- Nếu tồn kho có thể thay đổi theo thời gian thực, cần kiểm tra lại tồn kho tại thời điểm submit.
-
----
-
-## 22. Tóm tắt ngắn gọn cho developer
-
-Module này có nhiệm vụ xử lý một đơn hàng đã bị hủy bằng cách:
-
-1. Lấy danh sách mặt hàng trong đơn hàng bị hủy.
-2. Tìm các site thay thế hợp lệ.
-3. Cho người dùng phân bổ số lượng thủ công hoặc dùng gợi ý tự động.
-4. Validate phân bổ.
-5. Tạo bản xem trước các đơn hàng mới, gom theo site.
+1. Lấy danh sách mặt hàng trong đơn hàng bị hủy từ `OrderRepository`.
+2. Lọc site thay thế (loại site cũ, chỉ lấy site có tồn kho, kịp ngày nhận).
+3. Cho người dùng phân bổ số lượng thủ công hoặc dùng `DefaultAllocationSuggester`.
+4. `AllocationValidator` validate phân bổ.
+5. `CancelledOrderPreviewBuilder` build bản xem trước đơn hàng mới, gom theo site.
 6. Cho người dùng xác nhận gửi yêu cầu.
-7. Lưu các đơn hàng mới với trạng thái `CHO_XAC_NHAN`.
+7. `JdbcCancelledOrderProcessingGateway` lưu các đơn hàng mới trong một transaction.
 8. Hiển thị thông báo thành công và quay về màn hình chi tiết yêu cầu đặt hàng.
+
+**Nguyên tắc quan trọng:**
+
+- Không tin tưởng dữ liệu từ frontend; mọi validate quan trọng đều thực hiện ở `AllocationValidator` trước khi gọi gateway.
+- Session không phải singleton — khởi tạo mới mỗi khi người dùng mở màn hình xử lý.
+- Transaction nằm hoàn toàn trong `JdbcCancelledOrderProcessingGateway`, không rò rỉ lên tầng trên.
+- Tái sử dụng `AllocationSuggester`, `AllocationValidator`, `Allocation`, `ItemRequirement`, `SiteStockOption` từ module `request` — không duplicate code.

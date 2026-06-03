@@ -73,4 +73,8 @@ public final class RequestModule {
     public RequestSalesApplicationService requestSalesApplicationService() {
         return requestSalesApplicationService;
     }
+
+    public RequestRepository requestRepository() {
+        return requestRepository;
+    }
 }

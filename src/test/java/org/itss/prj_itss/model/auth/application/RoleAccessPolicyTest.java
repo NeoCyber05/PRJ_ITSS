@@ -19,6 +19,7 @@ class RoleAccessPolicyTest {
         assertTrue(RoleAccessPolicy.canAccess(RoleType.ORDERING, "site-management"));
         assertTrue(RoleAccessPolicy.canAccess(RoleType.ORDERING, "request-processing:42"));
         assertTrue(RoleAccessPolicy.canAccess(RoleType.ORDERING, "order-detail:7"));
+        assertTrue(RoleAccessPolicy.canAccess(RoleType.ORDERING, "ordering-order-handle-cancellation:102"));
         assertFalse(RoleAccessPolicy.canAccess(RoleType.ORDERING, "sales-requests"));
     }
 

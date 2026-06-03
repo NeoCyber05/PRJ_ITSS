@@ -49,7 +49,7 @@
                         <TableColumn fx:id="itemsColumn" text="MẶT HÀNG" prefWidth="220"/>
                         <TableColumn fx:id="createdAtColumn" text="NGÀY TẠO" prefWidth="120"/>
                         <TableColumn fx:id="statusColumn" text="TRẠNG THÁI" prefWidth="160"/>
-                        <TableColumn fx:id="actionsColumn" text="THAO TÁC" prefWidth="140"/>
+                        <TableColumn fx:id="actionsColumn" text="THAO TÁC" prefWidth="210"/>
                     </columns>
                 </TableView>
 
