@@ -41,6 +41,12 @@ public final class RoleAccessPolicy {
                 default -> false;
             };
         }
+        if (roleType.isSiteRole()) {
+            return switch (normalizedViewId) {
+                case "site-workspace" -> true;
+                default -> false;
+            };
+        }
         return "role-workspace".equals(normalizedViewId);
     }
 
@@ -60,6 +66,9 @@ public final class RoleAccessPolicy {
         }
         if (roleType.isWarehouseRole()) {
             return "warehouse-order-confirm-arrival";
+        }
+        if (roleType.isSiteRole()) {
+            return "site-workspace";
         }
         return "role-workspace";
     }
