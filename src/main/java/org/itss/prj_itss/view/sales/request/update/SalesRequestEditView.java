@@ -41,7 +41,6 @@ import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOptio
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditFieldViolation;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditItemDraft;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidationResult;
-import org.itss.prj_itss.view.sales.request.shared.ItemRow;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 
 import java.math.BigDecimal;
@@ -61,9 +60,9 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
     private SalesRequestEditValidationResult validationResult = SalesRequestEditValidationResult.valid();
     private int currentPage = 0;
 
-    private final ObservableList<ItemRow> allItems = FXCollections.observableArrayList();
-    private final ObservableList<ItemRow> pageItems = FXCollections.observableArrayList();
-    private FilteredList<ItemRow> filteredItems;
+    private final ObservableList<SalesRequestEditItemRow> allItems = FXCollections.observableArrayList();
+    private final ObservableList<SalesRequestEditItemRow> pageItems = FXCollections.observableArrayList();
+    private FilteredList<SalesRequestEditItemRow> filteredItems;
     private List<MerchandiseOption> merchandiseOptions = List.of();
 
     @FXML private Label headerTitle;
@@ -79,14 +78,14 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
     @FXML private Label selectedCountLabel;
     @FXML private Button bulkDeleteButton;
 
-    @FXML private TableView<ItemRow> itemsTable;
-    @FXML private TableColumn<ItemRow, Boolean> checkboxColumn;
-    @FXML private TableColumn<ItemRow, MerchandiseOption> merchandiseCodeColumn;
-    @FXML private TableColumn<ItemRow, MerchandiseOption> merchandiseNameColumn;
-    @FXML private TableColumn<ItemRow, ItemRow> quantityColumn;
-    @FXML private TableColumn<ItemRow, String> unitColumn;
-    @FXML private TableColumn<ItemRow, ItemRow> desiredDateColumn;
-    @FXML private TableColumn<ItemRow, ItemRow> actionColumn;
+    @FXML private TableView<SalesRequestEditItemRow> itemsTable;
+    @FXML private TableColumn<SalesRequestEditItemRow, Boolean> checkboxColumn;
+    @FXML private TableColumn<SalesRequestEditItemRow, MerchandiseOption> merchandiseCodeColumn;
+    @FXML private TableColumn<SalesRequestEditItemRow, MerchandiseOption> merchandiseNameColumn;
+    @FXML private TableColumn<SalesRequestEditItemRow, SalesRequestEditItemRow> quantityColumn;
+    @FXML private TableColumn<SalesRequestEditItemRow, String> unitColumn;
+    @FXML private TableColumn<SalesRequestEditItemRow, SalesRequestEditItemRow> desiredDateColumn;
+    @FXML private TableColumn<SalesRequestEditItemRow, SalesRequestEditItemRow> actionColumn;
 
     @FXML private Label itemCountLabel;
     @FXML private HBox paginationBox;
@@ -138,7 +137,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
 
     @Override
     public void renderItems(List<SalesRequestEditItemDraft> items) {
-        allItems.setAll(items.stream().map(ItemRow::new).toList());
+        allItems.setAll(items.stream().map(SalesRequestEditItemRow::new).toList());
         applySearchFilter(searchField == null ? "" : searchField.getText());
     }
 
@@ -165,7 +164,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
             if (violation.lineId() <= 0) {
                 return;
             }
-            ItemRow row = findRow(violation.lineId());
+            SalesRequestEditItemRow row = findRow(violation.lineId());
             if (row == null) {
                 continue;
             }
@@ -257,7 +256,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
 
         itemsTable.setRowFactory(table -> new TableRow<>() {
             @Override
-            protected void updateItem(ItemRow item, boolean empty) {
+            protected void updateItem(SalesRequestEditItemRow item, boolean empty) {
                 super.updateItem(item, empty);
                 getStyleClass().remove("error-row");
                 if (!empty && item != null && validationResult.hasViolation(item.lineId())) {
@@ -266,9 +265,9 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
             }
         });
 
-        allItems.addListener((ListChangeListener<ItemRow>) change -> {
+        allItems.addListener((ListChangeListener<SalesRequestEditItemRow>) change -> {
             while (change.next()) {
-                for (ItemRow row : change.getAddedSubList()) {
+                for (SalesRequestEditItemRow row : change.getAddedSubList()) {
                     row.selectedProperty().addListener((obs, oldValue, newValue) -> refreshBulkDelete());
                 }
             }
@@ -295,7 +294,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
             @Override
             protected void updateItem(MerchandiseOption item, boolean empty) {
                 super.updateItem(item, empty);
-                ItemRow row = currentRow();
+                SalesRequestEditItemRow row = currentRow();
                 if (empty || row == null) {
                     setGraphic(null);
                     return;
@@ -313,7 +312,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
                 setGraphic(comboBox);
             }
 
-            private ItemRow currentRow() {
+            private SalesRequestEditItemRow currentRow() {
                 return getTableRow() == null ? null : getTableRow().getItem();
             }
         });
@@ -325,7 +324,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
             @Override
             protected void updateItem(MerchandiseOption item, boolean empty) {
                 super.updateItem(item, empty);
-                ItemRow row = currentRow();
+                SalesRequestEditItemRow row = currentRow();
                 if (empty || row == null) {
                     setGraphic(null);
                     return;
@@ -343,7 +342,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
                 setGraphic(comboBox);
             }
 
-            private ItemRow currentRow() {
+            private SalesRequestEditItemRow currentRow() {
                 return getTableRow() == null ? null : getTableRow().getItem();
             }
         });
@@ -357,7 +356,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
         quantityColumn.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue()));
         quantityColumn.setCellFactory(column -> new TableCell<>() {
             private final TextField textField = new TextField();
-            private ItemRow currentRow;
+            private SalesRequestEditItemRow currentRow;
             private boolean internalUpdate;
 
             {
@@ -382,7 +381,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
             }
 
             @Override
-            protected void updateItem(ItemRow row, boolean empty) {
+            protected void updateItem(SalesRequestEditItemRow row, boolean empty) {
                 super.updateItem(row, empty);
                 currentRow = row;
                 if (empty || row == null) {
@@ -402,7 +401,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
         desiredDateColumn.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue()));
         desiredDateColumn.setCellFactory(column -> new TableCell<>() {
             private final DatePicker datePicker = new DatePicker();
-            private ItemRow currentRow;
+            private SalesRequestEditItemRow currentRow;
             private boolean internalUpdate;
 
             {
@@ -439,7 +438,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
             }
 
             @Override
-            protected void updateItem(ItemRow row, boolean empty) {
+            protected void updateItem(SalesRequestEditItemRow row, boolean empty) {
                 super.updateItem(row, empty);
                 currentRow = row;
                 if (empty || row == null) {
@@ -459,7 +458,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
         actionColumn.setCellValueFactory(data -> new SimpleObjectProperty<>(data.getValue()));
         actionColumn.setCellFactory(column -> new TableCell<>() {
             @Override
-            protected void updateItem(ItemRow row, boolean empty) {
+            protected void updateItem(SalesRequestEditItemRow row, boolean empty) {
                 super.updateItem(row, empty);
                 if (empty || row == null) {
                     setGraphic(null);
@@ -538,7 +537,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
     }
 
     private void refreshBulkDelete() {
-        long count = allItems.stream().filter(ItemRow::selected).count();
+        long count = allItems.stream().filter(SalesRequestEditItemRow::selected).count();
         boolean show = count > 0;
         bulkDeleteButton.setVisible(show);
         bulkDeleteButton.setManaged(show);
@@ -554,13 +553,13 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
             return;
         }
         List<Integer> lineIds = allItems.stream()
-            .filter(ItemRow::selected)
-            .map(ItemRow::lineId)
+            .filter(SalesRequestEditItemRow::selected)
+            .map(SalesRequestEditItemRow::lineId)
             .toList();
         events.deleteItemsRequested(lineIds);
     }
 
-    private void merchandiseChanged(ItemRow row, MerchandiseOption merchandise) {
+    private void merchandiseChanged(SalesRequestEditItemRow row, MerchandiseOption merchandise) {
         row.setMerchandise(merchandise);
         if (events != null) {
             events.merchandiseChanged(row.lineId(), merchandise == null ? null : merchandise.id());
@@ -584,14 +583,14 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
         statusBadge.getChildren().setAll(badge);
     }
 
-    private ComboBox<MerchandiseOption> createSearchableComboBox(boolean useCode, ItemRow currentRow) {
+    private ComboBox<MerchandiseOption> createSearchableComboBox(boolean useCode, SalesRequestEditItemRow currentRow) {
         ComboBox<MerchandiseOption> comboBox = new ComboBox<>();
         comboBox.setEditable(true);
         comboBox.setPrefWidth(useCode ? 110 : 240);
 
         Supplier<ObservableList<MerchandiseOption>> available = () -> {
             Set<Integer> usedMerchandiseIds = new HashSet<>();
-            for (ItemRow row : allItems) {
+            for (SalesRequestEditItemRow row : allItems) {
                 if (row != currentRow && row.merchandise() != null) {
                     usedMerchandiseIds.add(row.merchandise().id());
                 }
@@ -651,7 +650,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
         return comboBox;
     }
 
-    private ItemRow findRow(int lineId) {
+    private SalesRequestEditItemRow findRow(int lineId) {
         return allItems.stream()
             .filter(row -> row.lineId() == lineId)
             .findFirst()

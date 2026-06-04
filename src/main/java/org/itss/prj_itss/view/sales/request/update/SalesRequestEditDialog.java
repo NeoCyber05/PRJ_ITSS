@@ -8,11 +8,9 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
-import org.itss.prj_itss.controller.sales.request.shared.SalesRequestDialogListener;
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditController;
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditDialogInput;
-import org.itss.prj_itss.view.sales.request.shared.SalesRequestEditDialogLauncher;
-import org.itss.prj_itss.view.sales.request.shared.PopupOverlayHelper;
+import org.itss.prj_itss.controller.sales.request.update.SalesRequestDialogListener;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -40,7 +38,7 @@ public final class SalesRequestEditDialog implements SalesRequestEditDialogLaunc
         applyMainStylesheet(scene);
         dialog.setScene(scene);
         centerOnOwner(dialog, owner, scene);
-        PopupOverlayHelper.showWithOverlay(owner, dialog::showAndWait);
+        UpdatePopupOverlayHelper.showWithOverlay(owner, dialog::showAndWait);
     }
 
     private static Stage createDialog(Window owner) {
