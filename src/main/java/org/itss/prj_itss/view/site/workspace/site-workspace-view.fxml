@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.ComboBox?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TableColumn?>
@@ -11,86 +11,239 @@
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.Region?>
 
 <BorderPane xmlns="http://javafx.com/javafx/17"
             xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="org.itss.prj_itss.view.site.workspace.SiteWorkspaceView"
             styleClass="content-area">
     <top>
-        <VBox spacing="4" styleClass="page-header">
+        <VBox styleClass="sw-page-header">
             <children>
-                <Label text="Không gian Site" styleClass="page-title"/>
-                <Label fx:id="siteSubtitleLabel" styleClass="page-description"/>
+                <HBox spacing="12" alignment="CENTER_LEFT">
+                    <children>
+                        <StackPane styleClass="sw-header-icon-wrap">
+                            <Label text="🌐" styleClass="sw-header-icon"/>
+                        </StackPane>
+                        <VBox spacing="2">
+                            <children>
+                                <Label text="Không gian Site" styleClass="sw-page-title"/>
+                                <Label fx:id="siteSubtitleLabel" styleClass="sw-page-subtitle"/>
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
             </children>
         </VBox>
     </top>
     <center>
-        <TabPane fx:id="workspaceTabs" tabClosingPolicy="UNAVAILABLE">
+        <TabPane fx:id="workspaceTabs" tabClosingPolicy="UNAVAILABLE" styleClass="sw-tab-pane">
             <tabs>
-                <Tab text="Hồ sơ">
-                    <VBox spacing="14" styleClass="page-content">
+                <!-- TAB 1: Hồ sơ -->
+                <Tab text="📋  Hồ sơ">
+                    <ScrollPane fitToWidth="true" styleClass="sw-scroll-pane">
+                        <content>
+                            <VBox spacing="20" styleClass="sw-tab-content">
+                                <!-- Thông tin cơ bản -->
+                                <VBox styleClass="sw-section-card">
+                                    <children>
+                                        <HBox styleClass="sw-section-header" alignment="CENTER_LEFT" spacing="10">
+                                            <children>
+                                                <Label text="Thông tin cơ bản" styleClass="sw-section-title"/>
+                                            </children>
+                                        </HBox>
+                                        <VBox spacing="14" styleClass="sw-section-body">
+                                            <children>
+                                                <Label fx:id="profileMessageLabel" styleClass="sw-info-message" visible="false" managed="false"/>
+                                                <GridPane hgap="16" vgap="12">
+                                                    <columnConstraints>
+                                                        <ColumnConstraints hgrow="ALWAYS" percentWidth="50"/>
+                                                        <ColumnConstraints hgrow="ALWAYS" percentWidth="50"/>
+                                                    </columnConstraints>
+                                                    <children>
+                                                        <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                                            <children>
+                                                                <Label text="Mã Site" styleClass="sw-field-label"/>
+                                                                <TextField fx:id="siteCodeField" editable="false"
+                                                                           promptText="Mã định danh site"
+                                                                           styleClass="sw-field-readonly"/>
+                                                            </children>
+                                                        </VBox>
+                                                        <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                                            <children>
+                                                                <Label text="Tên Site" styleClass="sw-field-label"/>
+                                                                <TextField fx:id="siteNameField"
+                                                                           promptText="Nhập tên site"/>
+                                                            </children>
+                                                        </VBox>
+                                                        <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="1"
+                                                              GridPane.columnSpan="2">
+                                                            <children>
+                                                                <Label text="Mô tả" styleClass="sw-field-label"/>
+                                                                <TextArea fx:id="descriptionArea" prefRowCount="3"
+                                                                          promptText="Mô tả về site này..."/>
+                                                            </children>
+                                                        </VBox>
+                                                    </children>
+                                                </GridPane>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </VBox>
+
+                                <!-- Thông tin vận chuyển -->
+                                <VBox styleClass="sw-section-card">
+                                    <children>
+                                        <HBox styleClass="sw-section-header" alignment="CENTER_LEFT" spacing="10">
+                                            <children>
+                                                <Label text="⏱  Thời gian vận chuyển" styleClass="sw-section-title"/>
+                                            </children>
+                                        </HBox>
+                                        <VBox spacing="14" styleClass="sw-section-body">
+                                            <children>
+                                                <GridPane hgap="16" vgap="4">
+                                                    <columnConstraints>
+                                                        <ColumnConstraints hgrow="ALWAYS" percentWidth="50"/>
+                                                        <ColumnConstraints hgrow="ALWAYS" percentWidth="50"/>
+                                                    </columnConstraints>
+                                                    <children>
+                                                        <VBox spacing="5" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                                            <children>
+                                                                <Label text="🚢  Vận chuyển đường biển (ngày)" styleClass="sw-field-label"/>
+                                                                <TextField fx:id="shipDaysField"
+                                                                           promptText="Ví dụ: 7"
+                                                                           styleClass="sw-field-ship"/>
+                                                            </children>
+                                                        </VBox>
+                                                        <VBox spacing="5" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                                            <children>
+                                                                <Label text="✈  Vận chuyển hàng không (ngày)" styleClass="sw-field-label"/>
+                                                                <TextField fx:id="airDaysField"
+                                                                           promptText="Ví dụ: 2"
+                                                                           styleClass="sw-field-air"/>
+                                                            </children>
+                                                        </VBox>
+                                                    </children>
+                                                </GridPane>
+                                            </children>
+                                        </VBox>
+                                    </children>
+                                </VBox>
+
+                                <!-- Nút lưu -->
+                                <HBox alignment="CENTER_RIGHT" spacing="10">
+                                    <children>
+                                        <Button fx:id="saveProfileButton" text="💾  Lưu hồ sơ" styleClass="btn-primary, sw-save-btn"/>
+                                    </children>
+                                </HBox>
+                            </VBox>
+                        </content>
+                    </ScrollPane>
+                </Tab>
+
+                <!-- TAB 2: Mặt hàng -->
+                <Tab text="📦  Mặt hàng">
+                    <VBox spacing="16" styleClass="sw-tab-content">
                         <children>
-                            <Label fx:id="profileMessageLabel" styleClass="page-description"/>
-                            <TextField fx:id="siteCodeField" editable="false"/>
-                            <TextField fx:id="siteNameField"/>
-                            <TextArea fx:id="descriptionArea" prefRowCount="4"/>
-                            <HBox spacing="12">
+                            <!-- Form cập nhật tồn kho -->
+                            <VBox styleClass="sw-section-card">
                                 <children>
-                                    <TextField fx:id="shipDaysField" promptText="Số ngày vận chuyển biển"/>
-                                    <TextField fx:id="airDaysField" promptText="Số ngày vận chuyển hàng không"/>
+                                    <HBox styleClass="sw-section-header" alignment="CENTER_LEFT">
+                                        <children>
+                                            <Label text="Cập nhật tồn kho" styleClass="sw-section-title"/>
+                                        </children>
+                                    </HBox>
+                                    <HBox spacing="12" alignment="CENTER_LEFT" styleClass="sw-section-body">
+                                        <children>
+                                            <VBox spacing="4" HBox.hgrow="ALWAYS">
+                                                <children>
+                                                    <Label text="Mặt hàng" styleClass="sw-field-label"/>
+                                                    <ComboBox fx:id="merchandiseComboBox" maxWidth="1.7976931348623157E308"/>
+                                                </children>
+                                            </VBox>
+                                            <VBox spacing="4" prefWidth="140">
+                                                <children>
+                                                    <Label text="Số lượng tồn kho" styleClass="sw-field-label"/>
+                                                    <TextField fx:id="stockQuantityField" promptText="0"/>
+                                                </children>
+                                            </VBox>
+                                            <VBox spacing="4" alignment="BOTTOM_LEFT">
+                                                <children>
+                                                    <Label text=" " styleClass="sw-field-label"/>
+                                                    <HBox spacing="8">
+                                                        <children>
+                                                            <Button fx:id="saveInventoryButton" text="✓  Cập nhật" styleClass="btn-primary"/>
+                                                            <Button fx:id="removeInventoryButton" text="✕  Bỏ mặt hàng" styleClass="btn-danger"/>
+                                                        </children>
+                                                    </HBox>
+                                                </children>
+                                            </VBox>
+                                        </children>
+                                    </HBox>
                                 </children>
-                            </HBox>
-                            <Button fx:id="saveProfileButton" text="Lưu hồ sơ" styleClass="btn-primary"/>
+                            </VBox>
+
+                            <!-- Bảng tồn kho -->
+                            <VBox styleClass="sw-section-card" VBox.vgrow="ALWAYS">
+                                <children>
+                                    <HBox styleClass="sw-section-header" alignment="CENTER_LEFT" spacing="10">
+                                        <children>
+                                            <Label text="Danh sách mặt hàng" styleClass="sw-section-title"/>
+                                            <Region HBox.hgrow="ALWAYS" />
+                                            <TextField fx:id="inventorySearchField" promptText="Tìm kiếm..." prefWidth="200" styleClass="search-field"/>
+                                        </children>
+                                    </HBox>
+                                    <VBox styleClass="sw-section-body" VBox.vgrow="ALWAYS">
+                                        <children>
+                                            <TableView fx:id="inventoryTable" VBox.vgrow="ALWAYS">
+                                                <columns>
+                                                    <TableColumn fx:id="inventoryCodeColumn" text="Mã hàng" prefWidth="120"/>
+                                                    <TableColumn fx:id="inventoryNameColumn" text="Tên mặt hàng" prefWidth="260"/>
+                                                    <TableColumn fx:id="inventoryUnitColumn" text="Đơn vị" prefWidth="100"/>
+                                                    <TableColumn fx:id="inventoryStockColumn" text="Tồn kho" prefWidth="120"/>
+                                                </columns>
+                                            </TableView>
+                                        </children>
+                                    </VBox>
+                                </children>
+                                <VBox.vgrow>ALWAYS</VBox.vgrow>
+                            </VBox>
                         </children>
                     </VBox>
                 </Tab>
-                <Tab text="Mặt hàng &amp; tồn kho">
-                    <VBox spacing="14" styleClass="page-content">
+
+                <!-- TAB 3: Đơn hàng -->
+                <Tab text="🛒  Đơn hàng">
+                    <VBox spacing="16" styleClass="sw-tab-content">
                         <children>
-                            <HBox spacing="12">
+                            <!-- Bảng đơn hàng -->
+                            <VBox styleClass="sw-section-card" VBox.vgrow="ALWAYS">
                                 <children>
-                                    <ComboBox fx:id="merchandiseComboBox" prefWidth="280"/>
-                                    <TextField fx:id="stockQuantityField" promptText="Tồn kho" prefWidth="120"/>
-                                    <Button fx:id="saveInventoryButton" text="Cập nhật" styleClass="btn-primary"/>
-                                    <Button fx:id="removeInventoryButton" text="Bỏ mặt hàng"/>
+                                    <HBox styleClass="sw-section-header" alignment="CENTER_LEFT">
+                                        <children>
+                                            <Label text="Danh sách đơn hàng" styleClass="sw-section-title"/>
+                                        </children>
+                                    </HBox>
+                                    <VBox styleClass="sw-section-body" VBox.vgrow="ALWAYS">
+                                        <children>
+                                            <TableView fx:id="orderTable" VBox.vgrow="ALWAYS">
+                                                <columns>
+                                                    <TableColumn fx:id="orderCodeColumn" text="Mã đơn hàng" prefWidth="120" minWidth="100"/>
+                                                    <TableColumn fx:id="requestCodeColumn" text="Yêu cầu gốc" prefWidth="120" minWidth="100"/>
+                                                    <TableColumn fx:id="createdAtColumn" text="Ngày tạo" prefWidth="130" minWidth="100"/>
+                                                    <TableColumn fx:id="orderStatusColumn" text="Trạng thái" prefWidth="140" minWidth="120"/>
+                                                    <TableColumn fx:id="orderActionColumn" text="Thao tác" prefWidth="300" minWidth="290"/>
+                                                </columns>
+                                            </TableView>
+                                        </children>
+                                    </VBox>
                                 </children>
-                            </HBox>
-                            <TableView fx:id="inventoryTable">
-                                <columns>
-                                    <TableColumn fx:id="inventoryCodeColumn" text="Mã hàng" prefWidth="120"/>
-                                    <TableColumn fx:id="inventoryNameColumn" text="Tên mặt hàng" prefWidth="220"/>
-                                    <TableColumn fx:id="inventoryUnitColumn" text="Đơn vị" prefWidth="100"/>
-                                    <TableColumn fx:id="inventoryStockColumn" text="Tồn kho" prefWidth="100"/>
-                                </columns>
-                            </TableView>
-                        </children>
-                    </VBox>
-                </Tab>
-                <Tab text="Đơn hàng">
-                    <VBox spacing="14" styleClass="page-content">
-                        <children>
-                            <TableView fx:id="orderTable">
-                                <columns>
-                                    <TableColumn fx:id="orderCodeColumn" text="Mã đơn" prefWidth="120"/>
-                                    <TableColumn fx:id="requestCodeColumn" text="Yêu cầu gốc" prefWidth="120"/>
-                                    <TableColumn fx:id="createdAtColumn" text="Ngày tạo" prefWidth="120"/>
-                                    <TableColumn fx:id="orderStatusColumn" text="Trạng thái" prefWidth="160"/>
-                                    <TableColumn fx:id="orderActionColumn" text="Thao tác" prefWidth="180"/>
-                                </columns>
-                            </TableView>
-                            <VBox fx:id="orderDetailBox" spacing="10" styleClass="card"/>
-                            <TableView fx:id="orderItemTable">
-                                <columns>
-                                    <TableColumn fx:id="orderItemCodeColumn" text="Mã hàng" prefWidth="120"/>
-                                    <TableColumn fx:id="orderItemNameColumn" text="Tên mặt hàng" prefWidth="220"/>
-                                    <TableColumn fx:id="orderItemQuantityColumn" text="Số lượng" prefWidth="100"/>
-                                    <TableColumn fx:id="orderItemUnitColumn" text="Đơn vị" prefWidth="100"/>
-                                    <TableColumn fx:id="orderItemDeliveryColumn" text="Vận chuyển" prefWidth="140"/>
-                                </columns>
-                            </TableView>
+                            </VBox>
                         </children>
                     </VBox>
                 </Tab>

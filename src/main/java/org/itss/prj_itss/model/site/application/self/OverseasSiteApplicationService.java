@@ -129,6 +129,30 @@ public final class OverseasSiteApplicationService {
         return SiteWorkspaceResult.success("Đã xác nhận cung ứng đơn hàng.");
     }
 
+    public SiteWorkspaceResult rejectOrder(int siteId, int orderId) {
+        Site site = siteUseCase.findById(siteId);
+        if (site == null) {
+            return SiteWorkspaceResult.failure("Site không tồn tại.");
+        }
+
+        Order order = siteOrderRepository.findByIdForSite(orderId, siteId);
+        if (order == null) {
+            return SiteWorkspaceResult.failure("Đơn hàng không thuộc site này.");
+        }
+
+        String statusKey = OrderingFormatters.normalizeStatusKey(order.getStatus());
+        if (!OrderingFormatters.STATUS_PENDING.equals(statusKey)) {
+            return SiteWorkspaceResult.failure("Chỉ có thể từ chối đơn hàng đang chờ xác nhận.");
+        }
+
+        boolean updated = siteOrderRepository.updateStatusForSite(orderId, siteId, OrderingFormatters.STATUS_CANCELLED);
+        if (!updated) {
+            return SiteWorkspaceResult.failure("Không thể cập nhật trạng thái đơn hàng.");
+        }
+
+        return SiteWorkspaceResult.success("Đã từ chối đơn hàng.");
+    }
+
     public List<SiteOrderItemRow> loadOrderItems(int siteId, int orderId) {
         Order order = siteOrderRepository.findByIdForSite(orderId, siteId);
         if (order == null) {

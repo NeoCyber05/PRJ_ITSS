@@ -1,12 +1,17 @@
 package org.itss.prj_itss.view.site.workspace;
 
+import java.util.List;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Dialog;
+import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.control.TabPane;
 import javafx.scene.control.TableCell;
@@ -16,6 +21,8 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
 import javafx.util.StringConverter;
 import org.itss.prj_itss.controller.navigation.Navigator;
 import org.itss.prj_itss.controller.site.SiteWorkspaceController;
@@ -28,6 +35,7 @@ import org.itss.prj_itss.model.site.application.self.SiteProfileDraft;
 import org.itss.prj_itss.model.site.application.self.SiteWorkspaceResult;
 import org.itss.prj_itss.model.site.application.self.SiteWorkspaceSnapshot;
 import org.itss.prj_itss.model.site.domain.Site;
+import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 import org.itss.prj_itss.view.shared.ui.TableViewSupport;
 
@@ -109,31 +117,13 @@ public class SiteWorkspaceView implements ViewLifecycle {
     private TableColumn<SiteOrderRow, String> createdAtColumn;
 
     @FXML
-    private TableColumn<SiteOrderRow, String> orderStatusColumn;
+    private TableColumn<SiteOrderRow, SiteOrderRow> orderStatusColumn;
 
     @FXML
     private TableColumn<SiteOrderRow, SiteOrderRow> orderActionColumn;
 
     @FXML
-    private VBox orderDetailBox;
-
-    @FXML
-    private TableView<SiteOrderItemRow> orderItemTable;
-
-    @FXML
-    private TableColumn<SiteOrderItemRow, String> orderItemCodeColumn;
-
-    @FXML
-    private TableColumn<SiteOrderItemRow, String> orderItemNameColumn;
-
-    @FXML
-    private TableColumn<SiteOrderItemRow, String> orderItemQuantityColumn;
-
-    @FXML
-    private TableColumn<SiteOrderItemRow, String> orderItemUnitColumn;
-
-    @FXML
-    private TableColumn<SiteOrderItemRow, String> orderItemDeliveryColumn;
+    private TextField inventorySearchField;
 
     @FXML
     private void initialize() {
@@ -142,13 +132,57 @@ public class SiteWorkspaceView implements ViewLifecycle {
         TableViewSupport.bindStringColumn(inventoryNameColumn, SiteInventoryRow::merchandiseName);
         TableViewSupport.bindStringColumn(inventoryUnitColumn, SiteInventoryRow::unit);
         TableViewSupport.bindStringColumn(inventoryStockColumn, row -> String.valueOf(row.stockQuantity()));
-        inventoryTable.setItems(inventoryRows);
+
+        FilteredList<SiteInventoryRow> filteredInventory = new FilteredList<>(inventoryRows, p -> true);
+        inventorySearchField.textProperty().addListener((observable, oldValue, newValue) -> {
+            filteredInventory.setPredicate(row -> {
+                if (newValue == null || newValue.trim().isEmpty()) {
+                    return true;
+                }
+                String lowerFilter = newValue.toLowerCase().trim();
+                if (row.merchandiseCode() != null && row.merchandiseCode().toLowerCase().contains(lowerFilter)) {
+                    return true;
+                }
+                if (row.merchandiseName() != null && row.merchandiseName().toLowerCase().contains(lowerFilter)) {
+                    return true;
+                }
+                return false;
+            });
+        });
+        SortedList<SiteInventoryRow> sortedInventory = new SortedList<>(filteredInventory);
+        sortedInventory.comparatorProperty().bind(inventoryTable.comparatorProperty());
+        inventoryTable.setItems(sortedInventory);
 
         TableViewSupport.useConstrainedResize(orderTable);
         TableViewSupport.bindStringColumn(orderCodeColumn, SiteOrderRow::orderCode);
         TableViewSupport.bindStringColumn(requestCodeColumn, SiteOrderRow::requestCode);
         TableViewSupport.bindStringColumn(createdAtColumn, SiteOrderRow::createdAt);
-        TableViewSupport.bindStringColumn(orderStatusColumn, SiteOrderRow::statusText);
+
+        TableViewSupport.bindRowColumn(orderStatusColumn);
+
+        // Status column: colored badge
+        orderStatusColumn.setCellFactory(col -> new TableCell<>() {
+            private final Label badge = new Label();
+            {
+                badge.getStyleClass().add("badge");
+            }
+            @Override
+            protected void updateItem(SiteOrderRow row, boolean empty) {
+                super.updateItem(row, empty);
+                if (empty || row == null) {
+                    setGraphic(null);
+                    setText(null);
+                    return;
+                }
+                String statusKey = OrderingFormatters.normalizeStatusKey(row.status());
+                badge.setText(row.statusText());
+                badge.getStyleClass().removeIf(c -> c.startsWith("badge-"));
+                badge.getStyleClass().add(statusBadgeClass(statusKey));
+                setGraphic(badge);
+                setText(null);
+            }
+        });
+
         TableViewSupport.bindRowColumn(orderActionColumn);
         orderActionColumn.setCellFactory(column -> new TableCell<>() {
             @Override
@@ -159,32 +193,34 @@ public class SiteWorkspaceView implements ViewLifecycle {
                     return;
                 }
                 Button detailButton = new Button("Chi tiết");
-                detailButton.setOnAction(event -> showOrderDetail(row));
+                detailButton.getStyleClass().add("order-btn-detail");
+                detailButton.setMinWidth(Region.USE_PREF_SIZE);
+                detailButton.setOnAction(event -> showOrderDetailPopup(row));
 
-                Button confirmButton = new Button("Xác nhận");
+                Button confirmButton = new Button("✓ Xác nhận");
+                confirmButton.getStyleClass().add("order-btn-confirm");
                 confirmButton.setDisable(!row.confirmable());
+                confirmButton.setMinWidth(Region.USE_PREF_SIZE);
                 confirmButton.setOnAction(event -> confirmSupply(row.orderId()));
 
-                HBox box = new HBox(6, detailButton, confirmButton);
+                Button rejectButton = new Button("✕ Từ chối");
+                rejectButton.getStyleClass().add("order-btn-reject");
+                rejectButton.setDisable(!row.confirmable());
+                rejectButton.setMinWidth(Region.USE_PREF_SIZE);
+                rejectButton.setOnAction(event -> rejectOrder(row.orderId()));
+
+                HBox box = new HBox(6, detailButton, confirmButton, rejectButton);
+                box.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
                 setGraphic(box);
                 setText(null);
             }
         });
         orderTable.setItems(orderRows);
 
-        TableViewSupport.useConstrainedResize(orderItemTable);
-        TableViewSupport.bindStringColumn(orderItemCodeColumn, SiteOrderItemRow::merchandiseCode);
-        TableViewSupport.bindStringColumn(orderItemNameColumn, SiteOrderItemRow::merchandiseName);
-        TableViewSupport.bindStringColumn(orderItemQuantityColumn, SiteOrderItemRow::quantity);
-        TableViewSupport.bindStringColumn(orderItemUnitColumn, SiteOrderItemRow::unit);
-        TableViewSupport.bindStringColumn(orderItemDeliveryColumn, SiteOrderItemRow::deliveryMethod);
-        orderItemTable.setItems(orderItemRows);
-
         saveProfileButton.setOnAction(event -> saveProfile());
         saveInventoryButton.setOnAction(event -> saveInventory());
         removeInventoryButton.setOnAction(event -> removeInventory());
         inventoryTable.getSelectionModel().selectedItemProperty().addListener((obs, oldRow, row) -> populateInventorySelection(row));
-        orderTable.getSelectionModel().selectedItemProperty().addListener((obs, oldRow, row) -> showOrderDetail(row));
     }
 
     public void init(Navigator navigator, SiteWorkspaceController controller) {
@@ -215,6 +251,8 @@ public class SiteWorkspaceView implements ViewLifecycle {
         workspaceTabs.setDisable(true);
         siteSubtitleLabel.setText(message);
         profileMessageLabel.setText(message);
+        profileMessageLabel.setVisible(true);
+        profileMessageLabel.setManaged(true);
         inventoryRows.clear();
         orderRows.clear();
         orderItemRows.clear();
@@ -223,6 +261,9 @@ public class SiteWorkspaceView implements ViewLifecycle {
 
     private void setWorkspaceEnabled(SiteWorkspaceSnapshot snapshot) {
         workspaceTabs.setDisable(false);
+        profileMessageLabel.setText("");
+        profileMessageLabel.setVisible(false);
+        profileMessageLabel.setManaged(false);
         Site site = snapshot.site();
         siteSubtitleLabel.setText(site.getSiteCode() + " - " + site.getName());
         siteCodeField.setText(site.getSiteCode());
@@ -307,19 +348,124 @@ public class SiteWorkspaceView implements ViewLifecycle {
         });
     }
 
-    private void showOrderDetail(SiteOrderRow row) {
-        orderDetailBox.getChildren().clear();
+    public void selectTab(int index) {
+        workspaceTabs.getSelectionModel().select(index);
+    }
+
+    private static String statusBadgeClass(String statusKey) {
+        return switch (statusKey) {
+            case OrderingFormatters.STATUS_PENDING    -> "badge-pending";
+            case OrderingFormatters.STATUS_PROCESSING -> "badge-processing";
+            case OrderingFormatters.STATUS_SHIPPING   -> "badge-shipping";
+            case OrderingFormatters.STATUS_COMPLETED  -> "badge-completed";
+            case OrderingFormatters.STATUS_CANCELLED  -> "badge-cancelled";
+            case OrderingFormatters.STATUS_REMOVED    -> "badge-removed";
+            default                                   -> "badge-info";
+        };
+    }
+
+    private void showOrderDetailPopup(SiteOrderRow row) {
         if (row == null) {
-            orderDetailBox.getChildren().add(new Label("Chọn một đơn hàng để xem chi tiết."));
-            orderItemRows.clear();
             return;
         }
-        orderDetailBox.getChildren().addAll(
-            new Label("Mã đơn: " + row.orderCode()),
-            new Label("Yêu cầu gốc: " + row.requestCode()),
-            new Label("Trạng thái: " + row.statusText())
-        );
-        orderItemRows.setAll(controller.loadOrderItems(row.orderId()));
+
+        Dialog<Void> dialog = new Dialog<>();
+        dialog.setTitle("Chi tiết đơn hàng");
+        dialog.setHeaderText(null);
+
+        DialogPane dialogPane = dialog.getDialogPane();
+        if (workspaceTabs.getScene() != null) {
+            dialogPane.getStylesheets().addAll(workspaceTabs.getScene().getStylesheets());
+        }
+        dialogPane.getStyleClass().add("sw-dialog");
+
+        VBox content = new VBox(12);
+        content.setPrefWidth(650);
+        content.setPrefHeight(400);
+
+        VBox infoCard = new VBox(8);
+        infoCard.setStyle("-fx-background-color: #F8FAFC; -fx-padding: 14; -fx-border-color: #E2E8F0; -fx-border-radius: 8; -fx-background-radius: 8;");
+        
+        Label codeLbl = new Label("Mã đơn hàng: " + row.orderCode());
+        codeLbl.setStyle("-fx-font-weight: bold; -fx-font-size: 14px; -fx-text-fill: #1E293B;");
+        
+        Label reqLbl = new Label("Yêu cầu gốc: " + row.requestCode());
+        reqLbl.setStyle("-fx-text-fill: #475569;");
+        
+        Label statusLbl = new Label("Trạng thái: " + row.statusText());
+        statusLbl.setStyle("-fx-text-fill: #475569;");
+        
+        infoCard.getChildren().addAll(codeLbl, reqLbl, statusLbl);
+
+        TableView<SiteOrderItemRow> popupTable = new TableView<>();
+        VBox.setVgrow(popupTable, Priority.ALWAYS);
+
+        TableColumn<SiteOrderItemRow, String> codeCol = new TableColumn<>("Mã hàng");
+        codeCol.setPrefWidth(120);
+        TableViewSupport.bindStringColumn(codeCol, SiteOrderItemRow::merchandiseCode);
+
+        TableColumn<SiteOrderItemRow, String> nameCol = new TableColumn<>("Tên mặt hàng");
+        nameCol.setPrefWidth(220);
+        TableViewSupport.bindStringColumn(nameCol, SiteOrderItemRow::merchandiseName);
+
+        TableColumn<SiteOrderItemRow, String> qtyCol = new TableColumn<>("Số lượng");
+        qtyCol.setPrefWidth(80);
+        TableViewSupport.bindStringColumn(qtyCol, SiteOrderItemRow::quantity);
+
+        TableColumn<SiteOrderItemRow, String> unitCol = new TableColumn<>("Đơn vị");
+        unitCol.setPrefWidth(80);
+        TableViewSupport.bindStringColumn(unitCol, SiteOrderItemRow::unit);
+
+        TableColumn<SiteOrderItemRow, String> delCol = new TableColumn<>("Vận chuyển");
+        delCol.setPrefWidth(130);
+        TableViewSupport.bindStringColumn(delCol, SiteOrderItemRow::deliveryMethod);
+        delCol.setCellFactory(column -> new TableCell<>() {
+            @Override
+            protected void updateItem(String item, boolean empty) {
+                super.updateItem(item, empty);
+                if (empty || item == null) {
+                    setText(null);
+                    setStyle("");
+                } else {
+                    setText(item);
+                    if (item.contains("biển") || item.toLowerCase().contains("ship")) {
+                        setStyle("-fx-text-fill: #0284C7; -fx-font-weight: bold;");
+                    } else if (item.contains("không") || item.toLowerCase().contains("air")) {
+                        setStyle("-fx-text-fill: #D97706; -fx-font-weight: bold;");
+                    } else {
+                        setStyle("");
+                    }
+                }
+            }
+        });
+
+        popupTable.getColumns().addAll(codeCol, nameCol, qtyCol, unitCol, delCol);
+        TableViewSupport.useConstrainedResize(popupTable);
+
+        List<SiteOrderItemRow> items = controller.loadOrderItems(row.orderId());
+        popupTable.setItems(FXCollections.observableArrayList(items));
+
+        content.getChildren().addAll(infoCard, popupTable);
+        dialogPane.setContent(content);
+        dialogPane.getButtonTypes().add(ButtonType.CLOSE);
+
+        dialog.showAndWait();
+    }
+
+    private void rejectOrder(int orderId) {
+        Alert confirm = new Alert(Alert.AlertType.CONFIRMATION);
+        confirm.setTitle("Từ chối đơn hàng");
+        confirm.setHeaderText("Từ chối đơn hàng này?");
+        confirm.setContentText("Sau khi từ chối, đơn hàng sẽ có trạng thái Đã hủy.");
+        confirm.showAndWait().ifPresent(response -> {
+            if (response == ButtonType.OK) {
+                SiteWorkspaceResult result = controller.rejectOrder(orderId);
+                showResult(result);
+                if (result.success()) {
+                    reload();
+                }
+            }
+        });
     }
 
     private void populateInventorySelection(SiteInventoryRow row) {
