@@ -9,8 +9,10 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import org.itss.prj_itss.model.dashboard.application.DashboardData;
+import org.itss.prj_itss.model.dashboard.application.DashboardRequestInfo;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.request.domain.request.Request;
+import org.itss.prj_itss.model.request.domain.request.RequestStatus;
 import org.itss.prj_itss.controller.home.HomeController;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 
@@ -63,7 +65,7 @@ public class HomeView implements ViewLifecycle {
             return;
         }
         DashboardData dashboardData = controller.loadDashboardData();
-        List<Request> requests = dashboardData.requests();
+        List<DashboardRequestInfo> requests = dashboardData.requests();
         List<Order> orders = dashboardData.orders();
 
         rebuildQuickCards();
@@ -79,12 +81,12 @@ public class HomeView implements ViewLifecycle {
         );
     }
 
-    private void rebuildPendingRows(List<Request> requests) {
+    private void rebuildPendingRows(List<DashboardRequestInfo> requests) {
         pendingRowsContainer.getChildren().clear();
 
         requests.stream()
-            .filter(request -> "pending".equalsIgnoreCase(request.getStatus()))
-            .sorted(Comparator.comparing(this::resolveDeadline, Comparator.nullsLast(Comparator.naturalOrder())))
+            .filter(info -> info.request().getStatus() == RequestStatus.PENDING)
+            .sorted(Comparator.comparing(DashboardRequestInfo::earliestDeliveryDate, Comparator.nullsLast(Comparator.naturalOrder())))
             .limit(3)
             .map(this::buildPendingRow)
             .forEach(pendingRowsContainer.getChildren()::add);
@@ -96,7 +98,7 @@ public class HomeView implements ViewLifecycle {
         }
     }
 
-    private void rebuildActivityRows(List<Request> requests, List<Order> orders) {
+    private void rebuildActivityRows(List<DashboardRequestInfo> requests, List<Order> orders) {
         activityRowsContainer.getChildren().clear();
 
         orders.stream()
@@ -106,6 +108,7 @@ public class HomeView implements ViewLifecycle {
             .forEach(activityRowsContainer.getChildren()::add);
 
         requests.stream()
+            .map(DashboardRequestInfo::request)
             .sorted(Comparator.comparing(Request::getCreatedAt, Comparator.nullsLast(LocalDateTime::compareTo)).reversed())
             .limit(1)
             .map(this::buildRequestActivityItem)
@@ -161,7 +164,7 @@ public class HomeView implements ViewLifecycle {
         return card;
     }
 
-    private HBox buildPendingRow(Request request) {
+    private HBox buildPendingRow(DashboardRequestInfo info) {
         HBox row = new HBox(14);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(16, 20, 16, 20));
@@ -170,11 +173,12 @@ public class HomeView implements ViewLifecycle {
         VBox textBox = new VBox(4);
         HBox.setHgrow(textBox, Priority.ALWAYS);
 
+        Request request = info.request();
         Label title = new Label(String.format("YC-2026-%03d", request.getId()));
         title.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #0F172A;");
 
-        String deadline = resolveDeadline(request) == null ? "N/A" : resolveDeadline(request).format(DATE_FORMAT);
-        int itemCount = controller != null ? controller.countItemTypes(request.getId()) : 0;
+        String deadline = info.earliestDeliveryDate() == null ? "N/A" : info.earliestDeliveryDate().format(DATE_FORMAT);
+        int itemCount = info.itemCount();
         Label meta = new Label("Hạn nhận: " + deadline + "  •  " + itemCount + " mặt hàng");
         meta.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748B;");
 
@@ -202,17 +206,14 @@ public class HomeView implements ViewLifecycle {
         return buildActivityItem("YC", message, formatActivityTime(request.getCreatedAt()), "#0F766E");
     }
 
-    private String toRequestStatusText(String status) {
+    private String toRequestStatusText(RequestStatus status) {
         if (status == null) {
             return "N/A";
         }
-        return switch (status.trim().toLowerCase()) {
-            case "pending" -> "Chờ xử lý";
-            case "processing" -> "Đang xử lý";
-            case "shipping" -> "Đang giao";
-            case "completed" -> "Đã hoàn thành";
-            case "cancelled" -> "Đã hủy";
-            default -> status;
+        return switch (status) {
+            case PENDING -> "Chờ xử lý";
+            case PROCESSING -> "Đang xử lý";
+            case COMPLETED -> "Đã hoàn thành";
         };
     }
 
@@ -239,10 +240,6 @@ public class HomeView implements ViewLifecycle {
         textBox.getChildren().addAll(messageLabel, timeLabel);
         row.getChildren().addAll(badge, textBox);
         return row;
-    }
-
-    private LocalDate resolveDeadline(Request request) {
-        return controller != null ? controller.getEarliestDeliveryDate(request.getId()) : null;
     }
 
     private String formatActivityTime(LocalDateTime createdAt) {

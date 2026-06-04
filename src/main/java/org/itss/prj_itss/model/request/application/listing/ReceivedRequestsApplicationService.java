@@ -1,29 +1,29 @@
 package org.itss.prj_itss.model.request.application.listing;
 
-import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
 import org.itss.prj_itss.model.request.application.port.RequestDisplayFormatter;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.Objects;
 
 public final class ReceivedRequestsApplicationService {
 
-    private final RequestManagementUseCase requestService;
+    private final ReceivedRequestsPort requestService;
     private final RequestDisplayFormatter formatter;
 
     public ReceivedRequestsApplicationService(
-            RequestManagementUseCase requestService,
+            ReceivedRequestsPort requestService,
             RequestDisplayFormatter formatter
     ) {
-        this.requestService = requestService;
-        this.formatter = formatter;
+        this.requestService = Objects.requireNonNull(requestService, "requestService");
+        this.formatter = Objects.requireNonNull(formatter, "formatter");
     }
 
     public List<RequestRow> findRows() {
         return requestService.findAll().stream()
             .map(request -> {
                 LocalDate earliestDelivery = requestService.getEarliestDeliveryDate(request.getId());
-                String status = request.getStatus() == null ? "N/A" : request.getStatus();
+                String status = request.getStatusKey() == null ? "N/A" : request.getStatusKey();
                 String statusKey = formatter.normalizeStatusKey(status);
                 return new RequestRow(
                     request.getId(),
@@ -41,6 +41,6 @@ public final class ReceivedRequestsApplicationService {
     }
 
     public boolean deleteRequest(int requestId) {
-        return requestService.deleteRequest(requestId);
+        return requestService.deleteById(requestId);
     }
 }

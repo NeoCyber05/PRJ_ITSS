@@ -1,7 +1,7 @@
 package org.itss.prj_itss.controller.ordering.order;
 
-import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.order.application.OrderCancellationApplicationService;
 import org.itss.prj_itss.model.order.application.OrderUseCase;
 import org.itss.prj_itss.model.order.domain.Order;
@@ -16,13 +16,13 @@ public final class OrderDetailController {
     private final OrderUseCase orderService;
     private final OrderCancellationApplicationService orderCancellationApplicationService;
     private final SiteUseCase siteService;
-    private final CatalogUseCase merchandiseService;
+    private final MerchandiseUseCase merchandiseService;
 
     public OrderDetailController(
             OrderUseCase orderService,
             OrderCancellationApplicationService orderCancellationApplicationService,
             SiteUseCase siteService,
-            CatalogUseCase merchandiseService) {
+            MerchandiseUseCase merchandiseService) {
         this.orderService = orderService;
         this.orderCancellationApplicationService = orderCancellationApplicationService;
         this.siteService = siteService;
@@ -47,5 +47,9 @@ public final class OrderDetailController {
 
     public Merchandise findMerchandiseById(int id) {
         return merchandiseService.findById(id);
+    }
+
+    public java.time.LocalDate findDesiredDeliveryDate(int orderId, int merchandiseId) {
+        return orderService.findDesiredDeliveryDate(orderId, merchandiseId);
     }
 }

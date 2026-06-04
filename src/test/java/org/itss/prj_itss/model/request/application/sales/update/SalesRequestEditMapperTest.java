@@ -4,6 +4,7 @@ import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOptio
 import org.itss.prj_itss.model.request.application.sales.shared.SalesRequestItemSubmission;
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
+import org.itss.prj_itss.model.request.domain.request.RequestStatus;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -20,10 +21,10 @@ class SalesRequestEditMapperTest {
     @Test
     void mapsFormViewToStateAndBackToServiceInput() {
         MerchandiseOption option = new MerchandiseOption(10, "MH-001", "Item 1", "box");
-        Request request = new Request(
+        Request request = Request.reconstituteFromDb(
             1,
             LocalDateTime.of(2026, 5, 25, 0, 0),
-            "pending",
+            RequestStatus.PENDING,
             ""
         );
         RequestMerchandise item = new RequestMerchandise(

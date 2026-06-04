@@ -5,12 +5,13 @@ import org.itss.prj_itss.model.shared.database.JdbcRepositorySupport;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
+import org.itss.prj_itss.model.order.application.port.SiteOrderRepository;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class JdbcOrderRepository extends JdbcRepositorySupport implements OrderRepository {
+public class JdbcOrderRepository extends JdbcRepositorySupport implements OrderRepository, SiteOrderRepository {
 
     public JdbcOrderRepository(org.itss.prj_itss.model.shared.database.ConnectionProvider connectionProvider) {
         super(connectionProvider);
@@ -126,6 +127,108 @@ public class JdbcOrderRepository extends JdbcRepositorySupport implements OrderR
             System.err.println("OrderRepository.updateStatus: " + e.getMessage());
         }
         return false;
+    }
+
+    @Override
+    public java.time.LocalDate findDesiredDeliveryDate(int orderId, int merchandiseId) {
+        String sql = "SELECT rm.desired_delivery_date " +
+                     "FROM \"order\" o " +
+                     "JOIN request_merchandise rm ON o.request_id = rm.request_id " +
+                     "WHERE o.id = ? AND rm.merchandise_id = ?";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            ps.setInt(1, orderId);
+            ps.setInt(2, merchandiseId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    java.sql.Date date = rs.getDate("desired_delivery_date");
+                    if (date != null) {
+                        return date.toLocalDate();
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("OrderRepository.findDesiredDeliveryDate: " + e.getMessage());
+        }
+        return null;
+    }
+
+    private static final String FIND_BY_SITE_ID_SQL = """
+        SELECT id, request_id, site_id, created_at, status
+        FROM "order"
+        WHERE site_id = ?
+        ORDER BY id DESC
+        """;
+
+    private static final String FIND_BY_ID_FOR_SITE_SQL = """
+        SELECT id, request_id, site_id, created_at, status
+        FROM "order"
+        WHERE id = ? AND site_id = ?
+        """;
+
+    private static final String UPDATE_STATUS_FOR_SITE_SQL = """
+        UPDATE "order"
+        SET status = ?
+        WHERE id = ? AND site_id = ?
+        """;
+
+    @Override
+    public List<Order> findBySiteId(int siteId) {
+        List<Order> list = new ArrayList<>();
+        try (PreparedStatement ps = getConnection().prepareStatement(FIND_BY_SITE_ID_SQL)) {
+            ps.setInt(1, siteId);
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    list.add(mapOrder(rs));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SiteOrderRepository.findBySiteId: " + e.getMessage());
+        }
+        return list;
+    }
+
+    @Override
+    public Order findByIdForSite(int orderId, int siteId) {
+        try (PreparedStatement ps = getConnection().prepareStatement(FIND_BY_ID_FOR_SITE_SQL)) {
+            ps.setInt(1, orderId);
+            ps.setInt(2, siteId);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return mapOrder(rs);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SiteOrderRepository.findByIdForSite: " + e.getMessage());
+        }
+        return null;
+    }
+
+    @Override
+    public boolean updateStatusForSite(int orderId, int siteId, String newStatus) {
+        try (PreparedStatement ps = getConnection().prepareStatement(UPDATE_STATUS_FOR_SITE_SQL)) {
+            ps.setString(1, newStatus);
+            ps.setInt(2, orderId);
+            ps.setInt(3, siteId);
+            return ps.executeUpdate() > 0;
+        } catch (SQLException e) {
+            System.err.println("SiteOrderRepository.updateStatusForSite: " + e.getMessage());
+        }
+        return false;
+    }
+
+    @Override
+    public java.util.Map<Integer, Integer> countItemsGroupedByOrderId() {
+        java.util.Map<Integer, Integer> map = new java.util.HashMap<>();
+        String sql = "SELECT order_id, COUNT(*) as count FROM order_merchandise GROUP BY order_id";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                map.put(rs.getInt("order_id"), rs.getInt("count"));
+            }
+        } catch (SQLException e) {
+            System.err.println("OrderRepository.countItemsGroupedByOrderId: " + e.getMessage());
+        }
+        return map;
     }
 
     private Order mapOrder(ResultSet rs) throws SQLException {

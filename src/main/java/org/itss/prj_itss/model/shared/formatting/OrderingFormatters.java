@@ -20,6 +20,7 @@ public final class OrderingFormatters {
     public static final String STATUS_SHIPPING = "shipping";
     public static final String STATUS_COMPLETED = "completed";
     public static final String STATUS_CANCELLED = "cancelled";
+    public static final String STATUS_REMOVED = "removed";
 
     private static final Pattern NUMBER_GROUP = Pattern.compile("(\\d+)");
 
@@ -121,6 +122,7 @@ public final class OrderingFormatters {
             case STATUS_SHIPPING -> "\u0110ang giao";
             case STATUS_COMPLETED -> "\u0110\u00e3 ho\u00e0n th\u00e0nh";
             case STATUS_CANCELLED -> "\u0110\u00e3 h\u1ee7y";
+            case STATUS_REMOVED -> "\u0110\u00e3 lo\u1ea1i b\u1ecf";
             default -> status == null || status.isBlank() ? "N/A" : status.trim();
         };
     }
@@ -137,6 +139,7 @@ public final class OrderingFormatters {
             case "\u0110ang giao", "Dang giao" -> STATUS_SHIPPING;
             case "\u0110\u00e3 ho\u00e0n th\u00e0nh", "Da hoan thanh" -> STATUS_COMPLETED;
             case "\u0110\u00e3 h\u1ee7y", "Da huy" -> STATUS_CANCELLED;
+            case "\u0110\u00e3 lo\u1ea1i b\u1ecf", "Da loai bo" -> STATUS_REMOVED;
             default -> normalizeStatusKey(selectedStatus);
         };
     }

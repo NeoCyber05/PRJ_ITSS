@@ -1,12 +1,13 @@
 package org.itss.prj_itss.model.request.application.sales.update;
 
-import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
-import org.itss.prj_itss.model.catalog.application.port.MerchandiseRepository;
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
-import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
-import org.itss.prj_itss.model.request.application.port.RequestRepository;
+import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
+import org.itss.prj_itss.model.merchandise.application.port.MerchandiseRepository;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestCommandPort;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestQueryPort;
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
+import org.itss.prj_itss.model.request.domain.request.RequestStatus;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -73,30 +74,30 @@ class SalesRequestEditApplicationServiceTest {
     }
 
     private SalesRequestEditApplicationService newService(FakeRequestRepository requestRepository) {
-        RequestManagementUseCase requestUseCase = new RequestManagementUseCase(requestRepository);
-        CatalogUseCase catalogUseCase = new CatalogUseCase(new FakeMerchandiseRepository());
+        MerchandiseUseCase merchandiseUseCase = new MerchandiseUseCase(new FakeMerchandiseRepository());
         return new SalesRequestEditApplicationService(
-            requestUseCase,
-            catalogUseCase,
+            requestRepository,
+            requestRepository,
+            merchandiseUseCase,
             new SalesRequestEditMapper(),
             new SalesRequestEditValidator(),
             CLOCK
         );
     }
 
-    private static final class FakeRequestRepository implements RequestRepository {
+    private static final class FakeRequestRepository implements SalesRequestQueryPort, SalesRequestCommandPort {
 
         private int updateCount;
         private List<RequestMerchandise> updatedItems = List.of();
 
         @Override
-        public List<Request> findAll() {
-            return List.of();
-        }
-
-        @Override
         public Request findById(int id) {
-            return new Request(id, LocalDateTime.of(2026, 5, 24, 10, 30), "pending", "");
+            return Request.reconstituteFromDb(
+                id,
+                LocalDateTime.of(2026, 5, 24, 10, 30),
+                RequestStatus.PENDING,
+                ""
+            );
         }
 
         @Override
@@ -110,28 +111,13 @@ class SalesRequestEditApplicationServiceTest {
         }
 
         @Override
-        public int countItemTypes(int requestId) {
-            return 0;
-        }
-
-        @Override
-        public LocalDate getEarliestDeliveryDate(int requestId) {
-            return null;
-        }
-
-        @Override
-        public boolean updateStatus(int requestId, String newStatus) {
-            return false;
-        }
-
-        @Override
         public void updateRequestItems(int requestId, List<RequestMerchandise> items, String note) {
             updateCount++;
             updatedItems = new ArrayList<>(items);
         }
 
         @Override
-        public int createRequest(List<RequestMerchandise> items, String note) {
+        public int createRequest(Request request) {
             return 0;
         }
 
@@ -154,6 +140,11 @@ class SalesRequestEditApplicationServiceTest {
         }
 
         @Override
+        public List<Merchandise> findActive() {
+            return merchandise;
+        }
+
+        @Override
         public Merchandise findById(int id) {
             return merchandise.stream()
                 .filter(item -> item.getId() == id)
@@ -172,6 +163,21 @@ class SalesRequestEditApplicationServiceTest {
         @Override
         public int countAll() {
             return merchandise.size();
+        }
+
+        @Override
+        public int create(Merchandise merchandise) {
+            return 0;
+        }
+
+        @Override
+        public boolean update(Merchandise merchandise) {
+            return false;
+        }
+
+        @Override
+        public boolean setActive(int merchandiseId, boolean active) {
+            return false;
         }
     }
 }

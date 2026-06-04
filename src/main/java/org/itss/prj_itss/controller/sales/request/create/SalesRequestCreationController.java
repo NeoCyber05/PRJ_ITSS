@@ -25,7 +25,7 @@ public final class SalesRequestCreationController {
     private void submit(
             ISalesRequestCreationViewPort screen,
             List<SalesRequestCreationItemInput> items,
-            Runnable onCreated
+        Runnable onCreated
     ) {
         SalesRequestCreationResult result = creationService.createRequest(toDrafts(items), "");
         if (!result.success()) {

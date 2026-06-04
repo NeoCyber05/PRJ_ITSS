@@ -21,7 +21,7 @@ public final class SalesRequestEditMapper {
         SalesRequestEditState state = new SalesRequestEditState(
             request.getId(),
             request.getCreatedAt(),
-            request.getStatus()
+            request.getStatusKey()
         );
 
         Map<Integer, MerchandiseOption> merchandiseById = merchandiseOptions.stream()

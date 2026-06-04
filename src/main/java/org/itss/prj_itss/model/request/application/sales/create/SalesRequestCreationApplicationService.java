@@ -1,9 +1,10 @@
 package org.itss.prj_itss.model.request.application.sales.create;
 
-import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
-import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
+import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestCommandPort;
 import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
+import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
 
 import java.time.Clock;
@@ -13,19 +14,19 @@ import java.util.Objects;
 
 public final class SalesRequestCreationApplicationService {
 
-    private final RequestManagementUseCase requestService;
-    private final CatalogUseCase catalogUseCase;
+    private final SalesRequestCommandPort commandPort;
+    private final MerchandiseUseCase merchandiseUseCase;
     private final SalesRequestCreationValidator validator;
     private final Clock clock;
 
     public SalesRequestCreationApplicationService(
-            RequestManagementUseCase requestService,
-            CatalogUseCase catalogUseCase,
+            SalesRequestCommandPort commandPort,
+            MerchandiseUseCase merchandiseUseCase,
             SalesRequestCreationValidator validator,
             Clock clock
     ) {
-        this.requestService = Objects.requireNonNull(requestService, "requestService");
-        this.catalogUseCase = Objects.requireNonNull(catalogUseCase, "catalogUseCase");
+        this.commandPort = Objects.requireNonNull(commandPort, "commandPort");
+        this.merchandiseUseCase = Objects.requireNonNull(merchandiseUseCase, "merchandiseUseCase");
         this.validator = Objects.requireNonNull(validator, "validator");
         this.clock = Objects.requireNonNull(clock, "clock");
     }
@@ -34,7 +35,7 @@ public final class SalesRequestCreationApplicationService {
         if (code == null || code.isBlank()) {
             return null;
         }
-        Merchandise merchandise = catalogUseCase.findByCode(code.trim());
+        Merchandise merchandise = merchandiseUseCase.findByCode(code.trim());
         if (merchandise == null) {
             return null;
         }
@@ -42,7 +43,7 @@ public final class SalesRequestCreationApplicationService {
     }
 
     public List<MerchandiseOption> findMerchandiseOptions() {
-        return catalogUseCase.findAll().stream()
+        return merchandiseUseCase.findActive().stream()
             .map(this::toMerchandiseOption)
             .toList();
     }
@@ -55,7 +56,15 @@ public final class SalesRequestCreationApplicationService {
         }
 
         try {
-            int requestId = requestService.createRequest(toDomainItems(validationResult.validItems()), note);
+            Request request = new Request(note);
+            toDomainItems(validationResult.validItems()).forEach(item ->
+                request.addItem(
+                    item.getMerchandiseId(),
+                    item.getQuantityOrdered(),
+                    item.getDesiredDeliveryDate()
+                )
+            );
+            int requestId = commandPort.createRequest(request);
             return SalesRequestCreationResult.created(requestId);
         } catch (Exception exception) {
             return SalesRequestCreationResult.failed(exception.getMessage());

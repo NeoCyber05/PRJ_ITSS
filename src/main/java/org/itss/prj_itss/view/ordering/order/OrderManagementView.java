@@ -100,7 +100,21 @@ public final class OrderManagementView implements ViewLifecycle {
                     }
                 });
 
-                setGraphic(detailButton);
+                HBox actions = new HBox(8);
+                actions.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                actions.getChildren().add(detailButton);
+
+                if (OrderingFormatters.STATUS_CANCELLED.equalsIgnoreCase(OrderingFormatters.normalizeStatusKey(row.status()))) {
+                    Button processButton = new Button("X\u1eed l\u00ed");
+                    processButton.setOnAction(event -> {
+                        if (navigator != null) {
+                            navigator.showView("ordering-order-handle-cancellation:" + row.order().getId());
+                        }
+                    });
+                    actions.getChildren().add(processButton);
+                }
+
+                setGraphic(actions);
                 setText(null);
             }
         });
@@ -108,13 +122,14 @@ public final class OrderManagementView implements ViewLifecycle {
         orderTable.setItems(filteredRows);
 
         statusFilter.getItems().addAll(
-            "Mọi trạng thái",
-            "Chờ xác nhận",
-            "Đang giao",
-            "Đã hoàn thành",
-            "Đã hủy"
+            "M\u1ecdi tr\u1ea1ng th\u00e1i",
+            "Ch\u1edd x\u00e1c nh\u1eadn",
+            "\u0110ang giao",
+            "\u0110\u00e3 ho\u00e0n th\u00e0nh",
+            "\u0110\u00e3 h\u1ee7y",
+            "\u0110\u00e3 lo\u1ea1i b\u1ecf"
         );
-        statusFilter.setValue("Mọi trạng thái");
+        statusFilter.setValue("M\u1ecdi tr\u1ea1ng th\u00e1i");
 
         searchField.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         statusFilter.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());

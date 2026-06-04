@@ -1,10 +1,9 @@
 package org.itss.prj_itss.model.request.application.sales.create;
 
-import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
-import org.itss.prj_itss.model.catalog.application.port.MerchandiseRepository;
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
-import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
-import org.itss.prj_itss.model.request.application.port.RequestRepository;
+import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
+import org.itss.prj_itss.model.merchandise.application.port.MerchandiseRepository;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestCommandPort;
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
 import org.junit.jupiter.api.Test;
@@ -78,59 +77,28 @@ class SalesRequestCreationApplicationServiceTest {
     }
 
     private SalesRequestCreationApplicationService newService(FakeRequestRepository requestRepository) {
-        RequestManagementUseCase requestUseCase = new RequestManagementUseCase(requestRepository);
-        CatalogUseCase catalogUseCase = new CatalogUseCase(new FakeMerchandiseRepository());
+        MerchandiseUseCase merchandiseUseCase = new MerchandiseUseCase(new FakeMerchandiseRepository());
         return new SalesRequestCreationApplicationService(
-            requestUseCase,
-            catalogUseCase,
+            requestRepository,
+            merchandiseUseCase,
             new SalesRequestCreationValidator(),
             CLOCK
         );
     }
 
-    private static final class FakeRequestRepository implements RequestRepository {
+    private static final class FakeRequestRepository implements SalesRequestCommandPort {
 
         private int createCount;
         private List<RequestMerchandise> createdItems = List.of();
-
-        @Override
-        public List<Request> findAll() {
-            return List.of();
-        }
-
-        @Override
-        public Request findById(int id) {
-            return null;
-        }
-
-        @Override
-        public List<RequestMerchandise> findItemsByRequestId(int requestId) {
-            return List.of();
-        }
-
-        @Override
-        public int countItemTypes(int requestId) {
-            return 0;
-        }
-
-        @Override
-        public LocalDate getEarliestDeliveryDate(int requestId) {
-            return null;
-        }
-
-        @Override
-        public boolean updateStatus(int requestId, String newStatus) {
-            return false;
-        }
 
         @Override
         public void updateRequestItems(int requestId, List<RequestMerchandise> items, String note) {
         }
 
         @Override
-        public int createRequest(List<RequestMerchandise> items, String note) {
+        public int createRequest(Request request) {
             createCount++;
-            createdItems = new ArrayList<>(items);
+            createdItems = new ArrayList<>(request.getItems());
             return 99;
         }
 
@@ -153,6 +121,11 @@ class SalesRequestCreationApplicationServiceTest {
         }
 
         @Override
+        public List<Merchandise> findActive() {
+            return merchandise;
+        }
+
+        @Override
         public Merchandise findById(int id) {
             return merchandise.stream()
                 .filter(item -> item.getId() == id)
@@ -171,6 +144,21 @@ class SalesRequestCreationApplicationServiceTest {
         @Override
         public int countAll() {
             return merchandise.size();
+        }
+
+        @Override
+        public int create(Merchandise merchandise) {
+            return 0;
+        }
+
+        @Override
+        public boolean update(Merchandise merchandise) {
+            return false;
+        }
+
+        @Override
+        public boolean setActive(int merchandiseId, boolean active) {
+            return false;
         }
     }
 }

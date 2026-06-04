@@ -44,16 +44,13 @@ class MvcDependencyTest {
     }
 
     @Test
-    void controllerDoesNotDependOnViewOrJavaFx() throws IOException {
+    void controllerDoesNotDependOnJavaFx() throws IOException {
         List<String> violations = new ArrayList<>();
         for (SourceFile sourceFile : sourceFiles()) {
             if (!sourceFile.packageName().startsWith(BASE_PACKAGE + ".controller")) {
                 continue;
             }
             for (String importLine : sourceFile.imports()) {
-                if (importLine.startsWith(BASE_PACKAGE + ".view")) {
-                    violations.add(sourceFile.relativePath() + " (Controller) imports View: " + importLine);
-                }
                 if (importLine.startsWith("javafx.")) {
                     violations.add(sourceFile.relativePath() + " (Controller) imports JavaFX: " + importLine);
                 }

@@ -44,7 +44,7 @@
                                 <VBox alignment="CENTER_LEFT" prefWidth="200" spacing="4" styleClass="stat-card" HBox.hgrow="ALWAYS">
                                     <children>
                                         <Label fx:id="activeSitesLabel" styleClass="stat-value"/>
-                                        <Label text="Site đang hoạt động" styleClass="stat-label"/>
+                                        <Label text="Site đã khai báo" styleClass="stat-label"/>
                                     </children>
                                 </VBox>
                                 <VBox alignment="CENTER_LEFT" prefWidth="200" spacing="4" styleClass="stat-card" HBox.hgrow="ALWAYS">
@@ -64,6 +64,8 @@
                                            styleClass="search-field"
                                            HBox.hgrow="ALWAYS"/>
                                 <Button fx:id="addSiteButton" text="+ Thêm Site mới" styleClass="btn-primary"/>
+                                <Button fx:id="editSiteButton" text="Sửa Site"/>
+                                <Button fx:id="createSiteAccountButton" text="Tạo tài khoản Site"/>
                             </children>
                         </HBox>
 

@@ -1,61 +1,131 @@
 package org.itss.prj_itss.view.ordering.order;
 
+import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.ButtonType;
+import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.effect.GaussianBlur;
-import javafx.scene.layout.*;
-import javafx.scene.shape.Circle;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
+import javafx.scene.layout.Priority;
+import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
+import javafx.scene.shape.Circle;
 import org.itss.prj_itss.App;
 import org.itss.prj_itss.controller.navigation.Navigator;
 import org.itss.prj_itss.controller.ordering.order.OrderDetailController;
 import org.itss.prj_itss.controller.ordering.order.OrderManagementController;
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
+import org.itss.prj_itss.model.order.application.OrderCancellationApplicationService;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.site.domain.Site;
-import org.itss.prj_itss.model.order.application.OrderCancellationApplicationService;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
+import org.itss.prj_itss.model.shared.formatting.DeliveryStatusFormatter;
+import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
+import java.time.temporal.ChronoUnit;
 
+import java.io.IOException;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Locale;
 
 public final class OrderDetailView implements ViewLifecycle {
 
+    private static final String VIEW_RESOURCE = "/org/itss/prj_itss/view/ordering/order/order-detail-view.fxml";
+    private static final String ORDERS_VIEW_ID = "orders";
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
 
-    private final StackPane view;
+    private Node view;
     private Navigator navigator;
     private OrderDetailController controller;
     private OrderManagementController managementController;
-
     private String orderIdRaw;
+    private Order currentOrder;
+    private Runnable onBackAction;
+
+    @FXML
+    private StackPane backgroundContainer;
+
+    @FXML
+    private Region backdrop;
+
+    @FXML
     private BorderPane panelRoot;
+    private Runnable onCloseAction;
+    private boolean isEmbedded = false;
+
+    @FXML
+    private Label subtitleLabel;
+
+    @FXML
+    private Region cancelSpacer;
+
+    @FXML
+    private Button cancelButton;
+
+    @FXML
+    private HBox topStatusContainer;
+
+    @FXML
+    private ScrollPane scrollPane;
+
+    @FXML
+    private VBox contentBox;
 
     public OrderDetailView() {
-        this.view = new StackPane();
-        this.view.setStyle("-fx-background-color: #F3F7FB;");
+        loadView();
     }
 
-    public void init(Navigator navigator, OrderDetailController controller, OrderManagementController managementController, String orderIdRaw) {
+    public void init(
+        Navigator navigator,
+        OrderDetailController controller,
+        OrderManagementController managementController,
+        String orderIdRaw
+    ) {
+        init(navigator, controller, managementController, orderIdRaw, null);
+    }
+
+    public void init(
+        Navigator navigator,
+        OrderDetailController controller,
+        OrderManagementController managementController,
+        String orderIdRaw,
+        Runnable onBackAction
+    ) {
         this.navigator = navigator;
         this.controller = controller;
         this.managementController = managementController;
         this.orderIdRaw = orderIdRaw;
+        this.onBackAction = onBackAction != null ? onBackAction : () -> {
+            if (this.navigator != null) {
+                this.navigator.showView("orders");
+            }
+        };
+        this.onCloseAction = null;
 
-        this.view.getChildren().clear();
+        StackPane rootStack = (StackPane) this.view;
+        rootStack.getChildren().clear();
 
         Node background = loadOrdersBackground();
         background.setEffect(new GaussianBlur(14));
         background.setOpacity(0.96);
 
-        Region backdrop = new Region();
-        backdrop.setStyle("-fx-background-color: rgba(15,23,42,0.34);");
-        backdrop.setOnMouseClicked(event -> navigator.showView("orders"));
+        Region backdropRegion = new Region();
+        backdropRegion.setStyle("-fx-background-color: rgba(15,23,42,0.34);");
+        backdropRegion.setOnMouseClicked(event -> {
+            if (this.onBackAction != null) {
+                this.onBackAction.run();
+            }
+        });
 
         this.panelRoot = new BorderPane();
         this.panelRoot.setMaxWidth(Double.MAX_VALUE);
@@ -64,9 +134,9 @@ public final class OrderDetailView implements ViewLifecycle {
         buildPanelContent();
 
         VBox drawerContainer = new VBox(panelRoot);
-        drawerContainer.setStyle("-fx-background-color: white; -fx-background-radius: 24 0 0 24; -fx-border-radius: 24 0 0 24;");
-        drawerContainer.setPrefWidth(540);
-        drawerContainer.setMinWidth(540);
+        drawerContainer.setStyle("-fx-background-color: white; -fx-background-radius: 24 0 0 24; -fx-border-radius: 24 0 0 24; -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.18), 28, 0, 0, 10);");
+        drawerContainer.setPrefWidth(920);
+        drawerContainer.setMinWidth(920);
         VBox.setVgrow(panelRoot, Priority.ALWAYS);
 
         HBox drawerLayer = new HBox();
@@ -75,7 +145,29 @@ public final class OrderDetailView implements ViewLifecycle {
         drawerLayer.getChildren().addAll(spacer, drawerContainer);
         drawerLayer.setAlignment(Pos.CENTER_RIGHT);
 
-        view.getChildren().addAll(background, backdrop, drawerLayer);
+        rootStack.getChildren().addAll(background, backdropRegion, drawerLayer);
+    }
+    
+    public void initAsEmbedded(OrderDetailController controller, String orderIdRaw, Runnable onBackAction, Runnable onCloseAction) {
+        this.controller = controller;
+        this.orderIdRaw = orderIdRaw;
+        this.onBackAction = onBackAction;
+        this.onCloseAction = onCloseAction;
+        this.isEmbedded = true;
+        this.navigator = null;
+        this.managementController = null;
+        
+        StackPane rootStack = (StackPane) this.view;
+        rootStack.getChildren().clear();
+        this.view.setStyle("-fx-background-color: transparent;");
+        
+        this.panelRoot = new BorderPane();
+        this.panelRoot.setMaxWidth(Double.MAX_VALUE);
+        this.panelRoot.setStyle("-fx-background-color: transparent;"); // container handles background
+        
+        buildPanelContent();
+        
+        rootStack.getChildren().add(this.panelRoot);
     }
 
     @Override
@@ -84,26 +176,74 @@ public final class OrderDetailView implements ViewLifecycle {
     }
 
     private Node loadOrdersBackground() {
-        try {
-            FXMLLoader loader = new FXMLLoader(App.class.getResource("/org/itss/prj_itss/view/ordering/order/order-management-view.fxml"));
-            Node background = loader.load();
-            Object controllerObj = loader.getController();
-            if (controllerObj instanceof OrderManagementView viewObj) {
-                viewObj.init(navigator, managementController);
-            }
-            return background;
-        } catch (Exception exception) {
-            Label errorLabel = new Label("Không thể tải danh sách đơn hàng.");
-            StackPane fallback = new StackPane(errorLabel);
-            fallback.getStyleClass().add("content-area");
-            return fallback;
+        Region bg = new Region();
+        bg.setStyle("-fx-background-color: #F8FAFC;");
+        return bg;
+    }
+
+    @FXML
+    private void initialize() {
+        scrollPane.addEventFilter(ScrollEvent.SCROLL, this::handlePanelScroll);
+    }
+
+    @FXML
+    private void handleBackAction() {
+        if (onBackAction != null) {
+            onBackAction.run();
+        } else {
+            navigateToOrders();
         }
     }
 
+    @FXML
+    private void handleCancelOrderAction() {
+        if (currentOrder == null || controller == null) {
+            return;
+        }
+
+        Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
+        alert.setTitle("Xác nhận hủy");
+        alert.setHeaderText("Bạn có chắc chắn muốn hủy đơn hàng này không?");
+        alert.setContentText("Hành động này không thể hoàn tác.");
+
+        alert.showAndWait().ifPresent(response -> {
+            if (response != ButtonType.OK) {
+                return;
+            }
+
+            OrderCancellationApplicationService.CancellationResult result = controller.cancel(currentOrder.getId());
+            if (result.success()) {
+                navigateToOrders();
+            }
+        });
+    }
+
+    public Node getView() {
+        return view;
+    }
+
+    private void loadView() {
+        try {
+            FXMLLoader loader = new FXMLLoader(App.class.getResource(VIEW_RESOURCE));
+            loader.setController(this);
+            view = loader.load();
+        } catch (IOException exception) {
+            throw new IllegalStateException("Unable to load order detail view.", exception);
+        }
+    }
+
+    private void configureBackground() {
+        // Disabled background reloading to eliminate performance lag when loading and exiting order details.
+    }
+
     private void buildPanelContent() {
-        if (controller == null) return;
+        if (controller == null) {
+            return;
+        }
+
         int orderId = parseOrderId(orderIdRaw);
         Order order = controller.findById(orderId);
+        currentOrder = order;
         if (order == null) {
             Label errorLabel = new Label("Không tìm thấy đơn hàng.");
             errorLabel.setStyle("-fx-font-size: 16px; -fx-text-fill: #DC2626; -fx-padding: 40;");
@@ -123,8 +263,8 @@ public final class OrderDetailView implements ViewLifecycle {
 
         Button backButton = new Button("‹");
         backButton.setOnAction(event -> {
-            if (navigator != null) {
-                navigator.showView("orders");
+            if (onBackAction != null) {
+                onBackAction.run();
             }
         });
         backButton.setStyle(
@@ -143,16 +283,17 @@ public final class OrderDetailView implements ViewLifecycle {
         VBox titleBox = new VBox(6);
         Label titleLabel = new Label("Chi tiết đơn hàng");
         titleLabel.setStyle("-fx-font-size: 21px; -fx-font-weight: bold; -fx-text-fill: #1E293B;");
-        Label subtitleLabel = new Label("Mã đơn hàng: " + String.format("DH-2026-%03d", order.getId()));
+        Label subtitleLabel = new Label("Mã đơn hàng: " + formatOrderCode(order.getId()));
         subtitleLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #7B8DA6;");
         titleBox.getChildren().addAll(titleLabel, subtitleLabel);
 
         topRow.getChildren().addAll(backButton, titleBox);
 
+        Region topSpacer = new Region();
+        HBox.setHgrow(topSpacer, Priority.ALWAYS);
+        topRow.getChildren().add(topSpacer);
+
         if ("pending".equalsIgnoreCase(order.getStatus())) {
-            Region spacer = new Region();
-            HBox.setHgrow(spacer, Priority.ALWAYS);
-            
             Button cancelBtn = new Button("Hủy đơn hàng");
             cancelBtn.setStyle(
                 "-fx-background-color: #FEF2F2; " +
@@ -174,14 +315,27 @@ public final class OrderDetailView implements ViewLifecycle {
                 alert.showAndWait().ifPresent(response -> {
                     if (response == ButtonType.OK) {
                         OrderCancellationApplicationService.CancellationResult result = controller.cancel(order.getId());
-                        if (result.success() && navigator != null) {
-                            navigator.showView("orders");
+                        if (result.success() && onBackAction != null) {
+                            onBackAction.run();
                         }
                     }
                 });
             });
             
-            topRow.getChildren().addAll(spacer, cancelBtn);
+            topRow.getChildren().add(cancelBtn);
+        }
+
+        if (onCloseAction != null) {
+            Button closeBtn = new Button("✕");
+            closeBtn.setStyle(
+                "-fx-background-color: transparent;" +
+                "-fx-text-fill: #94A3B8;" +
+                "-fx-font-size: 18px;" +
+                "-fx-font-weight: bold;" +
+                "-fx-cursor: hand;"
+            );
+            closeBtn.setOnAction(e -> onCloseAction.run());
+            topRow.getChildren().add(closeBtn);
         }
 
         Label topStatusBadge = buildTopStatusBadge(order.getStatus());
@@ -219,13 +373,15 @@ public final class OrderDetailView implements ViewLifecycle {
         BorderPane.setMargin(scrollPane, new Insets(0, 4, 24, 4));
     }
 
+
+
     private VBox buildOverviewCard(Order order, Site site, List<OrderMerchandise> items) {
         VBox card = buildCard("Thông tin tổng quan");
 
         VBox grid = new VBox(24);
         grid.getChildren().addAll(
             buildOverviewRow(
-                buildInfoCell("Mã đơn hàng", String.format("DH-2026-%03d", order.getId())),
+                buildInfoCell("Mã đơn hàng", formatOrderCode(order.getId())),
                 buildInfoCell("Mã Site", site != null ? site.getSiteCode() : "N/A"),
                 buildInfoCell("Tên Site", site != null ? site.getName() : "N/A")
             ),
@@ -250,7 +406,6 @@ public final class OrderDetailView implements ViewLifecycle {
 
         HBox progress = new HBox(0);
         progress.setAlignment(Pos.CENTER);
-
         progress.getChildren().add(buildProgressStep("1", "Chờ xác nhận", confirmed ? "#F59E0B" : "#CBD5E1", confirmed));
         progress.getChildren().add(buildProgressLine(shipping ? "#60A5FA" : "#D6DFEA"));
         progress.getChildren().add(buildProgressStep("2", "Đang giao", shipping ? "#3B82F6" : "#CBD5E1", shipping));
@@ -264,20 +419,22 @@ public final class OrderDetailView implements ViewLifecycle {
     private VBox buildItemsCard(List<OrderMerchandise> items) {
         VBox card = buildCard("Danh sách mặt hàng");
 
-        double indexWidth = 42;
-        double codeWidth = 90;
-        double nameWidth = 170;
-        double quantityWidth = 92;
-        double unitWidth = 88;
-        double transportWidth = 120;
+        double indexWidth = 35;
+        double codeWidth = 80;
+        double nameWidth = 160;
+        double quantityWidth = 80;
+        double unitWidth = 70;
+        double transportWidth = 100;
+        double desiredDateWidth = 105;
+        double deliveryStatusWidth = 110;
 
         VBox table = new VBox(0);
         table.setStyle(
             "-fx-background-color: white;" +
-            "-fx-background-radius: 16;" +
-            "-fx-border-radius: 16;" +
-            "-fx-border-color: #E7EDF5;" +
-            "-fx-border-width: 1;"
+                "-fx-background-radius: 16;" +
+                "-fx-border-radius: 16;" +
+                "-fx-border-color: #E7EDF5;" +
+                "-fx-border-width: 1;"
         );
 
         HBox header = new HBox();
@@ -290,7 +447,9 @@ public final class OrderDetailView implements ViewLifecycle {
             headerCell("TÊN MẶT HÀNG", nameWidth),
             headerCell("SỐ LƯỢNG ĐẶT", quantityWidth),
             headerCell("ĐƠN VỊ TÍNH", unitWidth),
-            headerCell("PHƯƠNG THỨC VẬN CHUYỂN", transportWidth)
+            headerCell("PHƯƠNG THỨC VẬN CHUYỂN", transportWidth),
+            headerCell("NGÀY CẦN", desiredDateWidth),
+            headerCell("TRẠNG THÁI ETA", deliveryStatusWidth)
         );
         table.getChildren().add(header);
 
@@ -301,20 +460,7 @@ public final class OrderDetailView implements ViewLifecycle {
         } else {
             int index = 1;
             for (OrderMerchandise item : items) {
-                Merchandise merchandise = controller.findMerchandiseById(item.getMerchandiseId());
-                HBox row = new HBox();
-                row.setAlignment(Pos.CENTER_LEFT);
-                row.setPadding(new Insets(16, 18, 16, 18));
-                row.setStyle("-fx-border-color: transparent transparent #EEF3F8 transparent; -fx-border-width: 0 0 1 0;");
-                row.getChildren().addAll(
-                    tableCell(String.valueOf(index++), indexWidth, false),
-                    tableCell(merchandise != null ? merchandise.getCode() : "N/A", codeWidth, true),
-                    tableCell(merchandise != null ? merchandise.getName() : "N/A", nameWidth, false),
-                    tableCell(item.getQuantity() != null ? item.getQuantity().toPlainString() : "0", quantityWidth, true),
-                    tableCell(merchandise != null && merchandise.getUnit() != null ? merchandise.getUnit() : "N/A", unitWidth, false),
-                    buildTransportCell(displayTransportMethod(item.getDeliveryMethod()), transportWidth)
-                );
-                table.getChildren().add(row);
+                table.getChildren().add(buildItemRow(item, index++, indexWidth, codeWidth, nameWidth, quantityWidth, unitWidth, transportWidth, desiredDateWidth, deliveryStatusWidth));
             }
         }
 
@@ -322,15 +468,77 @@ public final class OrderDetailView implements ViewLifecycle {
         return card;
     }
 
+    private HBox buildItemRow(
+        OrderMerchandise item,
+        int index,
+        double indexWidth,
+        double codeWidth,
+        double nameWidth,
+        double quantityWidth,
+        double unitWidth,
+        double transportWidth,
+        double desiredDateWidth,
+        double deliveryStatusWidth
+    ) {
+        Merchandise merchandise = controller.findMerchandiseById(item.getMerchandiseId());
+        
+        // Retrieve desired delivery date
+        java.time.LocalDate desiredDeliveryDate = controller.findDesiredDeliveryDate(currentOrder.getId(), item.getMerchandiseId());
+        String desiredDateText = desiredDeliveryDate != null ? OrderingFormatters.formatDate(desiredDeliveryDate) : "N/A";
+        
+        // Calculate delivery ETA status
+        String statusTextVal = "N/A";
+        String statusStyleClass = "allocation-eta-unavailable";
+        
+        if (desiredDeliveryDate != null && currentOrder.getCreatedAt() != null) {
+            Site site = controller.findSiteById(currentOrder.getSiteId());
+            int deadlineDays = (int) ChronoUnit.DAYS.between(currentOrder.getCreatedAt().toLocalDate(), desiredDeliveryDate);
+            int deliveryDays = 999;
+            if (site != null) {
+                boolean isSea = "ship".equalsIgnoreCase(item.getDeliveryMethod());
+                deliveryDays = isSea 
+                    ? (site.getShipDeliveryDays() == null ? 999 : site.getShipDeliveryDays())
+                    : (site.getAirDeliveryDays() == null ? 999 : site.getAirDeliveryDays());
+            }
+            int dayDelta = deadlineDays - deliveryDays;
+            
+            DeliveryStatusFormatter.DeliveryStatusView statusView = DeliveryStatusFormatter.format(dayDelta, deliveryDays < 999);
+            statusTextVal = statusView.text();
+            statusStyleClass = statusView.styleClass();
+        }
+        
+        Label statusLabel = new Label(statusTextVal);
+        statusLabel.getStyleClass().add(statusStyleClass);
+        statusLabel.setWrapText(true);
+        statusLabel.setMinWidth(deliveryStatusWidth);
+        statusLabel.setPrefWidth(deliveryStatusWidth);
+
+        HBox row = new HBox();
+        row.setAlignment(Pos.CENTER_LEFT);
+        row.setPadding(new Insets(16, 18, 16, 18));
+        row.setStyle("-fx-border-color: transparent transparent #EEF3F8 transparent; -fx-border-width: 0 0 1 0;");
+        row.getChildren().addAll(
+            tableCell(String.valueOf(index), indexWidth, false),
+            tableCell(merchandise != null ? merchandise.getCode() : "N/A", codeWidth, true),
+            tableCell(merchandise != null ? merchandise.getName() : "N/A", nameWidth, false),
+            tableCell(item.getQuantity() != null ? item.getQuantity().toPlainString() : "0", quantityWidth, true),
+            tableCell(merchandise != null && merchandise.getUnit() != null ? merchandise.getUnit() : "N/A", unitWidth, false),
+            buildTransportCell(displayTransportMethod(item.getDeliveryMethod()), transportWidth),
+            tableCell(desiredDateText, desiredDateWidth, false),
+            statusLabel
+        );
+        return row;
+    }
+
     private VBox buildCard(String title) {
         VBox card = new VBox(18);
         card.setPadding(new Insets(22));
         card.setStyle(
             "-fx-background-color: white;" +
-            "-fx-background-radius: 18;" +
-            "-fx-border-radius: 18;" +
-            "-fx-border-color: #E5ECF4;" +
-            "-fx-border-width: 1;"
+                "-fx-background-radius: 18;" +
+                "-fx-border-radius: 18;" +
+                "-fx-border-color: #E5ECF4;" +
+                "-fx-border-width: 1;"
         );
 
         Label titleLabel = new Label(title);
@@ -421,8 +629,8 @@ public final class OrderDetailView implements ViewLifecycle {
         label.setPrefWidth(width);
         label.setStyle(
             "-fx-font-size: 13px;" +
-            "-fx-text-fill: #334155;" +
-            (bold ? "-fx-font-weight: bold;" : "")
+                "-fx-text-fill: #334155;" +
+                (bold ? "-fx-font-weight: bold;" : "")
         );
         return label;
     }
@@ -437,34 +645,32 @@ public final class OrderDetailView implements ViewLifecycle {
 
     private Label buildStatusBadge(String status) {
         String[] colors = resolveStatusBadgeColors(status);
-        String displayText = statusText(status);
-
-        Label badge = new Label("\u25cf " + displayText);
+        Label badge = new Label("● " + statusText(status));
         badge.setStyle(
             "-fx-background-color: " + colors[0] + ";" +
-            "-fx-text-fill: " + colors[1] + ";" +
-            "-fx-background-radius: 999;" +
-            "-fx-padding: 7 12;" +
-            "-fx-font-size: 11px;" +
-            "-fx-font-weight: bold;"
+                "-fx-text-fill: " + colors[1] + ";" +
+                "-fx-background-radius: 999;" +
+                "-fx-padding: 7 12;" +
+                "-fx-font-size: 11px;" +
+                "-fx-font-weight: bold;"
         );
         return badge;
     }
 
     private Label buildTransportBadgeCompact(String transport) {
         boolean seaTransport = isSeaTransport(transport);
-        String icon = seaTransport ? "\uD83D\uDEA2 " : "\u2708 ";
+        String icon = seaTransport ? "🚢 " : "✈ ";
         String background = seaTransport ? "#E8F1FF" : "#FFF4E5";
         String foreground = seaTransport ? "#2563EB" : "#D97706";
 
         Label badge = new Label(icon + transport);
         badge.setStyle(
             "-fx-background-color: " + background + ";" +
-            "-fx-text-fill: " + foreground + ";" +
-            "-fx-background-radius: 999;" +
-            "-fx-padding: 5 10;" +
-            "-fx-font-size: 11px;" +
-            "-fx-font-weight: bold;"
+                "-fx-text-fill: " + foreground + ";" +
+                "-fx-background-radius: 999;" +
+                "-fx-padding: 5 10;" +
+                "-fx-font-size: 11px;" +
+                "-fx-font-weight: bold;"
         );
         return badge;
     }
@@ -485,13 +691,12 @@ public final class OrderDetailView implements ViewLifecycle {
             return false;
         }
         return switch (transport.trim()) {
-            case "Duong bien", "Tau", "\u0110\u01b0\u1eddng bi\u1ec3n", "T\u00e0u" -> true;
+            case "Duong bien", "Tau", "Đường biển", "Tàu" -> true;
             default -> false;
         };
     }
 
     private Label buildTopStatusBadge(String status) {
-        String effectiveStatus = statusText(status);
         String normalizedStatus = normalizeStatusKey(status);
         String background = "#E8F1FF";
         String foreground = "#2563EB";
@@ -507,16 +712,41 @@ public final class OrderDetailView implements ViewLifecycle {
             foreground = "#B91C1C";
         }
 
-        Label label = new Label(effectiveStatus);
+        Label label = new Label(statusText(status));
         label.setStyle(
             "-fx-background-color: " + background + ";" +
-            "-fx-text-fill: " + foreground + ";" +
-            "-fx-background-radius: 12;" +
-            "-fx-padding: 10 16;" +
-            "-fx-font-size: 13px;" +
-            "-fx-font-weight: bold;"
+                "-fx-text-fill: " + foreground + ";" +
+                "-fx-background-radius: 12;" +
+                "-fx-padding: 10 16;" +
+                "-fx-font-size: 13px;" +
+                "-fx-font-weight: bold;"
         );
         return label;
+    }
+
+    private void handlePanelScroll(ScrollEvent event) {
+        if (event.getDeltaY() == 0) {
+            return;
+        }
+
+        double contentHeight = scrollPane.getContent().getBoundsInLocal().getHeight();
+        double viewportHeight = scrollPane.getViewportBounds().getHeight();
+        double scrollRange = contentHeight - viewportHeight;
+        if (scrollRange > 0) {
+            double deltaY = event.getDeltaY() * 3;
+            scrollPane.setVvalue(scrollPane.getVvalue() - deltaY / scrollRange);
+        }
+        event.consume();
+    }
+
+    private void navigateToOrders() {
+        if (navigator != null) {
+            navigator.showView(ORDERS_VIEW_ID);
+        }
+    }
+
+    private String formatOrderCode(int orderId) {
+        return String.format("DH-2026-%03d", orderId);
     }
 
     private String formatDateTime(Order order) {
@@ -561,15 +791,14 @@ public final class OrderDetailView implements ViewLifecycle {
         return normalized;
     }
 
-    private int parseOrderId(String orderIdRaw) {
+    private int parseOrderId(String rawOrderId) {
+        if (rawOrderId == null || rawOrderId.isBlank()) {
+            return 1;
+        }
         try {
-            return Integer.parseInt(orderIdRaw.replaceAll("\\D+", ""));
+            return Integer.parseInt(rawOrderId.replaceAll("\\D+", ""));
         } catch (NumberFormatException exception) {
             return 1;
         }
-    }
-
-    public javafx.scene.Node getView() {
-        return view;
     }
 }

@@ -1,16 +1,14 @@
 package org.itss.prj_itss.model.request;
 
-import org.itss.prj_itss.model.shared.database.ConnectionProvider;
-import org.itss.prj_itss.model.shared.database.TransactionRunner;
-import org.itss.prj_itss.model.catalog.CatalogModule;
+import org.itss.prj_itss.model.dashboard.application.port.DashboardRequestPort;
+import org.itss.prj_itss.model.merchandise.MerchandiseModule;
 import org.itss.prj_itss.model.order.OrderModule;
-import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
+import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailApplicationService;
 import org.itss.prj_itss.model.request.application.listing.ReceivedRequestsApplicationService;
-import org.itss.prj_itss.model.request.application.port.RequestRepository;
 import org.itss.prj_itss.model.request.application.port.RequestDisplayFormatter;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
-import org.itss.prj_itss.model.request.application.sales.detail.RequestDetailApplicationService;
-import org.itss.prj_itss.model.request.application.sales.RequestSalesApplicationService;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestCommandService;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestQueryService;
 import org.itss.prj_itss.model.request.application.sales.create.SalesRequestCreationApplicationService;
 import org.itss.prj_itss.model.request.application.sales.create.SalesRequestCreationValidator;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditApplicationService;
@@ -18,7 +16,13 @@ import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEdit
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditUseCase;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidator;
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcRequestProcessingGateway;
+import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcReceivedRequestDetailQuery;
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcRequestRepository;
+import org.itss.prj_itss.model.request.domain.processing.allocation.policy.FastDeliveryObjective;
+import org.itss.prj_itss.model.request.domain.processing.allocation.validator.DefaultAllocationValidator;
+import org.itss.prj_itss.model.request.domain.processing.suggestion.DefaultAllocationSuggester;
+import org.itss.prj_itss.model.shared.database.ConnectionProvider;
+import org.itss.prj_itss.model.shared.database.TransactionRunner;
 import org.itss.prj_itss.model.shared.formatting.OrderingRequestDisplayFormatter;
 import org.itss.prj_itss.model.site.SiteModule;
 
@@ -26,13 +30,13 @@ import java.time.Clock;
 
 public final class RequestModule {
 
-    private final RequestRepository requestRepository;
+    private final JdbcRequestRepository jdbcRequestRepository;
     private final OrderingRequestDisplayFormatter requestDisplayFormatter = new OrderingRequestDisplayFormatter();
-    private final RequestManagementUseCase requestManagementUseCase;
     private final RequestProcessingUseCase requestProcessingUseCase;
     private final ReceivedRequestsApplicationService receivedRequestsApplicationService;
-    private final RequestDetailApplicationService requestDetailApplicationService;
-    private final RequestSalesApplicationService requestSalesApplicationService;
+    private final ReceivedRequestDetailApplicationService receivedRequestDetailApplicationService;
+    private final SalesRequestQueryService salesRequestQueryService;
+    private final SalesRequestCommandService salesRequestCommandService;
     private final SalesRequestCreationApplicationService salesRequestCreationApplicationService;
     private final SalesRequestEditUseCase salesRequestEditUseCase;
 
@@ -41,54 +45,52 @@ public final class RequestModule {
         TransactionRunner transactionRunner,
         OrderModule orderModule,
         SiteModule siteModule,
-        CatalogModule catalogModule
+        MerchandiseModule merchandiseModule
     ) {
-        this.requestRepository = new JdbcRequestRepository(connectionProvider);
-        this.requestManagementUseCase = new RequestManagementUseCase(requestRepository);
+        this.jdbcRequestRepository = new JdbcRequestRepository(connectionProvider);
         this.requestProcessingUseCase = new RequestProcessingUseCase(
             new JdbcRequestProcessingGateway(
-                requestRepository,
+                jdbcRequestRepository,
                 orderModule.orderRepository(),
                 siteModule.siteRepository(),
                 siteModule.inventoryRepository(),
-                catalogModule.merchandiseRepository(),
+                merchandiseModule.merchandiseRepository(),
                 transactionRunner
-            )
+            ),
+            new DefaultAllocationValidator(),
+            new DefaultAllocationSuggester(new FastDeliveryObjective())
         );
         this.receivedRequestsApplicationService =
-            new ReceivedRequestsApplicationService(requestManagementUseCase, requestDisplayFormatter);
-        this.requestDetailApplicationService = new RequestDetailApplicationService(
-            requestManagementUseCase,
-            orderModule.orderUseCase(),
-            siteModule.siteUseCase(),
-            catalogModule.catalogUseCase(),
+            new ReceivedRequestsApplicationService(jdbcRequestRepository, requestDisplayFormatter);
+        this.receivedRequestDetailApplicationService = new ReceivedRequestDetailApplicationService(
+            new JdbcReceivedRequestDetailQuery(connectionProvider)
+        );
+        this.salesRequestQueryService = new SalesRequestQueryService(
+            jdbcRequestRepository,
+            merchandiseModule.merchandiseUseCase(),
             requestDisplayFormatter
         );
-        this.requestSalesApplicationService =
-            new RequestSalesApplicationService(
-                requestManagementUseCase,
-                catalogModule.catalogUseCase(),
-                requestDisplayFormatter
-            );
+        this.salesRequestCommandService = new SalesRequestCommandService(jdbcRequestRepository);
         this.salesRequestCreationApplicationService =
             new SalesRequestCreationApplicationService(
-                requestManagementUseCase,
-                catalogModule.catalogUseCase(),
+                jdbcRequestRepository,
+                merchandiseModule.merchandiseUseCase(),
                 new SalesRequestCreationValidator(),
                 Clock.systemDefaultZone()
             );
         this.salesRequestEditUseCase =
             new SalesRequestEditApplicationService(
-                requestManagementUseCase,
-                catalogModule.catalogUseCase(),
+                jdbcRequestRepository,
+                jdbcRequestRepository,
+                merchandiseModule.merchandiseUseCase(),
                 new SalesRequestEditMapper(),
                 new SalesRequestEditValidator(),
                 Clock.systemDefaultZone()
             );
     }
 
-    public RequestManagementUseCase requestManagementUseCase() {
-        return requestManagementUseCase;
+    public DashboardRequestPort dashboardRequestPort() {
+        return jdbcRequestRepository;
     }
 
     public RequestProcessingUseCase requestProcessingUseCase() {
@@ -99,12 +101,20 @@ public final class RequestModule {
         return receivedRequestsApplicationService;
     }
 
-    public RequestDetailApplicationService requestDetailApplicationService() {
-        return requestDetailApplicationService;
+    public ReceivedRequestDetailApplicationService receivedRequestDetailApplicationService() {
+        return receivedRequestDetailApplicationService;
     }
 
-    public RequestSalesApplicationService requestSalesApplicationService() {
-        return requestSalesApplicationService;
+    public SalesRequestQueryService salesRequestQueryService() {
+        return salesRequestQueryService;
+    }
+
+    public SalesRequestCommandService salesRequestCommandService() {
+        return salesRequestCommandService;
+    }
+
+    public org.itss.prj_itss.model.request.application.processing.ProcessingRequestPort requestRepository() {
+        return jdbcRequestRepository;
     }
 
     public SalesRequestCreationApplicationService salesRequestCreationApplicationService() {

@@ -1,8 +1,9 @@
 package org.itss.prj_itss.model.request.application.sales.update;
 
-import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
-import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
+import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestCommandPort;
+import org.itss.prj_itss.model.request.application.sales.SalesRequestQueryPort;
 import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
 import org.itss.prj_itss.model.request.application.sales.shared.SalesRequestItemSubmission;
 import org.itss.prj_itss.model.request.domain.request.Request;
@@ -18,21 +19,24 @@ import java.util.stream.Collectors;
 
 public final class SalesRequestEditApplicationService implements SalesRequestEditUseCase {
 
-    private final RequestManagementUseCase requestService;
-    private final CatalogUseCase catalogUseCase;
+    private final SalesRequestQueryPort queryPort;
+    private final SalesRequestCommandPort commandPort;
+    private final MerchandiseUseCase merchandiseUseCase;
     private final SalesRequestEditMapper mapper;
     private final SalesRequestEditValidator validator;
     private final Clock clock;
 
     public SalesRequestEditApplicationService(
-            RequestManagementUseCase requestService,
-            CatalogUseCase catalogUseCase,
+            SalesRequestQueryPort queryPort,
+            SalesRequestCommandPort commandPort,
+            MerchandiseUseCase merchandiseUseCase,
             SalesRequestEditMapper mapper,
             SalesRequestEditValidator validator,
             Clock clock
     ) {
-        this.requestService = Objects.requireNonNull(requestService, "requestService");
-        this.catalogUseCase = Objects.requireNonNull(catalogUseCase, "catalogUseCase");
+        this.queryPort = Objects.requireNonNull(queryPort, "queryPort");
+        this.commandPort = Objects.requireNonNull(commandPort, "commandPort");
+        this.merchandiseUseCase = Objects.requireNonNull(merchandiseUseCase, "merchandiseUseCase");
         this.mapper = Objects.requireNonNull(mapper, "mapper");
         this.validator = Objects.requireNonNull(validator, "validator");
         this.clock = Objects.requireNonNull(clock, "clock");
@@ -40,21 +44,21 @@ public final class SalesRequestEditApplicationService implements SalesRequestEdi
 
     @Override
     public SalesRequestEditSession openSession(int requestId) {
-        Request request = requestService.findById(requestId);
+        Request request = queryPort.findById(requestId);
         if (request == null) {
             return null;
         }
         List<MerchandiseOption> merchandiseOptions = findMerchandiseOptions();
         SalesRequestEditState state = mapper.toState(
             request,
-            requestService.findItemsByRequestId(requestId),
+            queryPort.findItemsByRequestId(requestId),
             merchandiseOptions
         );
         return new EditSession(state, merchandiseOptions);
     }
 
     private List<MerchandiseOption> findMerchandiseOptions() {
-        return catalogUseCase.findAll().stream()
+        return merchandiseUseCase.findActive().stream()
             .map(this::toMerchandiseOption)
             .toList();
     }
@@ -133,7 +137,7 @@ public final class SalesRequestEditApplicationService implements SalesRequestEdi
             }
 
             try {
-                requestService.updateRequestItems(draft.requestId(), toDomainItems(draft), null);
+                commandPort.updateRequestItems(draft.requestId(), toDomainItems(draft), null);
                 return SalesRequestEditSaveResult.saved(draft, "Cập nhật yêu cầu đặt hàng thành công");
             } catch (Exception exception) {
                 return SalesRequestEditSaveResult.failed(draft, validationResult, exception.getMessage());

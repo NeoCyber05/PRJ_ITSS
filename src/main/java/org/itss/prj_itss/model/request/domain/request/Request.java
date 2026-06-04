@@ -1,6 +1,11 @@
 package org.itss.prj_itss.model.request.domain.request;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Entity class tương ứng với bảng "request" trong database.
@@ -14,18 +19,76 @@ public class Request {
 
     private int id;
     private LocalDateTime createdAt;
-    private String status;
+    private RequestStatus status;
     private String note;
+    private final List<RequestMerchandise> items = new ArrayList<>();
 
+    /** Constructor mặc định để framework / JDBC mapper có thể khởi tạo. */
     public Request() {
     }
 
-    public Request(int id, LocalDateTime createdAt, String status, String note) {
-        this.id = id;
-        this.createdAt = createdAt;
-        this.status = status;
+    public Request(String note) {
         this.note = note;
+        this.status = RequestStatus.PENDING;
+        this.createdAt = LocalDateTime.now();
     }
+
+    /**
+     * Factory method tái tạo đối tượng từ dữ liệu DB — thay thế cho việc
+     * gọi setter công khai. Dùng trong {@code JdbcRequestRepository.mapRequest()}.
+     */
+    public static Request reconstituteFromDb(int id, LocalDateTime createdAt, RequestStatus status, String note) {
+        Request r = new Request();
+        r.id = id;
+        r.createdAt = createdAt;
+        r.status = status;
+        r.note = note;
+        return r;
+    }
+
+    public List<RequestMerchandise> getItems() {
+        return Collections.unmodifiableList(items);
+    }
+
+    // ---------------------------------------------------------------
+    // Business methods — đóng gói quy tắc chuyển trạng thái
+    // ---------------------------------------------------------------
+
+    /**
+     * Chuyển yêu cầu sang trạng thái PROCESSING.
+     *
+     * @throws IllegalStateException nếu yêu cầu không đang ở trạng thái PENDING.
+     */
+    public void addItem(int merchandiseId, BigDecimal quantityOrdered, LocalDate desiredDeliveryDate) {
+        items.add(new RequestMerchandise(id, merchandiseId, quantityOrdered, desiredDeliveryDate));
+    }
+
+    public void startProcessing() {
+        if (status != RequestStatus.PENDING) {
+            throw new IllegalStateException(
+                "Chỉ có thể bắt đầu xử lý yêu cầu đang ở trạng thái PENDING. Trạng thái hiện tại: " + status
+            );
+        }
+        this.status = RequestStatus.PROCESSING;
+    }
+
+    /**
+     * Hoàn tất yêu cầu, chuyển sang trạng thái COMPLETED.
+     *
+     * @throws IllegalStateException nếu yêu cầu không đang ở trạng thái PROCESSING.
+     */
+    public void complete() {
+        if (status != RequestStatus.PROCESSING) {
+            throw new IllegalStateException(
+                "Chỉ có thể hoàn thành yêu cầu đang ở trạng thái PROCESSING. Trạng thái hiện tại: " + status
+            );
+        }
+        this.status = RequestStatus.COMPLETED;
+    }
+
+    // ---------------------------------------------------------------
+    // Accessors
+    // ---------------------------------------------------------------
 
     public int getId() {
         return id;
@@ -43,12 +106,18 @@ public class Request {
         this.createdAt = createdAt;
     }
 
-    public String getStatus() {
+    /** Trả về {@link RequestStatus} enum, có thể {@code null} nếu DB có giá trị không khớp. */
+    public RequestStatus getStatus() {
         return status;
     }
 
-    public void setStatus(String status) {
-        this.status = status;
+    /**
+     * Trả về chuỗi key lưu trong DB (vd: "pending", "processing", "completed").
+     * Dùng để tương thích ngược với các formatter / view cũ đang nhận String.
+     * Trả về {@code null} nếu status chưa được set.
+     */
+    public String getStatusKey() {
+        return status == null ? null : status.storageValue();
     }
 
     public String getNote() {
@@ -64,7 +133,7 @@ public class Request {
         return "Request{" +
                 "id=" + id +
                 ", createdAt=" + createdAt +
-                ", status='" + status + '\'' +
+                ", status=" + status +
                 ", note='" + note + '\'' +
                 '}';
     }

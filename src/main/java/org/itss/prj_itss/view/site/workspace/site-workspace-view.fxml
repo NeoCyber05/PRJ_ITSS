@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.itss.prj_itss.view.site.workspace.SiteWorkspaceView"
+            styleClass="content-area">
+    <top>
+        <VBox spacing="4" styleClass="page-header">
+            <children>
+                <Label text="Không gian Site" styleClass="page-title"/>
+                <Label fx:id="siteSubtitleLabel" styleClass="page-description"/>
+            </children>
+        </VBox>
+    </top>
+    <center>
+        <TabPane fx:id="workspaceTabs" tabClosingPolicy="UNAVAILABLE">
+            <tabs>
+                <Tab text="Hồ sơ">
+                    <VBox spacing="14" styleClass="page-content">
+                        <children>
+                            <Label fx:id="profileMessageLabel" styleClass="page-description"/>
+                            <TextField fx:id="siteCodeField" editable="false"/>
+                            <TextField fx:id="siteNameField"/>
+                            <TextArea fx:id="descriptionArea" prefRowCount="4"/>
+                            <HBox spacing="12">
+                                <children>
+                                    <TextField fx:id="shipDaysField" promptText="Số ngày vận chuyển biển"/>
+                                    <TextField fx:id="airDaysField" promptText="Số ngày vận chuyển hàng không"/>
+                                </children>
+                            </HBox>
+                            <Button fx:id="saveProfileButton" text="Lưu hồ sơ" styleClass="btn-primary"/>
+                        </children>
+                    </VBox>
+                </Tab>
+                <Tab text="Mặt hàng &amp; tồn kho">
+                    <VBox spacing="14" styleClass="page-content">
+                        <children>
+                            <HBox spacing="12">
+                                <children>
+                                    <ComboBox fx:id="merchandiseComboBox" prefWidth="280"/>
+                                    <TextField fx:id="stockQuantityField" promptText="Tồn kho" prefWidth="120"/>
+                                    <Button fx:id="saveInventoryButton" text="Cập nhật" styleClass="btn-primary"/>
+                                    <Button fx:id="removeInventoryButton" text="Bỏ mặt hàng"/>
+                                </children>
+                            </HBox>
+                            <TableView fx:id="inventoryTable">
+                                <columns>
+                                    <TableColumn fx:id="inventoryCodeColumn" text="Mã hàng" prefWidth="120"/>
+                                    <TableColumn fx:id="inventoryNameColumn" text="Tên mặt hàng" prefWidth="220"/>
+                                    <TableColumn fx:id="inventoryUnitColumn" text="Đơn vị" prefWidth="100"/>
+                                    <TableColumn fx:id="inventoryStockColumn" text="Tồn kho" prefWidth="100"/>
+                                </columns>
+                            </TableView>
+                        </children>
+                    </VBox>
+                </Tab>
+                <Tab text="Đơn hàng">
+                    <VBox spacing="14" styleClass="page-content">
+                        <children>
+                            <TableView fx:id="orderTable">
+                                <columns>
+                                    <TableColumn fx:id="orderCodeColumn" text="Mã đơn" prefWidth="120"/>
+                                    <TableColumn fx:id="requestCodeColumn" text="Yêu cầu gốc" prefWidth="120"/>
+                                    <TableColumn fx:id="createdAtColumn" text="Ngày tạo" prefWidth="120"/>
+                                    <TableColumn fx:id="orderStatusColumn" text="Trạng thái" prefWidth="160"/>
+                                    <TableColumn fx:id="orderActionColumn" text="Thao tác" prefWidth="180"/>
+                                </columns>
+                            </TableView>
+                            <VBox fx:id="orderDetailBox" spacing="10" styleClass="card"/>
+                            <TableView fx:id="orderItemTable">
+                                <columns>
+                                    <TableColumn fx:id="orderItemCodeColumn" text="Mã hàng" prefWidth="120"/>
+                                    <TableColumn fx:id="orderItemNameColumn" text="Tên mặt hàng" prefWidth="220"/>
+                                    <TableColumn fx:id="orderItemQuantityColumn" text="Số lượng" prefWidth="100"/>
+                                    <TableColumn fx:id="orderItemUnitColumn" text="Đơn vị" prefWidth="100"/>
+                                    <TableColumn fx:id="orderItemDeliveryColumn" text="Vận chuyển" prefWidth="140"/>
+                                </columns>
+                            </TableView>
+                        </children>
+                    </VBox>
+                </Tab>
+            </tabs>
+        </TabPane>
+    </center>
+</BorderPane>

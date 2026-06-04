@@ -19,6 +19,7 @@ class RoleAccessPolicyTest {
         assertTrue(RoleAccessPolicy.canAccess(RoleType.ORDERING, "site-management"));
         assertTrue(RoleAccessPolicy.canAccess(RoleType.ORDERING, "request-processing:42"));
         assertTrue(RoleAccessPolicy.canAccess(RoleType.ORDERING, "order-detail:7"));
+        assertTrue(RoleAccessPolicy.canAccess(RoleType.ORDERING, "ordering-order-handle-cancellation:102"));
         assertFalse(RoleAccessPolicy.canAccess(RoleType.ORDERING, "sales-requests"));
     }
 
@@ -29,24 +30,46 @@ class RoleAccessPolicyTest {
         assertTrue(RoleAccessPolicy.canAccess(RoleType.SALES, "sales-request-create"));
         assertTrue(RoleAccessPolicy.canAccess(RoleType.SALES, "sales-request-update:9"));
         assertTrue(RoleAccessPolicy.canAccess(RoleType.SALES, "sales-request-detail:9"));
+        assertTrue(RoleAccessPolicy.canAccess(RoleType.SALES, "merchandise-management"));
         assertFalse(RoleAccessPolicy.canAccess(RoleType.SALES, "orders"));
     }
 
     @Test
     void warehouseRoleOnlyGetsWarehouseArrivalView() {
-        assertEquals("warehouse-order-confirm-arrival", RoleAccessPolicy.defaultViewId(RoleType.WAREHOUSE));
+        assertEquals("warehouse-inbound-orders", RoleAccessPolicy.defaultViewId(RoleType.WAREHOUSE));
+        assertTrue(RoleAccessPolicy.canAccess(RoleType.WAREHOUSE, "warehouse-inbound-orders"));
         assertTrue(RoleAccessPolicy.canAccess(RoleType.WAREHOUSE, "warehouse-order-confirm-arrival"));
         assertFalse(RoleAccessPolicy.canAccess(RoleType.WAREHOUSE, "home"));
     }
 
     @Test
+    void siteRoleUsesSiteWorkspaceOnly() {
+        assertEquals("site-workspace", RoleAccessPolicy.defaultViewId(RoleType.SITE));
+        assertTrue(RoleAccessPolicy.canAccess(RoleType.SITE, "site-workspace"));
+        assertFalse(RoleAccessPolicy.canAccess(RoleType.SITE, "role-workspace"));
+        assertFalse(RoleAccessPolicy.canAccess(RoleType.SITE, "site-management"));
+        assertFalse(RoleAccessPolicy.canAccess(RoleType.SITE, "orders"));
+        assertFalse(RoleAccessPolicy.canAccess(RoleType.SITE, "received-requests"));
+    }
+
+    @Test
     void unknownAndUnsupportedRolesUseRoleWorkspaceOnly() {
-        assertEquals("role-workspace", RoleAccessPolicy.defaultViewId(RoleType.ADMIN));
-        assertEquals("role-workspace", RoleAccessPolicy.defaultViewId(RoleType.SITE));
         assertEquals("role-workspace", RoleAccessPolicy.defaultViewId(RoleType.UNKNOWN));
         assertTrue(RoleAccessPolicy.canAccess(RoleType.UNKNOWN, "role-workspace"));
         assertFalse(RoleAccessPolicy.canAccess(RoleType.UNKNOWN, "home"));
         assertFalse(RoleAccessPolicy.canAccess(RoleType.UNKNOWN, null));
+    }
+
+    @Test
+    void adminCanAccessAccountManagementOnly() {
+        assertTrue(RoleAccessPolicy.canAccess(RoleType.ADMIN, "account-management"));
+        assertFalse(RoleAccessPolicy.canAccess(RoleType.ADMIN, "site-management"));
+        assertEquals("account-management", RoleAccessPolicy.defaultViewId(RoleType.ADMIN));
+    }
+
+    @Test
+    void orderingCannotAccessAccountManagement() {
+        assertFalse(RoleAccessPolicy.canAccess(RoleType.ORDERING, "account-management"));
     }
 
     @Test
