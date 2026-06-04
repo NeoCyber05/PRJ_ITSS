@@ -9,6 +9,8 @@ import org.itss.prj_itss.model.request.application.listing.ReceivedRequestsAppli
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
 import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailApplicationService;
 import org.itss.prj_itss.model.request.application.sales.SalesRequestQueryService;
+import org.itss.prj_itss.model.request.application.sales.create.CreateSalesRequestService;
+import org.itss.prj_itss.model.request.application.sales.create.CreateSalesRequestUseCase;
 import org.itss.prj_itss.model.request.application.sales.SalesRequestCommandService;
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcRequestProcessingGateway;
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcReceivedRequestDetailQuery;
@@ -35,6 +37,7 @@ public final class RequestModule {
     private final ReceivedRequestDetailApplicationService receivedRequestDetailApplicationService;
     private final SalesRequestQueryService salesRequestQueryService;
     private final SalesRequestCommandService salesRequestCommandService;
+    private final CreateSalesRequestService createSalesRequestService;
 
     public RequestModule(
         ConnectionProvider connectionProvider,
@@ -68,6 +71,7 @@ public final class RequestModule {
         );
         this.salesRequestQueryService = new SalesRequestQueryService(jdbcSalesRequestQueryRepository, merchandiseModule.merchandiseUseCase());
         this.salesRequestCommandService = new SalesRequestCommandService(jdbcSalesRequestCommandRepository);
+        this.createSalesRequestService = new CreateSalesRequestService(jdbcSalesRequestCommandRepository);
     }
 
     public DashboardRequestPort dashboardRequestPort() {
@@ -92,6 +96,10 @@ public final class RequestModule {
 
     public SalesRequestCommandService salesRequestCommandService() {
         return salesRequestCommandService;
+    }
+
+    public CreateSalesRequestUseCase createSalesRequestUseCase() {
+        return createSalesRequestService;
     }
 
     public org.itss.prj_itss.model.request.application.processing.ProcessingRequestPort requestRepository() {
