@@ -60,12 +60,9 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
     public RequestProcessingData loadProcessingData(int requestId) {
         List<ItemRequirement> items = new ArrayList<>();
         Map<Integer, LocalDate> desiredDeliveryDates = new LinkedHashMap<>();
-        List<Merchandise> allMerch = merchandiseRepository.findAll();
-        Map<Integer, Merchandise> merchMap = allMerch.stream()
-            .collect(java.util.stream.Collectors.toMap(Merchandise::getId, java.util.function.Function.identity(), (a, b) -> a, LinkedHashMap::new));
 
         for (RequestMerchandise requestItem : requestRepository.findItemsByRequestId(requestId)) {
-            Merchandise merchandise = merchMap.get(requestItem.getMerchandiseId());
+            Merchandise merchandise = merchandiseRepository.findById(requestItem.getMerchandiseId());
             if (merchandise != null) {
                 items.add(new ItemRequirement(
                     merchandise.getId(),
@@ -154,4 +151,3 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
         return (method == null ? DeliveryMethod.SHIP : method).storageValue();
     }
 }
-

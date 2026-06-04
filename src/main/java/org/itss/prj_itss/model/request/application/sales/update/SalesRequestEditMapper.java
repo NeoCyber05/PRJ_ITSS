@@ -1,35 +1,43 @@
 package org.itss.prj_itss.model.request.application.sales.update;
 
-import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
-import org.itss.prj_itss.model.request.application.sales.shared.RequestFormView;
+import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
 import org.itss.prj_itss.model.request.application.sales.shared.SalesRequestItemSubmission;
+import org.itss.prj_itss.model.request.domain.request.Request;
+import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public final class SalesRequestEditMapper {
 
-    public SalesRequestEditState toState(RequestFormView form) {
+    public SalesRequestEditState toState(
+            Request request,
+            List<RequestMerchandise> requestItems,
+            List<MerchandiseOption> merchandiseOptions
+    ) {
         SalesRequestEditState state = new SalesRequestEditState(
-            form.id(),
-            form.requestCode(),
-            form.createdAt(),
-            form.status()
+            request.getId(),
+            request.getCreatedAt(),
+            request.getStatusKey()
         );
 
+        Map<Integer, MerchandiseOption> merchandiseById = merchandiseOptions.stream()
+            .collect(Collectors.toMap(MerchandiseOption::id, Function.identity()));
         List<SalesRequestEditItemDraft> items = new ArrayList<>();
         int lineId = 1;
-        for (RequestFormView.RequestItemFormRow row : form.items()) {
-            if (row.merchandise() == null) {
+        for (RequestMerchandise item : requestItems) {
+            MerchandiseOption merchandise = merchandiseById.get(item.getMerchandiseId());
+            if (merchandise == null) {
                 continue;
             }
             items.add(new SalesRequestEditItemDraft(
                 lineId++,
-                row.merchandise(),
-                parseQuantity(row.quantity()),
-                parseDate(row.desiredDate())
+                merchandise,
+                item.getQuantityOrdered(),
+                item.getDesiredDeliveryDate()
             ));
         }
         state.replaceItems(items);
@@ -44,27 +52,5 @@ public final class SalesRequestEditMapper {
                 item.desiredDate()
             ))
             .toList();
-    }
-
-    private BigDecimal parseQuantity(String rawQuantity) {
-        if (rawQuantity == null || rawQuantity.isBlank()) {
-            return null;
-        }
-        try {
-            return new BigDecimal(rawQuantity.trim());
-        } catch (NumberFormatException exception) {
-            return null;
-        }
-    }
-
-    private LocalDate parseDate(String rawDate) {
-        if (rawDate == null || rawDate.isBlank() || "N/A".equalsIgnoreCase(rawDate.trim())) {
-            return null;
-        }
-        try {
-            return LocalDate.parse(rawDate.trim(), OrderingFormatters.DATE_FORMAT);
-        } catch (RuntimeException exception) {
-            return null;
-        }
     }
 }

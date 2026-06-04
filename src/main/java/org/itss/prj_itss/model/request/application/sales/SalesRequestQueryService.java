@@ -2,40 +2,47 @@ package org.itss.prj_itss.model.request.application.sales;
 
 import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
 import org.itss.prj_itss.model.merchandise.domain.Merchandise;
-import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
-import org.itss.prj_itss.model.request.domain.request.Request;
-import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
+import org.itss.prj_itss.model.request.application.port.RequestDisplayFormatter;
 import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
 import org.itss.prj_itss.model.request.application.sales.shared.RequestFormView;
 import org.itss.prj_itss.model.request.application.sales.view.RequestDetailItemRow;
 import org.itss.prj_itss.model.request.application.sales.view.RequestReadOnlyView;
+import org.itss.prj_itss.model.request.domain.request.Request;
+import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
 
 import java.util.List;
+import java.util.Objects;
 
 public final class SalesRequestQueryService {
 
     private final SalesRequestQueryPort queryPort;
-    private final MerchandiseUseCase MerchandiseUseCase;
+    private final MerchandiseUseCase merchandiseUseCase;
+    private final RequestDisplayFormatter formatter;
 
-    public SalesRequestQueryService(SalesRequestQueryPort queryPort, MerchandiseUseCase MerchandiseUseCase) {
-        this.queryPort = queryPort;
-        this.MerchandiseUseCase = MerchandiseUseCase;
+    public SalesRequestQueryService(
+            SalesRequestQueryPort queryPort,
+            MerchandiseUseCase merchandiseUseCase,
+            RequestDisplayFormatter formatter
+    ) {
+        this.queryPort = Objects.requireNonNull(queryPort, "queryPort");
+        this.merchandiseUseCase = Objects.requireNonNull(merchandiseUseCase, "merchandiseUseCase");
+        this.formatter = Objects.requireNonNull(formatter, "formatter");
     }
 
     public List<MerchandiseOption> findMerchandiseOptions() {
-        return MerchandiseUseCase.findActive().stream()
+        return merchandiseUseCase.findActive().stream()
             .map(m -> new MerchandiseOption(m.getId(), m.getCode(), m.getName(), m.getUnit()))
             .toList();
     }
 
     public MerchandiseOption findMerchandiseOptionByCode(String code) {
-        Merchandise m = MerchandiseUseCase.findByCode(code);
+        Merchandise m = merchandiseUseCase.findByCode(code);
         if (m == null) return null;
         return new MerchandiseOption(m.getId(), m.getCode(), m.getName(), m.getUnit());
     }
 
     public MerchandiseOption findMerchandiseOptionById(int id) {
-        Merchandise m = MerchandiseUseCase.findById(id);
+        Merchandise m = merchandiseUseCase.findById(id);
         if (m == null) return null;
         return new MerchandiseOption(m.getId(), m.getCode(), m.getName(), m.getUnit());
     }
@@ -50,10 +57,10 @@ public final class SalesRequestQueryService {
 
         return new RequestReadOnlyView(
             request.getId(),
-            OrderingFormatters.formatRequestCode(request.getId()),
-            OrderingFormatters.formatDateOrEmpty(request.getCreatedAt()),
+            formatter.formatRequestCode(request.getId()),
+            formatter.formatDateOrEmpty(request.getCreatedAt()),
             request.getStatusKey(),
-            OrderingFormatters.requestStatusText(request.getStatusKey()),
+            formatter.requestStatusText(request.getStatusKey()),
             request.getNote(),
             itemRows
         );
@@ -68,18 +75,18 @@ public final class SalesRequestQueryService {
                 MerchandiseOption m = findMerchandiseOptionById(item.getMerchandiseId());
                 return new RequestFormView.RequestItemFormRow(
                     m,
-                    item.getQuantityOrdered() != null ? OrderingFormatters.formatQuantity(item.getQuantityOrdered()) : "0",
-                    OrderingFormatters.formatDate(item.getDesiredDeliveryDate())
+                    item.getQuantityOrdered() != null ? formatter.formatQuantity(item.getQuantityOrdered()) : "0",
+                    formatter.formatDate(item.getDesiredDeliveryDate())
                 );
             })
             .toList();
 
         return new RequestFormView(
             request.getId(),
-            OrderingFormatters.formatRequestCode(request.getId()),
-            OrderingFormatters.formatDateOrEmpty(request.getCreatedAt()),
+            formatter.formatRequestCode(request.getId()),
+            formatter.formatDateOrEmpty(request.getCreatedAt()),
             request.getStatusKey(),
-            OrderingFormatters.requestStatusText(request.getStatusKey()),
+            formatter.requestStatusText(request.getStatusKey()),
             request.getNote(),
             itemRows
         );
@@ -90,9 +97,9 @@ public final class SalesRequestQueryService {
         return new RequestDetailItemRow(
             m != null ? m.code() : "N/A",
             m != null ? m.name() : "N/A",
-            item.getQuantityOrdered() != null ? OrderingFormatters.formatQuantity(item.getQuantityOrdered()) : "0",
+            item.getQuantityOrdered() != null ? formatter.formatQuantity(item.getQuantityOrdered()) : "0",
             m != null ? m.unit() : "N/A",
-            OrderingFormatters.formatDate(item.getDesiredDeliveryDate())
+            formatter.formatDate(item.getDesiredDeliveryDate())
         );
     }
 }

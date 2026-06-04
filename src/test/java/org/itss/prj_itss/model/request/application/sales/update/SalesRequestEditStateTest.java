@@ -5,6 +5,7 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -17,8 +18,7 @@ class SalesRequestEditStateTest {
     void stateChangesItemsThroughFocusedMethods() {
         SalesRequestEditState state = new SalesRequestEditState(
             1,
-            "YC-2026-001",
-            "25/05/2026",
+            LocalDateTime.of(2026, 5, 25, 0, 0),
             "pending"
         );
         state.replaceItems(List.of(new SalesRequestEditItemDraft(
@@ -44,8 +44,7 @@ class SalesRequestEditStateTest {
     void addedItemsReceiveStableLineIdsAndCanBeRemovedById() {
         SalesRequestEditState state = new SalesRequestEditState(
             1,
-            "YC-2026-001",
-            "25/05/2026",
+            LocalDateTime.of(2026, 5, 25, 0, 0),
             "pending"
         );
 

@@ -1,8 +1,5 @@
 package org.itss.prj_itss.model.order.application.cancellation;
 
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingItemView;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;
-
 import java.util.List;
 import java.util.Map;
 
@@ -13,11 +10,30 @@ public record CancelledOrderProcessingViewModel(
     String requestCode,
     String desiredDeliveryDate,
     int deadlineDays,
-    List<ProcessingItemView> items,
-    List<ProcessingSiteView> sites,
+    List<ItemViewModel> items,
+    List<SiteViewModel> sites,
     Map<Integer, String> desiredDeliveryDates,
     List<AllocationItemViewModel> allocationItems
 ) {
+
+    public record ItemViewModel(
+        int merchandiseId,
+        String code,
+        String name,
+        int required
+    ) {
+    }
+
+    public record SiteViewModel(
+        int id,
+        String siteCode,
+        String name,
+        String description,
+        int shipDays,
+        int airDays,
+        Map<Integer, Integer> stock
+    ) {
+    }
 
     public record AllocationItemViewModel(
         int merchandiseId,

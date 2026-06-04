@@ -17,7 +17,6 @@ import javafx.scene.layout.VBox;
 import org.itss.prj_itss.controller.navigation.Navigator;
 import org.itss.prj_itss.controller.ordering.order.OrderCancellationProcessingController;
 import org.itss.prj_itss.model.order.application.cancellation.CancelledOrderProcessingViewModel;
-import org.itss.prj_itss.model.order.application.cancellation.CancelledOrderProcessingSession;
 import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
 import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
 import org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView;
@@ -499,7 +498,7 @@ public final class OrderCancellationView implements ViewLifecycle {
 
     private void createPreviewOrders() {
         if (controller == null) return;
-        CancelledOrderProcessingSession.ConfirmResult result = controller.handleConfirm();
+        OrderCancellationProcessingController.ConfirmResult result = controller.handleConfirm();
         if (!result.valid()) {
             showFeedback(result.validationMessage(), FeedbackKind.ERROR);
             return;

@@ -29,11 +29,47 @@ public final class OrderCancellationProcessingController {
     }
 
     public AllocationChangeResultView handleAllocationInputChanged(AllocationChangeCommand command) {
-        return session.handleAllocationInputChanged(command);
+        CancelledOrderProcessingSession.AllocationChangeResult result = session.handleAllocationInputChanged(
+            new CancelledOrderProcessingSession.AllocationChangeCommand(
+                command.itemMerchandiseId(),
+                command.siteId(),
+                command.quantityText(),
+                command.transportLabel()
+            )
+        );
+        return new AllocationChangeResultView(
+            result.applied(),
+            result.errorType(),
+            result.stock(),
+            result.deliveryDays(),
+            result.dayDelta(),
+            result.deliveryAvailable(),
+            result.deliveryStatusText(),
+            result.deliveryStatusClass()
+        );
     }
 
-    public CancelledOrderProcessingSession.ConfirmResult handleConfirm() {
-        return session.handleConfirm();
+    public ConfirmResult handleConfirm() {
+        CancelledOrderProcessingSession.ConfirmResult result = session.handleConfirm();
+        if (!result.valid()) {
+            return ConfirmResult.invalid(result.validationMessage());
+        }
+        return ConfirmResult.valid(result.previewOrders().stream()
+            .map(order -> new org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView(
+                order.siteName(),
+                order.siteCode(),
+                order.lines().stream()
+                    .map(line -> new org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView.ProcessingPreviewLineView(
+                        line.merchandiseCode(),
+                        line.merchandiseName(),
+                        line.quantity(),
+                        line.transport(),
+                        line.desiredDate(),
+                        line.estimatedDate()
+                    ))
+                    .toList()
+            ))
+            .toList());
     }
 
     public void handleSubmit() throws CancelledOrderProcessingException {
@@ -42,5 +78,24 @@ public final class OrderCancellationProcessingController {
 
     public void toggleExpandedItem(int index) {
         session.toggleExpandedItem(index);
+    }
+
+    public record ConfirmResult(
+        String validationMessage,
+        java.util.List<org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView> previewOrders
+    ) {
+        public static ConfirmResult invalid(String validationMessage) {
+            return new ConfirmResult(validationMessage, java.util.List.of());
+        }
+
+        public static ConfirmResult valid(
+            java.util.List<org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView> previewOrders
+        ) {
+            return new ConfirmResult(null, java.util.List.copyOf(previewOrders));
+        }
+
+        public boolean valid() {
+            return validationMessage == null;
+        }
     }
 }

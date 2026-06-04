@@ -1,10 +1,5 @@
 package org.itss.prj_itss.model.order.application.cancellation;
 
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingItemView;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;
 import org.itss.prj_itss.model.request.domain.processing.allocation.AllocationControl;
 import org.itss.prj_itss.model.request.domain.processing.allocation.Allocation;
 import org.itss.prj_itss.model.request.domain.processing.allocation.AllocationDraft;
@@ -138,12 +133,20 @@ public final class CancelledOrderProcessingSession {
             ));
         }
 
-        List<ProcessingItemView> itemViews = items.stream()
-            .map(i -> new ProcessingItemView(i.merchandiseId, i.code, i.name, i.required))
+        List<CancelledOrderProcessingViewModel.ItemViewModel> itemViews = items.stream()
+            .map(i -> new CancelledOrderProcessingViewModel.ItemViewModel(i.merchandiseId, i.code, i.name, i.required))
             .toList();
 
-        List<ProcessingSiteView> siteViews = allSites.stream()
-            .map(s -> new ProcessingSiteView(s.id, s.siteCode, s.name, s.description, s.shipDays, s.airDays, s.stock))
+        List<CancelledOrderProcessingViewModel.SiteViewModel> siteViews = allSites.stream()
+            .map(s -> new CancelledOrderProcessingViewModel.SiteViewModel(
+                s.id,
+                s.siteCode,
+                s.name,
+                s.description,
+                s.shipDays,
+                s.airDays,
+                s.stock
+            ))
             .toList();
 
         Map<Integer, String> desiredDateViews = new LinkedHashMap<>();
@@ -176,7 +179,7 @@ public final class CancelledOrderProcessingSession {
         new org.itss.prj_itss.model.request.domain.processing.allocation.ApplyPlan(items, allocations).apply(drafts);
     }
 
-    public AllocationChangeResultView handleAllocationInputChanged(AllocationChangeCommand command) {
+    public AllocationChangeResult handleAllocationInputChanged(AllocationChangeCommand command) {
         ItemRequirement item = items.stream()
             .filter(i -> i.merchandiseId == command.itemMerchandiseId())
             .findFirst()
@@ -187,7 +190,7 @@ public final class CancelledOrderProcessingSession {
             .orElse(null);
         if (item == null || site == null) {
             var deliveryView = DeliveryStatusFormatter.format(0, false);
-            return new AllocationChangeResultView(
+            return new AllocationChangeResult(
                 false,
                 "INVALID",
                 0,
@@ -212,7 +215,7 @@ public final class CancelledOrderProcessingSession {
             };
 
         var deliveryView = DeliveryStatusFormatter.format(result.deliveryStatus().dayDelta(), result.deliveryStatus().available());
-        return new AllocationChangeResultView(
+        return new AllocationChangeResult(
             result.applied(),
             errorType,
             result.stock(),
@@ -245,10 +248,10 @@ public final class CancelledOrderProcessingSession {
         }
 
         var previewOrders = useCase.buildPreviewOrders(items, allSites, allocations, desiredDeliveryDate);
-        List<ProcessingPreviewOrderView> previewViews = previewOrders.stream().map(po -> new ProcessingPreviewOrderView(
+        List<PreviewOrderView> previewViews = previewOrders.stream().map(po -> new PreviewOrderView(
             po.site().name,
             po.site().siteCode,
-            po.lines().stream().map(line -> new ProcessingPreviewOrderView.ProcessingPreviewLineView(
+            po.lines().stream().map(line -> new PreviewOrderView.PreviewLineView(
                 line.item().code,
                 line.item().name,
                 line.quantity(),
@@ -315,12 +318,49 @@ public final class CancelledOrderProcessingSession {
             .sum();
     }
 
-    public record ConfirmResult(String validationMessage, List<ProcessingPreviewOrderView> previewOrders) {
+    public record AllocationChangeCommand(
+        int itemMerchandiseId,
+        int siteId,
+        String quantityText,
+        String transportLabel
+    ) {
+    }
+
+    public record AllocationChangeResult(
+        boolean applied,
+        String errorType,
+        int stock,
+        int deliveryDays,
+        int dayDelta,
+        boolean deliveryAvailable,
+        String deliveryStatusText,
+        String deliveryStatusClass
+    ) {
+    }
+
+    public record PreviewOrderView(
+        String siteName,
+        String siteCode,
+        List<PreviewLineView> lines
+    ) {
+
+        public record PreviewLineView(
+            String merchandiseCode,
+            String merchandiseName,
+            int quantity,
+            String transport,
+            String desiredDate,
+            String estimatedDate
+        ) {
+        }
+    }
+
+    public record ConfirmResult(String validationMessage, List<PreviewOrderView> previewOrders) {
         public static ConfirmResult invalid(String validationMessage) {
             return new ConfirmResult(validationMessage, List.of());
         }
 
-        public static ConfirmResult valid(List<ProcessingPreviewOrderView> previewOrders) {
+        public static ConfirmResult valid(List<PreviewOrderView> previewOrders) {
             return new ConfirmResult(null, List.copyOf(previewOrders));
         }
 

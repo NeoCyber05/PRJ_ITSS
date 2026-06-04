@@ -37,8 +37,8 @@ public final class SalesRequestCreationDialog {
             ));
             StackPane root = loader.load();
             SalesRequestCreationView view = loader.getController();
-            view.init(dialog, controller);
-            view.setOnSave(onSave);
+            view.setCloseHandler(dialog::close);
+            controller.start(view, onSave);
 
             double sceneWidth = owner != null ? owner.getWidth() : 1440;
             double sceneHeight = owner != null ? owner.getHeight() : 900;

@@ -4,8 +4,8 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
-import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditItemDraft;
+import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditItemView;
+import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditMerchandiseOptionView;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -13,31 +13,31 @@ import java.time.LocalDate;
 public final class ItemRow {
 
     private final int lineId;
-    private final ObjectProperty<MerchandiseOption> merchandise = new SimpleObjectProperty<>();
+    private final ObjectProperty<SalesRequestEditMerchandiseOptionView> merchandise = new SimpleObjectProperty<>();
     private final ObjectProperty<BigDecimal> quantity = new SimpleObjectProperty<>();
     private final ObjectProperty<LocalDate> desiredDate = new SimpleObjectProperty<>();
     private final BooleanProperty selected = new SimpleBooleanProperty(false);
 
-    public ItemRow(SalesRequestEditItemDraft draft) {
-        this.lineId = draft.lineId();
-        this.merchandise.set(draft.merchandise());
-        this.quantity.set(draft.quantity());
-        this.desiredDate.set(draft.desiredDate());
+    public ItemRow(SalesRequestEditItemView item) {
+        this.lineId = item.lineId();
+        this.merchandise.set(item.merchandise());
+        this.quantity.set(item.quantity());
+        this.desiredDate.set(item.desiredDate());
     }
 
     public int lineId() {
         return lineId;
     }
 
-    public MerchandiseOption merchandise() {
+    public SalesRequestEditMerchandiseOptionView merchandise() {
         return merchandise.get();
     }
 
-    public ObjectProperty<MerchandiseOption> merchandiseProperty() {
+    public ObjectProperty<SalesRequestEditMerchandiseOptionView> merchandiseProperty() {
         return merchandise;
     }
 
-    public void setMerchandise(MerchandiseOption value) {
+    public void setMerchandise(SalesRequestEditMerchandiseOptionView value) {
         merchandise.set(value);
     }
 

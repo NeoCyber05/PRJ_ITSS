@@ -1,6 +1,6 @@
 package org.itss.prj_itss.controller.sales.request.shared;
 
-public interface SalesRequestDialogListener {
+public interface ISalesRequestDialogListener {
 
     void onSalesRequestSaved(SalesRequestSavedEvent event);
 
