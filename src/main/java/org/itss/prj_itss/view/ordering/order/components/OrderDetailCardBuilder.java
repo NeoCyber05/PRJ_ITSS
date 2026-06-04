@@ -58,12 +58,14 @@ public final class OrderDetailCardBuilder {
     public static VBox buildItemsCard(List<OrderItemRow> items) {
         VBox card = buildCard("Danh sách mặt hàng");
 
-        double indexWidth = 42;
-        double codeWidth = 90;
-        double nameWidth = 170;
-        double quantityWidth = 92;
-        double unitWidth = 88;
-        double transportWidth = 120;
+        double indexWidth = 35;
+        double codeWidth = 80;
+        double nameWidth = 160;
+        double quantityWidth = 80;
+        double unitWidth = 70;
+        double transportWidth = 100;
+        double desiredDateWidth = 105;
+        double deliveryStatusWidth = 110;
 
         VBox table = new VBox(0);
         table.setStyle(
@@ -84,7 +86,9 @@ public final class OrderDetailCardBuilder {
             headerCell("TÊN MẶT HÀNG", nameWidth),
             headerCell("SỐ LƯỢNG ĐẶT", quantityWidth),
             headerCell("ĐƠN VỊ TÍNH", unitWidth),
-            headerCell("PHƯƠNG THỨC VẬN CHUYỂN", transportWidth)
+            headerCell("PHƯƠNG THỨC VẬN CHUYỂN", transportWidth),
+            headerCell("NGÀY CẦN", desiredDateWidth),
+            headerCell("TRẠNG THÁI ETA", deliveryStatusWidth)
         );
         table.getChildren().add(header);
 
@@ -95,6 +99,14 @@ public final class OrderDetailCardBuilder {
         } else {
             int index = 1;
             for (OrderItemRow item : items) {
+                Label statusLabel = new Label(item.etaStatusText());
+                if (item.etaStatusStyleClass() != null && !item.etaStatusStyleClass().isBlank()) {
+                    statusLabel.getStyleClass().add(item.etaStatusStyleClass());
+                }
+                statusLabel.setWrapText(true);
+                statusLabel.setMinWidth(deliveryStatusWidth);
+                statusLabel.setPrefWidth(deliveryStatusWidth);
+
                 HBox row = new HBox();
                 row.setAlignment(Pos.CENTER_LEFT);
                 row.setPadding(new Insets(16, 18, 16, 18));
@@ -105,7 +117,9 @@ public final class OrderDetailCardBuilder {
                     tableCell(item.merchandiseName(), nameWidth, false),
                     tableCell(item.quantity(), quantityWidth, true),
                     tableCell(item.unit(), unitWidth, false),
-                    OrderStatusRenderer.buildTransportCell(item.deliveryMethod(), transportWidth)
+                    OrderStatusRenderer.buildTransportCell(item.deliveryMethod(), transportWidth),
+                    tableCell(item.desiredDateText(), desiredDateWidth, false),
+                    statusLabel
                 );
                 table.getChildren().add(row);
             }

@@ -2,7 +2,7 @@ package org.itss.prj_itss.model.request;
 
 import org.itss.prj_itss.model.shared.database.ConnectionProvider;
 import org.itss.prj_itss.model.shared.database.TransactionRunner;
-import org.itss.prj_itss.model.catalog.CatalogModule;
+import org.itss.prj_itss.model.merchandise.MerchandiseModule;
 import org.itss.prj_itss.model.order.OrderModule;
 import org.itss.prj_itss.model.dashboard.application.port.DashboardRequestPort;
 import org.itss.prj_itss.model.request.application.listing.ReceivedRequestsApplicationService;
@@ -14,6 +14,9 @@ import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcRequestPro
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcRequestRepository;
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcReceivedRequestDetailQuery;
 import org.itss.prj_itss.model.site.SiteModule;
+import org.itss.prj_itss.model.request.domain.processing.allocation.validator.DefaultAllocationValidator;
+import org.itss.prj_itss.model.request.domain.processing.suggestion.DefaultAllocationSuggester;
+import org.itss.prj_itss.model.request.domain.processing.allocation.policy.FastDeliveryObjective;
 
 public final class RequestModule {
 
@@ -29,7 +32,7 @@ public final class RequestModule {
         TransactionRunner transactionRunner,
         OrderModule orderModule,
         SiteModule siteModule,
-        CatalogModule catalogModule
+        MerchandiseModule merchandiseModule
     ) {
         this.jdbcRequestRepository = new JdbcRequestRepository(connectionProvider);
         this.requestProcessingUseCase = new RequestProcessingUseCase(
@@ -38,16 +41,18 @@ public final class RequestModule {
                 orderModule.orderRepository(),
                 siteModule.siteRepository(),
                 siteModule.inventoryRepository(),
-                catalogModule.merchandiseRepository(),
+                merchandiseModule.merchandiseRepository(),
                 transactionRunner
-            )
+            ),
+            new DefaultAllocationValidator(),
+            new DefaultAllocationSuggester(new FastDeliveryObjective())
         );
         this.receivedRequestsApplicationService =
             new ReceivedRequestsApplicationService(jdbcRequestRepository);
         this.receivedRequestDetailApplicationService = new ReceivedRequestDetailApplicationService(
             new JdbcReceivedRequestDetailQuery(connectionProvider)
         );
-        this.salesRequestQueryService = new SalesRequestQueryService(jdbcRequestRepository, catalogModule.catalogUseCase());
+        this.salesRequestQueryService = new SalesRequestQueryService(jdbcRequestRepository, merchandiseModule.merchandiseUseCase());
         this.salesRequestCommandService = new SalesRequestCommandService(jdbcRequestRepository);
     }
 
@@ -73,5 +78,9 @@ public final class RequestModule {
 
     public SalesRequestCommandService salesRequestCommandService() {
         return salesRequestCommandService;
+    }
+
+    public org.itss.prj_itss.model.request.application.processing.ProcessingRequestPort requestRepository() {
+        return jdbcRequestRepository;
     }
 }

@@ -5,7 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.model.request.application.processing.ProcessingPreviewOrderView;
+import org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView;
 
 import java.io.IOException;
 import java.util.Objects;

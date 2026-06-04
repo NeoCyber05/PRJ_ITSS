@@ -14,6 +14,12 @@ public final class RoleAccessPolicy {
 
     public static boolean canAccess(RoleType roleType, String viewId) {
         String normalizedViewId = normalizeViewId(viewId);
+        if (roleType.isAdminRole()) {
+            return switch (normalizedViewId) {
+                case "account-management" -> true;
+                default -> false;
+            };
+        }
         if (roleType.isOrderingRole()) {
             return switch (normalizedViewId) {
                 case "home", "site-management", "received-requests", "orders",
@@ -25,13 +31,20 @@ public final class RoleAccessPolicy {
         if (roleType.isSalesRole()) {
             return switch (normalizedViewId) {
                 case "sales-requests", "sales-request-create",
-                    "sales-request-update", "sales-request-detail" -> true;
+                    "sales-request-update", "sales-request-detail",
+                    "merchandise-management" -> true;
                 default -> false;
             };
         }
         if (roleType.isWarehouseRole()) {
             return switch (normalizedViewId) {
-                case "warehouse-order-confirm-arrival" -> true;
+                case "warehouse-inbound-orders", "warehouse-order-confirm-arrival" -> true;
+                default -> false;
+            };
+        }
+        if (roleType.isSiteRole()) {
+            return switch (normalizedViewId) {
+                case "site-workspace" -> true;
                 default -> false;
             };
         }
@@ -43,6 +56,9 @@ public final class RoleAccessPolicy {
     }
 
     public static String defaultViewId(RoleType roleType) {
+        if (roleType.isAdminRole()) {
+            return "account-management";
+        }
         if (roleType.isOrderingRole()) {
             return "home";
         }
@@ -50,7 +66,10 @@ public final class RoleAccessPolicy {
             return "sales-requests";
         }
         if (roleType.isWarehouseRole()) {
-            return "warehouse-order-confirm-arrival";
+            return "warehouse-inbound-orders";
+        }
+        if (roleType.isSiteRole()) {
+            return "site-workspace";
         }
         return "role-workspace";
     }
@@ -70,6 +89,9 @@ public final class RoleAccessPolicy {
         }
         if (viewId.startsWith("sales-request-detail:")) {
             return "sales-request-detail";
+        }
+        if (viewId.startsWith("ordering-order-handle-cancellation:")) {
+            return "ordering-order-handle-cancellation";
         }
         return viewId;
     }

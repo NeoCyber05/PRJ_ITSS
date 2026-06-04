@@ -1,12 +1,12 @@
 package org.itss.prj_itss.model.order.application;
 
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.site.domain.Site;
 import org.itss.prj_itss.model.order.application.OrderRow;
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
-import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
+import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
 import org.itss.prj_itss.model.order.application.OrderUseCase;
 import org.itss.prj_itss.model.site.application.SiteUseCase;
 
@@ -18,12 +18,12 @@ public final class OrderManagementApplicationService {
 
     private final OrderUseCase orderService;
     private final SiteUseCase siteService;
-    private final CatalogUseCase merchandiseService;
+    private final MerchandiseUseCase merchandiseService;
 
     public OrderManagementApplicationService(
         OrderUseCase orderService,
         SiteUseCase siteService,
-        CatalogUseCase merchandiseService
+        MerchandiseUseCase merchandiseService
     ) {
         this.orderService = Objects.requireNonNull(orderService, "orderService");
         this.siteService = Objects.requireNonNull(siteService, "siteService");
@@ -31,7 +31,19 @@ public final class OrderManagementApplicationService {
     }
 
     public List<OrderRow> loadRows() {
-        return orderService.findAll().stream().map(this::toRow).toList();
+        List<Order> orders = orderService.findAll();
+        
+        java.util.Map<Integer, Site> siteMap = siteService.findAll().stream()
+            .collect(Collectors.toMap(Site::getId, java.util.function.Function.identity(), (a, b) -> a));
+            
+        java.util.Map<Integer, Merchandise> merchandiseMap = merchandiseService.findAll().stream()
+            .collect(Collectors.toMap(Merchandise::getId, java.util.function.Function.identity(), (a, b) -> a));
+
+        java.util.Map<Integer, Integer> itemCounts = orderService.countItemsGroupedByOrderId();
+            
+        return orders.stream()
+            .map(order -> toRow(order, siteMap, merchandiseMap, itemCounts))
+            .toList();
     }
 
     public List<OrderRow> findRows() {
@@ -39,7 +51,19 @@ public final class OrderManagementApplicationService {
     }
 
     public List<OrderRow> loadRowsByStatus(String status) {
-        return orderService.findByStatus(status).stream().map(this::toRow).toList();
+        List<Order> orders = orderService.findByStatus(status);
+        
+        java.util.Map<Integer, Site> siteMap = siteService.findAll().stream()
+            .collect(Collectors.toMap(Site::getId, java.util.function.Function.identity(), (a, b) -> a));
+            
+        java.util.Map<Integer, Merchandise> merchandiseMap = merchandiseService.findAll().stream()
+            .collect(Collectors.toMap(Merchandise::getId, java.util.function.Function.identity(), (a, b) -> a));
+
+        java.util.Map<Integer, Integer> itemCounts = orderService.countItemsGroupedByOrderId();
+            
+        return orders.stream()
+            .map(order -> toRow(order, siteMap, merchandiseMap, itemCounts))
+            .toList();
     }
 
     public List<OrderRow> filterRows(List<OrderRow> rows, String keyword, String selectedStatus) {
@@ -51,8 +75,33 @@ public final class OrderManagementApplicationService {
     }
 
     public OrderRow toRow(Order order) {
-        Site site = siteService.findById(order.getSiteId());
-        String itemSummary = itemSummary(order.getId());
+        return toRow(order, null, null, null);
+    }
+
+    public OrderRow toRow(Order order, java.util.Map<Integer, Site> siteMap, java.util.Map<Integer, Merchandise> merchandiseMap) {
+        return toRow(order, siteMap, merchandiseMap, null);
+    }
+
+    public OrderRow toRow(
+        Order order,
+        java.util.Map<Integer, Site> siteMap,
+        java.util.Map<Integer, Merchandise> merchandiseMap,
+        java.util.Map<Integer, Integer> itemCountsMap
+    ) {
+        Site site = null;
+        if (siteMap != null) {
+            site = siteMap.get(order.getSiteId());
+        } else {
+            site = siteService.findById(order.getSiteId());
+        }
+        
+        int count = 0;
+        if (itemCountsMap != null) {
+            count = itemCountsMap.getOrDefault(order.getId(), 0);
+        } else {
+            count = orderService.findItemsByOrderId(order.getId()).size();
+        }
+        String itemSummary = OrderingFormatters.formatItemTypes(count);
         String status = order.getStatus() == null ? "N/A" : order.getStatus();
         String statusKey = OrderingFormatters.normalizeStatusKey(order.getStatus());
         return new OrderRow(
@@ -70,15 +119,5 @@ public final class OrderManagementApplicationService {
             OrderingFormatters.orderStatusText(order.getStatus())
         );
     }
-
-    private String itemSummary(int orderId) {
-        List<OrderMerchandise> items = orderService.findItemsByOrderId(orderId);
-        String summary = items.stream()
-            .map(item -> {
-                Merchandise merchandise = merchandiseService.findById(item.getMerchandiseId());
-                return merchandise == null ? "?" : merchandise.getCode();
-            })
-            .collect(Collectors.joining(", "));
-        return summary.isBlank() ? "-" : summary;
-    }
 }
+

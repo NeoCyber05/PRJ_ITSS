@@ -20,11 +20,14 @@ public record OrderDetailViewModel(
 ) {
 
     public record OrderItemRow(
-        String merchandiseCode,
-        String merchandiseName,
-        String quantity,
-        String unit,
-        String deliveryMethod
+            String merchandiseCode,
+            String merchandiseName,
+            String quantity,
+            String unit,
+            String deliveryMethod,
+            String desiredDateText,
+            String etaStatusText,
+            String etaStatusStyleClass
     ) {
     }
 }

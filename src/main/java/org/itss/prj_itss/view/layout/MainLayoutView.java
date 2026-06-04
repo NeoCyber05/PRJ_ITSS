@@ -62,7 +62,28 @@ public class MainLayoutView implements Navigator {
     private Button salesRequestsButton;
 
     @FXML
+    private Button merchandiseManagementButton;
+
+    @FXML
     private VBox salesNavContainer;
+
+    @FXML
+    private VBox adminNavContainer;
+
+    @FXML
+    private Button accountManagementButton;
+
+    @FXML
+    private VBox warehouseNavContainer;
+
+    @FXML
+    private Button warehouseIncomingOrdersButton;
+
+    @FXML
+    private VBox siteNavContainer;
+
+    @FXML
+    private Button siteWorkspaceButton;
 
     @FXML
     private void initialize() {
@@ -71,6 +92,10 @@ public class MainLayoutView implements Navigator {
         registerNavButton("received-requests", receivedRequestsButton);
         registerNavButton("orders", ordersButton);
         registerNavButton("sales-requests", salesRequestsButton);
+        registerNavButton("merchandise-management", merchandiseManagementButton);
+        registerNavButton("account-management", accountManagementButton);
+        registerNavButton("warehouse-inbound-orders", warehouseIncomingOrdersButton);
+        registerNavButton("site-workspace", siteWorkspaceButton);
     }
 
     public void init(
@@ -172,6 +197,18 @@ public class MainLayoutView implements Navigator {
         boolean salesRole = role.isSalesRole();
         salesNavContainer.setVisible(salesRole);
         salesNavContainer.setManaged(salesRole);
+
+        boolean adminRole = role.isAdminRole();
+        adminNavContainer.setVisible(adminRole);
+        adminNavContainer.setManaged(adminRole);
+
+        boolean warehouseRole = role.isWarehouseRole();
+        warehouseNavContainer.setVisible(warehouseRole);
+        warehouseNavContainer.setManaged(warehouseRole);
+
+        boolean siteRole = role.isSiteRole();
+        siteNavContainer.setVisible(siteRole);
+        siteNavContainer.setManaged(siteRole);
     }
 
     @FXML

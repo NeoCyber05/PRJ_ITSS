@@ -1,7 +1,7 @@
 package org.itss.prj_itss.controller.warehouse;
 
-import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.site.application.SiteUseCase;
@@ -19,15 +19,15 @@ import java.util.List;
 public class ConfirmOrderArrivalController {
     private final WarehouseReceivingUseCase warehouseReceivingUseCase;
     private final SiteUseCase siteUseCase;
-    private final CatalogUseCase catalogUseCase;
+    private final MerchandiseUseCase MerchandiseUseCase;
 
     public ConfirmOrderArrivalController(
             WarehouseReceivingUseCase warehouseReceivingUseCase,
             SiteUseCase siteUseCase,
-            CatalogUseCase catalogUseCase) {
+            MerchandiseUseCase MerchandiseUseCase) {
         this.warehouseReceivingUseCase = warehouseReceivingUseCase;
         this.siteUseCase = siteUseCase;
-        this.catalogUseCase = catalogUseCase;
+        this.MerchandiseUseCase = MerchandiseUseCase;
     }
 
     public List<Order> findInboundOrders() {
@@ -43,7 +43,7 @@ public class ConfirmOrderArrivalController {
     }
 
     public Merchandise findMerchandiseById(int merchandiseId) {
-        return catalogUseCase.findById(merchandiseId);
+        return MerchandiseUseCase.findById(merchandiseId);
     }
 
     public ValidationResult validateInspection(List<InspectionItemDto> items, String overallNote) {

@@ -1,6 +1,11 @@
 package org.itss.prj_itss.model.request.domain.request;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * Entity class tương ứng với bảng "request" trong database.
@@ -16,9 +21,16 @@ public class Request {
     private LocalDateTime createdAt;
     private RequestStatus status;
     private String note;
+    private final List<RequestMerchandise> items = new ArrayList<>();
 
     /** Constructor mặc định để framework / JDBC mapper có thể khởi tạo. */
     public Request() {
+    }
+
+    public Request(String note) {
+        this.note = note;
+        this.status = RequestStatus.PENDING;
+        this.createdAt = LocalDateTime.now();
     }
 
     /**
@@ -34,6 +46,10 @@ public class Request {
         return r;
     }
 
+    public List<RequestMerchandise> getItems() {
+        return Collections.unmodifiableList(items);
+    }
+
     // ---------------------------------------------------------------
     // Business methods — đóng gói quy tắc chuyển trạng thái
     // ---------------------------------------------------------------
@@ -43,6 +59,10 @@ public class Request {
      *
      * @throws IllegalStateException nếu yêu cầu không đang ở trạng thái PENDING.
      */
+    public void addItem(int merchandiseId, BigDecimal quantityOrdered, LocalDate desiredDeliveryDate) {
+        items.add(new RequestMerchandise(id, merchandiseId, quantityOrdered, desiredDeliveryDate));
+    }
+
     public void startProcessing() {
         if (status != RequestStatus.PENDING) {
             throw new IllegalStateException(

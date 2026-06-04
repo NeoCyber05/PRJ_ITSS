@@ -2,7 +2,7 @@ package org.itss.prj_itss.model.request.infrastructure.persistence;
 
 import org.itss.prj_itss.model.shared.database.TransactionException;
 import org.itss.prj_itss.model.shared.database.TransactionRunner;
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
@@ -10,15 +10,15 @@ import org.itss.prj_itss.model.site.domain.Site;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingGateway;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingGatewayException;
 import org.itss.prj_itss.model.request.application.processing.ProcessingRequestPort;
-import org.itss.prj_itss.model.request.domain.allocation.model.Allocation;
-import org.itss.prj_itss.model.request.domain.allocation.model.AllocationPlan;
+import org.itss.prj_itss.model.request.domain.processing.allocation.Allocation;
+import org.itss.prj_itss.model.request.domain.processing.allocation.AllocationPlan;
 import org.itss.prj_itss.model.request.domain.delivery.DeliveryMethod;
 import org.itss.prj_itss.model.request.domain.request.RequestStatus;
 import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.model.request.domain.processing.RequestProcessingData;
 import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
 import org.itss.prj_itss.model.site.application.port.InventoryRepository;
-import org.itss.prj_itss.model.catalog.application.port.MerchandiseRepository;
+import org.itss.prj_itss.model.merchandise.application.port.MerchandiseRepository;
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
 
 import org.itss.prj_itss.model.site.application.port.SiteRepository;
@@ -60,8 +60,12 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
     public RequestProcessingData loadProcessingData(int requestId) {
         List<ItemRequirement> items = new ArrayList<>();
         Map<Integer, LocalDate> desiredDeliveryDates = new LinkedHashMap<>();
+        List<Merchandise> allMerch = merchandiseRepository.findAll();
+        Map<Integer, Merchandise> merchMap = allMerch.stream()
+            .collect(java.util.stream.Collectors.toMap(Merchandise::getId, java.util.function.Function.identity(), (a, b) -> a, LinkedHashMap::new));
+
         for (RequestMerchandise requestItem : requestRepository.findItemsByRequestId(requestId)) {
-            Merchandise merchandise = merchandiseRepository.findById(requestItem.getMerchandiseId());
+            Merchandise merchandise = merchMap.get(requestItem.getMerchandiseId());
             if (merchandise != null) {
                 items.add(new ItemRequirement(
                     merchandise.getId(),

@@ -9,23 +9,26 @@ import org.itss.prj_itss.controller.navigation.SimpleNavigator;
 import org.itss.prj_itss.controller.ordering.order.OrderControllerModule;
 import org.itss.prj_itss.controller.ordering.request.RequestControllerModule;
 import org.itss.prj_itss.controller.ordering.site.SiteControllerModule;
+import org.itss.prj_itss.controller.sales.merchandise.SalesMerchandiseControllerModule;
 import org.itss.prj_itss.controller.sales.request.SalesRequestControllerModule;
 import org.itss.prj_itss.controller.warehouse.WarehouseControllerModule;
 import org.itss.prj_itss.model.auth.AuthModule;
 import org.itss.prj_itss.model.auth.application.AuthenticationService;
 import org.itss.prj_itss.model.auth.domain.AuthenticatedUser;
-import org.itss.prj_itss.model.catalog.CatalogModule;
+import org.itss.prj_itss.model.merchandise.MerchandiseModule;
 import org.itss.prj_itss.model.dashboard.DashboardModule;
 import org.itss.prj_itss.model.order.OrderModule;
 import org.itss.prj_itss.model.request.RequestModule;
-import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
 import org.itss.prj_itss.model.site.SiteModule;
 import org.itss.prj_itss.model.shared.database.ConnectionProvider;
 import org.itss.prj_itss.model.shared.database.DatabaseConnectionProvider;
 import org.itss.prj_itss.model.shared.database.TransactionManager;
 import org.itss.prj_itss.model.shared.database.WarehouseConnectionProvider;
 import org.itss.prj_itss.model.shared.database.WarehouseTransactionManager;
+import org.itss.prj_itss.model.shared.database.TransactionRunner;
 import org.itss.prj_itss.model.warehouse.WarehouseModule;
+import org.itss.prj_itss.controller.admin.account.AdminControllerModule;
+import org.itss.prj_itss.view.admin.account.AccountManagementView;
 import org.itss.prj_itss.view.auth.RoleWorkspaceView;
 import org.itss.prj_itss.view.home.HomeView;
 import org.itss.prj_itss.view.ordering.order.OrderCancellationView;
@@ -35,8 +38,11 @@ import org.itss.prj_itss.view.ordering.request.ReceivedRequestsView;
 import org.itss.prj_itss.view.ordering.request.RequestDetailContext;
 import org.itss.prj_itss.view.ordering.request.process.layout.RequestProcessingLayoutView;
 import org.itss.prj_itss.view.ordering.site.SiteManagementView;
+import org.itss.prj_itss.view.sales.merchandise.SalesMerchandiseManagementView;
 import org.itss.prj_itss.view.sales.request.list.SalesRequestListView;
 import org.itss.prj_itss.view.sales.request.update.SalesRequestEditDialog;
+import org.itss.prj_itss.view.site.workspace.SiteWorkspaceView;
+import org.itss.prj_itss.view.warehouse.WarehouseIncomingOrdersView;
 import org.itss.prj_itss.view.warehouse.ConfirmOrderArrivalView;
 
 import java.util.List;
@@ -55,11 +61,19 @@ public final class MvcContext {
         new WarehouseConnectionProvider(warehouseTransactionManager);
 
     private final AuthModule authModule = new AuthModule(connectionProvider);
-    private final CatalogModule catalogModule = new CatalogModule(connectionProvider);
-    private final SiteModule siteModule = new SiteModule(connectionProvider, catalogModule);
-    private final OrderModule orderModule = new OrderModule(connectionProvider, siteModule, catalogModule);
+    private final MerchandiseModule merchandiseModule = new MerchandiseModule(connectionProvider);
+    private final SiteModule siteModule = new SiteModule(
+        connectionProvider,
+        transactionManager,
+        merchandiseModule,
+        authModule.siteAccountProvisioningPort()
+    );
+    private final OrderModule orderModule = new OrderModule(connectionProvider, siteModule, merchandiseModule);
+    {
+        siteModule.initializeSiteOrderRepository(orderModule.siteOrderRepository());
+    }
     private final RequestModule requestModule =
-        new RequestModule(connectionProvider, transactionManager, orderModule, siteModule, catalogModule);
+        new RequestModule(connectionProvider, transactionManager, orderModule, siteModule, merchandiseModule);
     private final WarehouseModule warehouseModule =
         new WarehouseModule(
             warehouseConnectionProvider,
@@ -67,7 +81,7 @@ public final class MvcContext {
             authModule,
             orderModule,
             siteModule,
-            catalogModule
+            merchandiseModule
         );
     private final DashboardModule dashboardModule = new DashboardModule(requestModule, orderModule, siteModule);
 
@@ -76,15 +90,21 @@ public final class MvcContext {
     private final AuthControllerModule authControllers = new AuthControllerModule(navigator);
     private final HomeControllerModule homeControllers =
         new HomeControllerModule(navigator, dashboardModule, requestModule);
-    private final SiteControllerModule siteControllers = new SiteControllerModule(siteModule);
+    private final org.itss.prj_itss.controller.ordering.site.SiteControllerModule orderingSiteControllers =
+        new org.itss.prj_itss.controller.ordering.site.SiteControllerModule(siteModule);
+    private final org.itss.prj_itss.controller.site.SiteControllerModule siteWorkspaceControllers =
+        new org.itss.prj_itss.controller.site.SiteControllerModule(siteModule, this::currentAuthenticatedUser);
     private final OrderControllerModule orderControllers =
-        new OrderControllerModule(orderModule, siteModule, catalogModule);
+        new OrderControllerModule(orderModule, siteModule, merchandiseModule);
     private final RequestControllerModule requestControllers =
         new RequestControllerModule(requestModule, orderModule);
     private final SalesRequestControllerModule salesRequestControllers =
         new SalesRequestControllerModule(requestModule);
+    private final SalesMerchandiseControllerModule salesMerchandiseControllers =
+        new SalesMerchandiseControllerModule(merchandiseModule);
     private final WarehouseControllerModule warehouseControllers =
-        new WarehouseControllerModule(warehouseModule, siteModule, catalogModule);
+        new WarehouseControllerModule(warehouseModule, siteModule, merchandiseModule);
+    private final AdminControllerModule adminControllers = new AdminControllerModule(authModule);
     private final RouteRegistry routeRegistry = new RouteRegistry(List.of(
         RouteRegistry.fxml(
             "home",
@@ -96,7 +116,7 @@ public final class MvcContext {
             "site-management",
             "/org/itss/prj_itss/view/ordering/site/site-management-view.fxml",
             (viewId, viewInstance, navigator) ->
-                ((SiteManagementView) viewInstance).init(navigator, siteControllers.siteManagementController())
+                ((SiteManagementView) viewInstance).init(navigator, orderingSiteControllers.siteManagementController())
         ),
         RouteRegistry.fxml(
             "received-requests",
@@ -126,11 +146,12 @@ public final class MvcContext {
             false,
             this::loadOrderDetailView
         ),
-        RouteRegistry.fxml(
-            "ordering-order-handle-cancellation",
-            "/org/itss/prj_itss/view/ordering/order/handle-order-cancellation-view.fxml",
-            (viewId, viewInstance, navigator) ->
-                ((OrderCancellationView) viewInstance).init(navigator, orderControllers.orderCancellationController())
+        RouteRegistry.dynamic(
+            viewId -> viewId.startsWith("ordering-order-handle-cancellation:"),
+            viewId -> viewId,
+            viewId -> "orders",
+            false,
+            this::loadOrderCancellationView
         ),
         RouteRegistry.dynamic(
             viewId -> "request-processing".equals(viewId) || viewId.startsWith(REQUEST_PROCESSING_PREFIX),
@@ -171,11 +192,41 @@ public final class MvcContext {
             this::configureSalesRequestList
         ),
         RouteRegistry.fxml(
+            "merchandise-management",
+            "/org/itss/prj_itss/view/sales/merchandise/sales-merchandise-management-view.fxml",
+            (viewId, viewInstance, navigator) ->
+                ((SalesMerchandiseManagementView) viewInstance).init(navigator, salesMerchandiseControllers.salesMerchandiseController())
+        ),
+        RouteRegistry.fxml(
+            "warehouse-inbound-orders",
+            "/org/itss/prj_itss/view/warehouse/warehouse-incoming-orders-view.fxml",
+            (viewId, viewInstance, navigator) ->
+                ((WarehouseIncomingOrdersView) viewInstance).init(navigator, warehouseControllers.warehouseIncomingOrderController())
+        ),
+        RouteRegistry.fxml(
             "warehouse-order-confirm-arrival",
             "/org/itss/prj_itss/view/warehouse/confirm-order-arrival-view.fxml",
             (viewId, viewInstance, navigator) ->
                 ((ConfirmOrderArrivalView) viewInstance)
                     .setController(warehouseControllers.confirmOrderArrivalController())
+        ),
+        RouteRegistry.fxml(
+            "account-management",
+            "/org/itss/prj_itss/view/admin/account/account-management-view.fxml",
+            (viewId, viewInstance, navigator) ->
+                ((AccountManagementView) viewInstance).init(
+                    navigator,
+                    adminControllers.accountManagementController()
+                )
+        ),
+        RouteRegistry.fxml(
+            "site-workspace",
+            "/org/itss/prj_itss/view/site/workspace/site-workspace-view.fxml",
+            (viewId, viewInstance, navigator) ->
+                ((SiteWorkspaceView) viewInstance).init(
+                    navigator,
+                    siteWorkspaceControllers.siteWorkspaceController()
+                )
         ),
         RouteRegistry.fxml(
             "role-workspace",
@@ -216,10 +267,6 @@ public final class MvcContext {
         return routeRegistry;
     }
 
-    public RequestProcessingUseCase requestProcessingUseCase() {
-        return requestModule.requestProcessingUseCase();
-    }
-
     public AuthControllerModule authControllers() {
         return authControllers;
     }
@@ -228,8 +275,12 @@ public final class MvcContext {
         return homeControllers;
     }
 
-    public SiteControllerModule siteControllers() {
-        return siteControllers;
+    public org.itss.prj_itss.controller.ordering.site.SiteControllerModule orderingSiteControllers() {
+        return orderingSiteControllers;
+    }
+
+    public org.itss.prj_itss.controller.site.SiteControllerModule siteWorkspaceControllers() {
+        return siteWorkspaceControllers;
     }
 
     public OrderControllerModule orderControllers() {
@@ -242,6 +293,10 @@ public final class MvcContext {
 
     public SalesRequestControllerModule salesRequestControllers() {
         return salesRequestControllers;
+    }
+
+    public SalesMerchandiseControllerModule salesMerchandiseControllers() {
+        return salesMerchandiseControllers;
     }
 
     public WarehouseControllerModule warehouseControllers() {
@@ -270,7 +325,10 @@ public final class MvcContext {
             navigator,
             (requestedViewId, viewInstance, routeNavigator) -> {
                 RequestProcessingLayoutView requestProcessingView = (RequestProcessingLayoutView) viewInstance;
-                requestProcessingView.init(requestProcessingUseCase(), routeNavigator::showView);
+                requestProcessingView.init(
+                    requestControllers.requestProcessingLayoutController(),
+                    routeNavigator::showView
+                );
                 requestProcessingView.setRequestId(requestId);
             }
         );
@@ -293,5 +351,23 @@ public final class MvcContext {
         } catch (NumberFormatException exception) {
             return fallback;
         }
+    }
+
+    public MvcContext() {
+        orderModule.initializeCancellationUseCase(requestModule.requestRepository(), transactionManager);
+    }
+
+    private LoadedView loadOrderCancellationView(String viewId, Navigator navigator) throws Exception {
+        int orderId = parsePositiveInt(viewId.substring("ordering-order-handle-cancellation:".length()), 1);
+        return RouteRegistry.loadFxml(
+            "/org/itss/prj_itss/view/ordering/order/handle-order-cancellation-view.fxml",
+            viewId,
+            navigator,
+            (requestedViewId, viewInstance, routeNavigator) -> {
+                OrderCancellationView view = (OrderCancellationView) viewInstance;
+                view.init(routeNavigator, orderControllers.newCancellationProcessingController());
+                view.setCancelledOrderId(orderId);
+            }
+        );
     }
 }

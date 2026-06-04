@@ -1,6 +1,9 @@
 package org.itss.prj_itss.controller.ordering.site;
 
+import org.itss.prj_itss.model.site.application.SiteAccountDraft;
+import org.itss.prj_itss.model.site.application.SiteDraft;
 import org.itss.prj_itss.model.site.application.SiteManagementApplicationService;
+import org.itss.prj_itss.model.site.application.SiteManagementResult;
 import org.itss.prj_itss.model.site.application.SiteRow;
 import org.itss.prj_itss.model.site.domain.Site;
 
@@ -24,5 +27,25 @@ public final class SiteManagementController {
 
     public int countMerchandise() {
         return siteManagementApplicationService.countMerchandise();
+    }
+
+    public SiteManagementApplicationService.Snapshot load() {
+        return siteManagementApplicationService.load();
+    }
+
+    public List<SiteRow> filterRows(List<SiteRow> rows, String keyword) {
+        return siteManagementApplicationService.filterRows(rows, keyword);
+    }
+
+    public SiteManagementResult createSite(SiteDraft draft) {
+        return siteManagementApplicationService.createSite(draft);
+    }
+
+    public SiteManagementResult updateSite(int siteId, SiteDraft draft) {
+        return siteManagementApplicationService.updateSite(siteId, draft);
+    }
+
+    public SiteManagementResult provisionSiteAccount(int siteId, SiteAccountDraft draft) {
+        return siteManagementApplicationService.provisionSiteAccount(siteId, draft);
     }
 }

@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "design-patterns": {
+      "source": "ratacat/claude-skills",
+      "sourceType": "github",
+      "skillPath": "skills/design-patterns/SKILL.md",
+      "computedHash": "e88f4692973650b9aa48f168ff00b1c87a69daf5482a3c9819cdfbc8b56a2e39"
+    },
     "find-skills": {
       "source": "vercel-labs/skills",
       "sourceType": "github",
@@ -18,6 +24,12 @@
       "sourceType": "github",
       "skillPath": "skills/java-coding-standards/SKILL.md",
       "computedHash": "64975ca9d45b1334cf444766c1ae4c22a82207e863de38118b94949f824d4bfd"
+    },
+    "java-junit": {
+      "source": "github/awesome-copilot",
+      "sourceType": "github",
+      "skillPath": "skills/java-junit/SKILL.md",
+      "computedHash": "fbf3cb0d47ffb44bdb6e1ebcc4d89dd7083208efdfc5b88f316c8bc2b58250b5"
     },
     "solid": {
       "source": "ramziddin/solid-skills",

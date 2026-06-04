@@ -10,7 +10,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import org.itss.prj_itss.model.request.application.processing.SuggestedPlanView;
+import org.itss.prj_itss.view.ordering.request.process.state.SuggestedPlanView;
 
 import java.io.IOException;
 import java.util.List;

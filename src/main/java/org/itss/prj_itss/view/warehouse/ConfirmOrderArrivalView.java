@@ -23,7 +23,7 @@ import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.model.catalog.domain.Merchandise;
+import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.site.domain.Site;

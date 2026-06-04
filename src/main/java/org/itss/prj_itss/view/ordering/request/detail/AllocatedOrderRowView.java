@@ -29,7 +29,7 @@ public final class AllocatedOrderRowView {
     @FXML
     private Label siteNameCell;
     @FXML
-    private HBox transportBox;
+    private Label itemCountCell;
     @FXML
     private Label createdAtCell;
     @FXML
@@ -68,7 +68,7 @@ public final class AllocatedOrderRowView {
         orderCodeCell.setText(order.orderCode());
         siteNameCell.setText(order.siteName());
 
-        transportBox.getChildren().setAll(StatusBadgeFactory.transportBadge(order.deliveryMethod()));
+        itemCountCell.setText(order.deliveryMethod());
         createdAtCell.setText(order.createdAt() != null && !order.createdAt().isBlank() ? order.createdAt() : "N/A");
         statusBox.getChildren().setAll(StatusBadgeFactory.statusBadge(order.status(), false));
 
