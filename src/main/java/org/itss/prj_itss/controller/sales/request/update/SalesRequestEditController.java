@@ -1,8 +1,6 @@
 package org.itss.prj_itss.controller.sales.request.update;
 
 import org.itss.prj_itss.controller.shared.ActionResult;
-import org.itss.prj_itss.controller.sales.request.shared.SalesRequestDialogListener;
-import org.itss.prj_itss.controller.sales.request.shared.SalesRequestSavedEvent;
 import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
 import org.itss.prj_itss.model.request.application.sales.shared.RequestFormView;
 import org.itss.prj_itss.model.request.application.sales.shared.SalesRequestItemSubmission;

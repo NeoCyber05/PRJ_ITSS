@@ -9,7 +9,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import org.itss.prj_itss.controller.sales.request.view.ViewOrderRequestController;
-import org.itss.prj_itss.view.sales.request.shared.PopupOverlayHelper;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -29,7 +28,7 @@ public final class ViewOrderRequestPopup {
         applyMainStylesheet(scene);
         dialog.setScene(scene);
         centerOnOwner(dialog, owner, scene);
-        PopupOverlayHelper.showWithOverlay(owner, dialog::showAndWait);
+        ViewPopupOverlayHelper.showWithOverlay(owner, dialog::showAndWait);
     }
 
     private static Stage createDialog(Window owner) {

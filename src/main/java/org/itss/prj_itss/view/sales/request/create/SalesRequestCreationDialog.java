@@ -9,7 +9,6 @@ import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
 import org.itss.prj_itss.controller.sales.request.create.SalesRequestCreationController;
-import org.itss.prj_itss.view.sales.request.shared.PopupOverlayHelper;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -58,7 +57,7 @@ public final class SalesRequestCreationDialog {
                 dialog.setY(owner.getY());
             }
 
-            PopupOverlayHelper.showWithOverlay(owner, dialog::showAndWait);
+            CreatePopupOverlayHelper.showWithOverlay(owner, dialog::showAndWait);
         } catch (IOException exception) {
             throw new IllegalStateException("Cannot load create order request popup", exception);
         }

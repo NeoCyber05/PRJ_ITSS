@@ -1,4 +1,4 @@
-package org.itss.prj_itss.view.sales.request.shared;
+package org.itss.prj_itss.view.sales.request.update;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.ObjectProperty;
@@ -10,7 +10,7 @@ import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEdit
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
-public final class ItemRow {
+public final class SalesRequestEditItemRow {
 
     private final int lineId;
     private final ObjectProperty<MerchandiseOption> merchandise = new SimpleObjectProperty<>();
@@ -18,7 +18,7 @@ public final class ItemRow {
     private final ObjectProperty<LocalDate> desiredDate = new SimpleObjectProperty<>();
     private final BooleanProperty selected = new SimpleBooleanProperty(false);
 
-    public ItemRow(SalesRequestEditItemDraft draft) {
+    public SalesRequestEditItemRow(SalesRequestEditItemDraft draft) {
         this.lineId = draft.lineId();
         this.merchandise.set(draft.merchandise());
         this.quantity.set(draft.quantity());
