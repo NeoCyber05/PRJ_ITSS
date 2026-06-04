@@ -9,13 +9,12 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
-import org.itss.prj_itss.controller.navigation.Navigator;
-import org.itss.prj_itss.controller.ordering.order.OrderDetailController;
-import org.itss.prj_itss.controller.ordering.order.OrderManagementController;
 import org.itss.prj_itss.controller.ordering.request.RequestDetailPopupController;
 import org.itss.prj_itss.model.request.application.international.detail.AllocatedOrderRow;
 import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailViewModel;
+import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 import org.itss.prj_itss.view.ordering.order.OrderDetailView;
+import org.itss.prj_itss.view.ordering.request.RequestDetailContext;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 import org.itss.prj_itss.view.shared.ui.StatusBadgeFactory;
 
@@ -57,10 +56,7 @@ public final class RequestDetailPopupView implements ViewLifecycle {
     @FXML
     private VBox allocatedOrdersTable;
 
-    private RequestDetailPopupController controller;
-    private OrderDetailController orderDetailController;
-    private OrderManagementController orderManagementController;
-    private Navigator navigator;
+    private RequestDetailContext context;
 
     private double requestCollapsedWidth;
     private double requestExpandedWidth;
@@ -75,10 +71,7 @@ public final class RequestDetailPopupView implements ViewLifecycle {
     public void init(
         Stage dialog,
         String requestCode,
-        RequestDetailPopupController controller,
-        OrderDetailController orderDetailController,
-        OrderManagementController orderManagementController,
-        Navigator navigator,
+        RequestDetailContext context,
         ReceivedRequestDetailViewModel viewModel,
         double sceneWidth,
         double requestCollapsedWidth,
@@ -86,10 +79,7 @@ public final class RequestDetailPopupView implements ViewLifecycle {
         double orderPanelWidth
     ) {
         this.dialog = dialog;
-        this.controller = controller;
-        this.orderDetailController = orderDetailController;
-        this.orderManagementController = orderManagementController;
-        this.navigator = navigator;
+        this.context = context;
         this.requestCollapsedWidth = requestCollapsedWidth;
         this.requestExpandedWidth = requestExpandedWidth;
         this.orderPanelWidth = orderPanelWidth;
@@ -118,7 +108,7 @@ public final class RequestDetailPopupView implements ViewLifecycle {
         requestItemsTable.getChildren().setAll(RequestItemTableView.load(viewModel.requestItems()));
         allocatedOrdersTable.getChildren().setAll(AllocatedOrderTableView.load(
             viewModel.allocatedOrders(),
-            controller,
+            context.requestController(),
             (selectedOrder, selectedRow) -> {
                 this.currentSelectedOrder = selectedOrder;
                 this.currentSelectedRow = selectedRow;
@@ -130,7 +120,7 @@ public final class RequestDetailPopupView implements ViewLifecycle {
     private void showOrderDetail(int orderId) {
         OrderDetailView orderDetailView = new OrderDetailView();
         orderDetailView.initAsEmbedded(
-            orderDetailController,
+            context.orderController(),
             String.valueOf(orderId),
             this::hideOrderDetail,
             () -> {
@@ -156,11 +146,12 @@ public final class RequestDetailPopupView implements ViewLifecycle {
         requestCard.setVisible(true);
         requestCard.setManaged(true);
 
-        if (currentSelectedOrder != null && currentSelectedRow != null && controller != null) {
+        if (currentSelectedOrder != null && currentSelectedRow != null && context != null) {
+            RequestDetailPopupController controller = context.requestController();
             AllocatedOrderRow refreshed = controller.findOrderRow(currentSelectedOrder.orderId());
-            if (refreshed != null && "cancelled".equalsIgnoreCase(refreshed.status())) {
+            if (refreshed != null && OrderingFormatters.STATUS_CANCELLED.equalsIgnoreCase(refreshed.status())) {
                 HBox statusBox = (HBox) currentSelectedRow.getChildren().get(4);
-                statusBox.getChildren().setAll(StatusBadgeFactory.statusBadge("cancelled", false));
+                statusBox.getChildren().setAll(StatusBadgeFactory.statusBadge(OrderingFormatters.STATUS_CANCELLED, false));
                 
                 HBox actionBox = (HBox) currentSelectedRow.getChildren().get(5);
                 if (actionBox.getChildren().size() > 1) {

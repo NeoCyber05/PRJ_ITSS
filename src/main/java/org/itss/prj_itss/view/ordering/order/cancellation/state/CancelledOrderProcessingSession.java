@@ -1,4 +1,6 @@
-package org.itss.prj_itss.model.order.application.cancellation;
+package org.itss.prj_itss.view.ordering.order.cancellation.state;
+
+import org.itss.prj_itss.model.order.application.cancellation.CancelledOrderProcessingUseCase;
 
 import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
 import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
@@ -12,6 +14,7 @@ import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
 import org.itss.prj_itss.model.shared.formatting.DeliveryStatusFormatter;
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
+import org.itss.prj_itss.model.order.application.cancellation.CancelledOrderProcessingException;
 import org.itss.prj_itss.model.order.domain.cancellation.CancelledOrderProcessingData;
 
 import java.time.LocalDate;

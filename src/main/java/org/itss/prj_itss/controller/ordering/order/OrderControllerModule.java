@@ -3,6 +3,7 @@ package org.itss.prj_itss.controller.ordering.order;
 import org.itss.prj_itss.model.merchandise.MerchandiseModule;
 import org.itss.prj_itss.model.order.OrderModule;
 import org.itss.prj_itss.model.site.SiteModule;
+import org.itss.prj_itss.view.ordering.order.cancellation.state.CancelledOrderProcessingSession;
 
 public final class OrderControllerModule {
 
@@ -15,10 +16,8 @@ public final class OrderControllerModule {
         this.orderModule = orderModule;
         this.orderManagementController = new OrderManagementController(orderModule.orderManagementApplicationService());
         this.orderDetailController = new OrderDetailController(
-            orderModule.orderUseCase(),
-            orderModule.orderCancellationApplicationService(),
-            siteModule.siteUseCase(),
-            merchandiseModule.merchandiseUseCase()
+            orderModule.orderDetailApplicationService(),
+            orderModule.orderCancellationApplicationService()
         );
         this.orderCancellationController =
             new OrderCancellationController(orderModule.orderCancellationApplicationService());
@@ -37,6 +36,9 @@ public final class OrderControllerModule {
     }
 
     public OrderCancellationProcessingController newCancellationProcessingController() {
-        return new OrderCancellationProcessingController(orderModule.newCancellationSession());
+        CancelledOrderProcessingSession session = new CancelledOrderProcessingSession(
+            orderModule.cancelledOrderProcessingUseCase()
+        );
+        return new OrderCancellationProcessingController(session);
     }
 }

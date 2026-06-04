@@ -55,8 +55,11 @@ class JdbcRequestProcessingGatewayTest {
             },
             new EmptyMerchandiseRepository() {
                 @Override
-                public Merchandise findById(int id) {
-                    return new Merchandise(id, "M" + id, "Item " + id, "pcs");
+                public List<Merchandise> findAll() {
+                    return List.of(
+                        new Merchandise(10, "M10", "Item 10", "pcs"),
+                        new Merchandise(11, "M11", "Item 11", "pcs")
+                    );
                 }
             },
             new RecordingTransactionRunner()

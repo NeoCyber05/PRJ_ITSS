@@ -32,12 +32,12 @@ import org.itss.prj_itss.model.warehouse.application.WarehouseReceivingUseCase.C
 import org.itss.prj_itss.controller.warehouse.ConfirmOrderArrivalController;
 import org.itss.prj_itss.controller.warehouse.ConfirmOrderArrivalController.InspectionItemDto;
 import org.itss.prj_itss.controller.shared.ValidationResult;
+import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 public final class ConfirmOrderArrivalView implements ViewLifecycle {
 
@@ -378,7 +378,7 @@ public final class ConfirmOrderArrivalView implements ViewLifecycle {
         siteCodeValueLabel.setText(site == null ? "N/A" : safeText(site.getSiteCode()));
         siteNameValueLabel.setText(site == null ? "N/A" : safeText(site.getName()));
         createdAtValueLabel.setText(order.getCreatedAt() == null ? "N/A" : order.getCreatedAt().toLocalDate().format(DATE_FORMAT));
-        statusValueLabel.setText(renderStatusVietnamese(order.getStatus()));
+        statusValueLabel.setText(OrderingFormatters.orderStatusText(order.getStatus()));
     }
 
     private void loadOrderItems(Order order) {
@@ -459,7 +459,7 @@ public final class ConfirmOrderArrivalView implements ViewLifecycle {
                 merchandise == null ? "N/A" : safeText(merchandise.getName()),
                 orderedQuantity,
                 merchandise == null ? "N/A" : safeText(merchandise.getUnit()),
-                renderDeliveryMethodVietnamese(item.getDeliveryMethod()),
+                OrderingFormatters.deliveryMethodText(item.getDeliveryMethod()),
                 String.valueOf(orderedQuantity),
                 InspectionResult.ENOUGH
             ));
@@ -479,7 +479,7 @@ public final class ConfirmOrderArrivalView implements ViewLifecycle {
             site == null ? "N/A" : safeText(site.getSiteCode()),
             site == null ? "Site #" + order.getSiteId() : safeText(site.getName()),
             order.getCreatedAt() == null ? "" : order.getCreatedAt().toLocalDate().format(DATE_FORMAT),
-            renderStatusVietnamese(order.getStatus())
+            OrderingFormatters.orderStatusText(order.getStatus())
         );
     }
 
@@ -495,29 +495,7 @@ public final class ConfirmOrderArrivalView implements ViewLifecycle {
         confirmButton.setDisable(true);
     }
 
-    private String renderStatusVietnamese(String status) {
-        if (status == null || status.isBlank()) {
-            return "Không xác định";
-        }
-        return switch (status.trim().toLowerCase(Locale.ROOT)) {
-            case "pending" -> "Chờ xác nhận";
-            case "shipping" -> "Đang giao";
-            case "completed" -> "Hoàn thành";
-            case "cancelled" -> "Đã hủy";
-            default -> status;
-        };
-    }
 
-    private String renderDeliveryMethodVietnamese(String deliveryMethod) {
-        if (deliveryMethod == null || deliveryMethod.isBlank()) {
-            return "Không xác định";
-        }
-        return switch (deliveryMethod.trim().toLowerCase(Locale.ROOT)) {
-            case "air" -> "Máy bay";
-            case "ship" -> "Tàu biển";
-            default -> deliveryMethod;
-        };
-    }
 
     private String formatOrderCode(int orderId) {
         return String.format("ĐH-2026-%03d", orderId);

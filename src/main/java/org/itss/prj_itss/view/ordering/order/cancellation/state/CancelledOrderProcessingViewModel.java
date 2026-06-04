@@ -1,4 +1,4 @@
-package org.itss.prj_itss.model.order.application.cancellation;
+package org.itss.prj_itss.view.ordering.order.cancellation.state;
 
 import org.itss.prj_itss.view.ordering.request.process.state.ProcessingItemView;
 import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;

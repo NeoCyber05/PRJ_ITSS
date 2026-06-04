@@ -3,13 +3,13 @@ package org.itss.prj_itss.model.order;
 import org.itss.prj_itss.model.shared.database.ConnectionProvider;
 import org.itss.prj_itss.model.merchandise.MerchandiseModule;
 import org.itss.prj_itss.model.order.application.OrderCancellationApplicationService;
+import org.itss.prj_itss.model.order.application.OrderDetailApplicationService;
 import org.itss.prj_itss.model.order.application.OrderManagementApplicationService;
 import org.itss.prj_itss.model.order.application.OrderUseCase;
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
 import org.itss.prj_itss.model.order.application.port.SiteOrderRepository;
 import org.itss.prj_itss.model.order.infrastructure.persistence.JdbcOrderRepository;
 import org.itss.prj_itss.model.site.SiteModule;
-import org.itss.prj_itss.model.order.application.cancellation.CancelledOrderProcessingSession;
 import org.itss.prj_itss.model.order.application.cancellation.CancelledOrderProcessingUseCase;
 import org.itss.prj_itss.model.order.application.port.CancelledOrderProcessingGateway;
 import org.itss.prj_itss.model.order.infrastructure.persistence.JdbcCancelledOrderProcessingGateway;
@@ -20,6 +20,7 @@ public final class OrderModule {
 
     private final OrderRepository orderRepository;
     private final OrderUseCase orderUseCase;
+    private final OrderDetailApplicationService orderDetailApplicationService;
     private final OrderManagementApplicationService orderManagementApplicationService;
     private final OrderCancellationApplicationService orderCancellationApplicationService;
 
@@ -34,6 +35,11 @@ public final class OrderModule {
         this.merchandiseModule = merchandiseModule;
         this.orderRepository = new JdbcOrderRepository(connectionProvider);
         this.orderUseCase = new OrderUseCase(orderRepository);
+        this.orderDetailApplicationService = new OrderDetailApplicationService(
+            orderUseCase,
+            siteModule.siteUseCase(),
+            merchandiseModule.merchandiseUseCase()
+        );
         this.orderManagementApplicationService = new OrderManagementApplicationService(
             orderUseCase,
             siteModule.siteUseCase(),
@@ -74,14 +80,13 @@ public final class OrderModule {
         return orderCancellationApplicationService;
     }
 
+    public OrderDetailApplicationService orderDetailApplicationService() {
+        return orderDetailApplicationService;
+    }
+
     public CancelledOrderProcessingUseCase cancelledOrderProcessingUseCase() {
         return cancelledOrderProcessingUseCase;
     }
 
-    public CancelledOrderProcessingSession newCancellationSession() {
-        if (cancelledOrderProcessingUseCase == null) {
-            throw new IllegalStateException("CancelledOrderProcessingUseCase is not initialized");
-        }
-        return new CancelledOrderProcessingSession(cancelledOrderProcessingUseCase);
-    }
+
 }

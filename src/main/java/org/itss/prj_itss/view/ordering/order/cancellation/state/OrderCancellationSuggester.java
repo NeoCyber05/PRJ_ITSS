@@ -1,4 +1,4 @@
-package org.itss.prj_itss.model.order.application.cancellation;
+package org.itss.prj_itss.view.ordering.order.cancellation.state;
 
 import org.itss.prj_itss.model.request.domain.processing.allocation.AllocationDraft;
 import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;

@@ -1,55 +1,28 @@
 package org.itss.prj_itss.controller.ordering.order;
 
-import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
-import org.itss.prj_itss.model.merchandise.domain.Merchandise;
+import org.itss.prj_itss.controller.shared.ActionResult;
 import org.itss.prj_itss.model.order.application.OrderCancellationApplicationService;
-import org.itss.prj_itss.model.order.application.OrderUseCase;
-import org.itss.prj_itss.model.order.domain.Order;
-import org.itss.prj_itss.model.order.domain.OrderMerchandise;
-import org.itss.prj_itss.model.site.application.SiteUseCase;
-import org.itss.prj_itss.model.site.domain.Site;
-
-import java.util.List;
+import org.itss.prj_itss.model.order.application.OrderDetailApplicationService;
+import org.itss.prj_itss.model.order.application.OrderDetailViewModel;
 
 public final class OrderDetailController {
 
-    private final OrderUseCase orderService;
-    private final OrderCancellationApplicationService orderCancellationApplicationService;
-    private final SiteUseCase siteService;
-    private final MerchandiseUseCase merchandiseService;
+    private final OrderDetailApplicationService detailService;
+    private final OrderCancellationApplicationService cancellationService;
 
     public OrderDetailController(
-            OrderUseCase orderService,
-            OrderCancellationApplicationService orderCancellationApplicationService,
-            SiteUseCase siteService,
-            MerchandiseUseCase merchandiseService) {
-        this.orderService = orderService;
-        this.orderCancellationApplicationService = orderCancellationApplicationService;
-        this.siteService = siteService;
-        this.merchandiseService = merchandiseService;
+            OrderDetailApplicationService detailService,
+            OrderCancellationApplicationService cancellationService) {
+        this.detailService = detailService;
+        this.cancellationService = cancellationService;
     }
 
-    public Order findById(int id) {
-        return orderService.findById(id);
+    public OrderDetailViewModel loadDetail(int orderId) {
+        return detailService.load(orderId);
     }
 
-    public OrderCancellationApplicationService.CancellationResult cancel(int orderId) {
-        return orderCancellationApplicationService.cancel(orderId);
-    }
-
-    public Site findSiteById(int id) {
-        return siteService.findById(id);
-    }
-
-    public List<OrderMerchandise> findItemsByOrderId(int orderId) {
-        return orderService.findItemsByOrderId(orderId);
-    }
-
-    public Merchandise findMerchandiseById(int id) {
-        return merchandiseService.findById(id);
-    }
-
-    public java.time.LocalDate findDesiredDeliveryDate(int orderId, int merchandiseId) {
-        return orderService.findDesiredDeliveryDate(orderId, merchandiseId);
+    public ActionResult cancel(int orderId) {
+        OrderCancellationApplicationService.CancellationResult result = cancellationService.cancel(orderId);
+        return new ActionResult(result.success(), result.message());
     }
 }

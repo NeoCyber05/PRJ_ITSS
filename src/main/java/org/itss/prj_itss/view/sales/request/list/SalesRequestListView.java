@@ -19,10 +19,12 @@ import org.itss.prj_itss.controller.sales.request.create.SalesRequestCreationCon
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditDialogInput;
 import org.itss.prj_itss.controller.sales.request.view.ViewOrderRequestController;
 import org.itss.prj_itss.model.request.application.listing.RequestRow;
+import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 import org.itss.prj_itss.view.sales.request.create.SalesRequestCreationDialog;
 import org.itss.prj_itss.view.sales.request.shared.SalesRequestEditDialogLauncher;
 import org.itss.prj_itss.view.sales.request.view.ViewOrderRequestPopup;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
+import org.itss.prj_itss.view.shared.ui.StatusBadgeFactory;
 
 import java.util.List;
 import java.util.Locale;
@@ -33,12 +35,12 @@ public final class SalesRequestListView implements ViewLifecycle {
     private static final int PAGE_SIZE = 10;
 
     private static final Map<String, String> STATUS_DISPLAY = Map.of(
-        "all", "Tất cả trạng thái",
-        "pending", "Chờ xử lý",
-        "processing", "Đang xử lý",
-        "shipping", "Đang giao",
-        "completed", "Đã hoàn thành",
-        "cancelled", "Đã hủy"
+        OrderingFormatters.STATUS_ALL, "Tất cả trạng thái",
+        OrderingFormatters.STATUS_PENDING, "Chờ xử lý",
+        OrderingFormatters.STATUS_PROCESSING, "Đang xử lý",
+        OrderingFormatters.STATUS_SHIPPING, "Đang giao",
+        OrderingFormatters.STATUS_COMPLETED, "Đã hoàn thành",
+        OrderingFormatters.STATUS_CANCELLED, "Đã hủy"
     );
 
     private final ObservableList<RequestRow> allRows = FXCollections.observableArrayList();
@@ -85,7 +87,7 @@ public final class SalesRequestListView implements ViewLifecycle {
                 if (empty || status == null) {
                     setGraphic(null);
                 } else {
-                    setGraphic(buildStatusBadge(status));
+                    setGraphic(StatusBadgeFactory.statusDot(status, StatusBadgeFactory.StatusKind.REQUEST));
                 }
                 setText(null);
             }
@@ -153,8 +155,8 @@ public final class SalesRequestListView implements ViewLifecycle {
             boolean matchesKeyword = keyword.isBlank()
                 || row.requestCode().toLowerCase(Locale.ROOT).contains(keyword);
             boolean matchesStatus = selectedStatus == null
-                || "all".equalsIgnoreCase(selectedStatus)
-                || selectedStatus.equalsIgnoreCase(normalizeStatusKey(row.status()));
+                || OrderingFormatters.STATUS_ALL.equalsIgnoreCase(selectedStatus)
+                || selectedStatus.equalsIgnoreCase(OrderingFormatters.normalizeStatusKey(row.status()));
             return matchesKeyword && matchesStatus;
         });
 
@@ -223,8 +225,15 @@ public final class SalesRequestListView implements ViewLifecycle {
     // ── Status ────────────────────────────────────────────────────────
 
     private void setupStatusFilter() {
-        statusFilter.getItems().addAll("all", "pending", "processing", "shipping", "completed", "cancelled");
-        statusFilter.setValue("all");
+        statusFilter.getItems().addAll(
+            OrderingFormatters.STATUS_ALL,
+            OrderingFormatters.STATUS_PENDING,
+            OrderingFormatters.STATUS_PROCESSING,
+            OrderingFormatters.STATUS_SHIPPING,
+            OrderingFormatters.STATUS_COMPLETED,
+            OrderingFormatters.STATUS_CANCELLED
+        );
+        statusFilter.setValue(OrderingFormatters.STATUS_ALL);
 
         statusFilter.setButtonCell(createStatusListCell());
         statusFilter.setCellFactory(listView -> createStatusListCell());
@@ -240,32 +249,6 @@ public final class SalesRequestListView implements ViewLifecycle {
         };
     }
 
-    private HBox buildStatusBadge(String status) {
-        HBox box = new HBox(7);
-        box.setAlignment(Pos.CENTER_LEFT);
-
-        String[] colors = resolveStatusColors(status);
-        Circle dot = new Circle(5);
-        dot.setFill(Color.web(colors[0]));
-
-        String displayText = STATUS_DISPLAY.getOrDefault(normalizeStatusKey(status), status);
-        Label label = new Label(displayText);
-        label.setStyle("-fx-font-size: 13px; -fx-text-fill: " + colors[1] + ";");
-
-        box.getChildren().addAll(dot, label);
-        return box;
-    }
-
-    private String[] resolveStatusColors(String status) {
-        return switch (normalizeStatusKey(status)) {
-            case "pending"    -> new String[]{"#F59E0B", "#B45309"};
-            case "processing" -> new String[]{"#3B82F6", "#1D4ED8"};
-            case "shipping"   -> new String[]{"#A855F7", "#7E22CE"};
-            case "completed"  -> new String[]{"#22C55E", "#15803D"};
-            case "cancelled"  -> new String[]{"#EF4444", "#B91C1C"};
-            default           -> new String[]{"#9CA3AF", "#6B7280"};
-        };
-    }
 
     // ── Action Buttons ────────────────────────────────────────────────
 
@@ -317,7 +300,7 @@ public final class SalesRequestListView implements ViewLifecycle {
                 warn.setContentText(
                     "Chỉ có thể xóa yêu cầu ở trạng thái \"Chờ xử lý\".\n" +
                     "Yêu cầu đang ở trạng thái: " +
-                    STATUS_DISPLAY.getOrDefault(normalizeStatusKey(row.status()), row.status()) + "."
+                    STATUS_DISPLAY.getOrDefault(OrderingFormatters.normalizeStatusKey(row.status()), row.status()) + "."
                 );
                 warn.showAndWait();
                 return;
@@ -355,13 +338,6 @@ public final class SalesRequestListView implements ViewLifecycle {
         return actions;
     }
 
-    // ── Helpers ──────────────────────────────────────────────────────
-
-    private String normalizeStatusKey(String status) {
-        if (status == null) return "other";
-        String normalized = status.trim().toLowerCase(Locale.ROOT);
-        return normalized.isBlank() ? "other" : normalized;
-    }
 
     private <T> TableCell<RequestRow, String> createStyledCell(String style) {
         return new TableCell<>() {

@@ -8,8 +8,9 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import org.itss.prj_itss.controller.ordering.request.RequestDetailPopupController;
-import org.itss.prj_itss.model.order.application.OrderCancellationApplicationService;
+import org.itss.prj_itss.controller.shared.ActionResult;
 import org.itss.prj_itss.model.request.application.international.detail.AllocatedOrderRow;
+import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 import org.itss.prj_itss.view.shared.ui.StatusBadgeFactory;
 
 import java.io.IOException;
@@ -87,9 +88,9 @@ public final class AllocatedOrderRowView {
 
                 alert.showAndWait().ifPresent(response -> {
                     if (response == ButtonType.OK) {
-                        OrderCancellationApplicationService.CancellationResult result = controller.cancel(order.orderId());
+                        ActionResult result = controller.cancel(order.orderId());
                         if (result.success()) {
-                            statusBox.getChildren().setAll(StatusBadgeFactory.statusBadge("cancelled", false));
+                            statusBox.getChildren().setAll(StatusBadgeFactory.statusBadge(OrderingFormatters.STATUS_CANCELLED, false));
                             cancelBtn.setVisible(false);
                             cancelBtn.setManaged(false);
                         }
