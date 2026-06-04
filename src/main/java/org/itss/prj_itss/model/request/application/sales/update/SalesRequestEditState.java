@@ -4,6 +4,7 @@ import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOptio
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -11,15 +12,13 @@ import java.util.Set;
 public final class SalesRequestEditState {
 
     private final int requestId;
-    private final String requestCode;
-    private final String createdAt;
+    private final LocalDateTime createdAt;
     private final String status;
     private final List<SalesRequestEditItemDraft> items = new ArrayList<>();
     private int nextLineId = 1;
 
-    public SalesRequestEditState(int requestId, String requestCode, String createdAt, String status) {
+    public SalesRequestEditState(int requestId, LocalDateTime createdAt, String status) {
         this.requestId = requestId;
-        this.requestCode = requestCode;
         this.createdAt = createdAt;
         this.status = status;
     }
@@ -34,7 +33,7 @@ public final class SalesRequestEditState {
     }
 
     public SalesRequestEditDraft snapshot() {
-        return new SalesRequestEditDraft(requestId, requestCode, createdAt, status, items);
+        return new SalesRequestEditDraft(requestId, createdAt, status, items);
     }
 
     public void addBlankItem() {
@@ -76,7 +75,7 @@ public final class SalesRequestEditState {
         ));
     }
 
-    private void replace(int lineId, ItemReplacement replacement) {
+    private void replace(int lineId, IItemReplacement replacement) {
         for (int index = 0; index < items.size(); index++) {
             SalesRequestEditItemDraft item = items.get(index);
             if (item.lineId() == lineId) {
@@ -86,7 +85,7 @@ public final class SalesRequestEditState {
         }
     }
 
-    private interface ItemReplacement {
+    private interface IItemReplacement {
         SalesRequestEditItemDraft replace(SalesRequestEditItemDraft item);
     }
 }

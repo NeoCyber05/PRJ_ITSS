@@ -82,6 +82,59 @@ class MvcDependencyTest {
     }
 
     @Test
+    void salesRequestViewDoesNotDependOnEditApplicationState() throws IOException {
+        List<String> violations = new ArrayList<>();
+        for (SourceFile sourceFile : sourceFiles()) {
+            if (!sourceFile.packageName().startsWith(BASE_PACKAGE + ".view.sales.request")) {
+                continue;
+            }
+            for (String importLine : sourceFile.imports()) {
+                if (importLine.startsWith(BASE_PACKAGE + ".model.request.application.sales.update")) {
+                    violations.add(sourceFile.relativePath() + " (Sales Request View) imports edit Application DTO: " + importLine);
+                }
+            }
+        }
+        assertNoViolations(violations);
+    }
+
+    @Test
+    void salesRequestUpdateViewContractsDoNotExposeApplicationDtos() throws IOException {
+        List<String> violations = new ArrayList<>();
+        for (SourceFile sourceFile : sourceFiles()) {
+            if (!sourceFile.packageName().equals(BASE_PACKAGE + ".controller.sales.request.update")) {
+                continue;
+            }
+            String fileName = sourceFile.path().getFileName().toString();
+            if (!fileName.contains("View") && !fileName.contains("ViewPort")) {
+                continue;
+            }
+            for (String importLine : sourceFile.imports()) {
+                if (importLine.startsWith(BASE_PACKAGE + ".model.request.application.sales.update")) {
+                    violations.add(sourceFile.relativePath() + " (Update View contract) exposes Application DTO: " + importLine);
+                }
+            }
+        }
+        assertNoViolations(violations);
+    }
+
+    @Test
+    void salesRequestApplicationUsesFormatterPortInsteadOfSharedFormatterUtility() throws IOException {
+        List<String> violations = new ArrayList<>();
+        for (SourceFile sourceFile : sourceFiles()) {
+            if (!sourceFile.packageName().startsWith(BASE_PACKAGE + ".model.request.application.sales")
+                && !sourceFile.packageName().startsWith(BASE_PACKAGE + ".model.request.application.listing")) {
+                continue;
+            }
+            for (String importLine : sourceFile.imports()) {
+                if (importLine.startsWith(BASE_PACKAGE + ".model.shared.formatting.OrderingFormatters")) {
+                    violations.add(sourceFile.relativePath() + " imports formatter utility instead of RequestDisplayFormatter port: " + importLine);
+                }
+            }
+        }
+        assertNoViolations(violations);
+    }
+
+    @Test
     void fxmlFilesDoNotLiveUnderMainResources() throws IOException {
         List<String> violations = fxmlFiles(RESOURCE_ROOT).stream()
             .map(path -> RESOURCE_ROOT.relativize(path).toString())

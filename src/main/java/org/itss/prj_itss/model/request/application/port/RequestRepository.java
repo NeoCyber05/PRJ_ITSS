@@ -7,6 +7,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 public interface RequestRepository {
+    // TODO: Split this broad port into focused reader/updater/creator/deleter ports when refactoring all request use cases.
     List<Request> findAll();
     Request findById(int id);
     List<RequestMerchandise> findItemsByRequestId(int requestId);

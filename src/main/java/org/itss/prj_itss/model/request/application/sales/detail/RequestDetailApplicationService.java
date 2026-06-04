@@ -4,11 +4,11 @@ import org.itss.prj_itss.model.request.application.sales.view.RequestDetailItemR
 
 import org.itss.prj_itss.model.catalog.application.CatalogUseCase;
 import org.itss.prj_itss.model.catalog.domain.Merchandise;
-import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 import org.itss.prj_itss.model.order.application.OrderUseCase;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
+import org.itss.prj_itss.model.request.application.port.RequestDisplayFormatter;
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
 import org.itss.prj_itss.model.site.application.SiteUseCase;
@@ -24,21 +24,24 @@ public final class RequestDetailApplicationService {
     private final OrderUseCase orderService;
     private final SiteUseCase siteService;
     private final CatalogUseCase catalogUseCase;
+    private final RequestDisplayFormatter formatter;
 
     public RequestDetailApplicationService(
         RequestManagementUseCase requestService,
         OrderUseCase orderService,
         SiteUseCase siteService,
-        CatalogUseCase catalogUseCase
+        CatalogUseCase catalogUseCase,
+        RequestDisplayFormatter formatter
     ) {
         this.requestService = requestService;
         this.orderService = orderService;
         this.siteService = siteService;
         this.catalogUseCase = catalogUseCase;
+        this.formatter = formatter;
     }
 
     public RequestDetailViewModel load(String requestCode) {
-        int requestId = OrderingFormatters.parseEntityId(requestCode, 1);
+        int requestId = formatter.parseEntityId(requestCode, 1);
         Request request = requestService.findById(requestId);
         if (request == null) {
             return new RequestDetailViewModel(
@@ -71,12 +74,12 @@ public final class RequestDetailApplicationService {
 
         return new RequestDetailViewModel(
             request.getId(),
-            OrderingFormatters.formatRequestCode(request.getId()),
-            OrderingFormatters.formatDateOrEmpty(request.getCreatedAt()),
+            formatter.formatRequestCode(request.getId()),
+            formatter.formatDateOrEmpty(request.getCreatedAt()),
             request.getStatus(),
-            OrderingFormatters.requestStatusText(request.getStatus()),
+            formatter.requestStatusText(request.getStatus()),
             request.getNote(),
-            OrderingFormatters.formatDate(earliestDeadline),
+            formatter.formatDate(earliestDeadline),
             itemRows,
             orderRows
         );
@@ -87,25 +90,25 @@ public final class RequestDetailApplicationService {
         return new RequestDetailItemRow(
             m != null ? m.getCode() : "N/A",
             m != null ? m.getName() : "N/A",
-            item.getQuantityOrdered() != null ? OrderingFormatters.formatQuantity(item.getQuantityOrdered()) : "0",
+            item.getQuantityOrdered() != null ? formatter.formatQuantity(item.getQuantityOrdered()) : "0",
             m != null ? m.getUnit() : "N/A",
-            OrderingFormatters.formatDate(item.getDesiredDeliveryDate())
+            formatter.formatDate(item.getDesiredDeliveryDate())
         );
     }
 
     private AllocatedOrderRow toOrderRow(Order order) {
         Site site = siteService.findById(order.getSiteId());
         String deliveryMethod = resolvePrimaryDeliveryMethod(orderService.findItemsByOrderId(order.getId()));
-        String statusKey = OrderingFormatters.normalizeStatusKey(order.getStatus());
+        String statusKey = formatter.normalizeStatusKey(order.getStatus());
         return new AllocatedOrderRow(
             order.getId(),
-            OrderingFormatters.formatOrderCode(order.getId()),
+            formatter.formatOrderCode(order.getId()),
             site != null ? site.getName() : "N/A",
-            OrderingFormatters.deliveryMethodText(deliveryMethod),
-            OrderingFormatters.formatDateOrEmpty(order.getCreatedAt()),
+            formatter.deliveryMethodText(deliveryMethod),
+            formatter.formatDateOrEmpty(order.getCreatedAt()),
             order.getStatus(),
-            OrderingFormatters.orderStatusText(order.getStatus()),
-            "pending".equals(statusKey)
+            formatter.orderStatusText(order.getStatus()),
+            formatter.pendingStatusKey().equals(statusKey)
         );
     }
 

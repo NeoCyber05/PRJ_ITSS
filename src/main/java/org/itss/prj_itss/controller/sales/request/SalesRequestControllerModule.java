@@ -3,10 +3,9 @@ package org.itss.prj_itss.controller.sales.request;
 import org.itss.prj_itss.model.request.RequestModule;
 import org.itss.prj_itss.controller.sales.request.list.SalesRequestListController;
 import org.itss.prj_itss.controller.sales.request.create.SalesRequestCreationController;
+import org.itss.prj_itss.controller.sales.request.update.DefaultSalesRequestEditPresenter;
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditController;
 import org.itss.prj_itss.controller.sales.request.view.ViewOrderRequestController;
-import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditMapper;
-import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidator;
 
 public final class SalesRequestControllerModule {
 
@@ -19,12 +18,11 @@ public final class SalesRequestControllerModule {
         this.salesRequestListController =
             new SalesRequestListController(requestModule.receivedRequestsApplicationService());
         this.salesRequestCreationController =
-            new SalesRequestCreationController(requestModule.requestSalesApplicationService());
+            new SalesRequestCreationController(requestModule.salesRequestCreationApplicationService());
         this.salesRequestEditController =
             new SalesRequestEditController(
-                requestModule.requestSalesApplicationService(),
-                new SalesRequestEditMapper(),
-                new SalesRequestEditValidator()
+                requestModule.salesRequestEditUseCase(),
+                new DefaultSalesRequestEditPresenter(requestModule.requestDisplayFormatter())
             );
         this.viewOrderRequestController =
             new ViewOrderRequestController(requestModule.requestSalesApplicationService());

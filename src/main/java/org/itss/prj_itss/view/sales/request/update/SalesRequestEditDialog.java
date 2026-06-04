@@ -8,16 +8,16 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
-import org.itss.prj_itss.controller.sales.request.shared.SalesRequestDialogListener;
+import org.itss.prj_itss.controller.sales.request.shared.ISalesRequestDialogListener;
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditController;
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditDialogInput;
-import org.itss.prj_itss.view.sales.request.shared.SalesRequestEditDialogLauncher;
+import org.itss.prj_itss.view.sales.request.shared.ISalesRequestEditDialogLauncher;
 import org.itss.prj_itss.view.sales.request.shared.PopupOverlayHelper;
 
 import java.io.IOException;
 import java.util.Objects;
 
-public final class SalesRequestEditDialog implements SalesRequestEditDialogLauncher {
+public final class SalesRequestEditDialog implements ISalesRequestEditDialogLauncher {
 
     private static final String VIEW_RESOURCE = "/org/itss/prj_itss/view/sales/request/update/sales-request-edit-view.fxml";
     private static final String MAIN_STYLESHEET = "/org/itss/prj_itss/styles/main-style.css";
@@ -32,7 +32,7 @@ public final class SalesRequestEditDialog implements SalesRequestEditDialogLaunc
     public void showEdit(
             Window owner,
             SalesRequestEditDialogInput input,
-            SalesRequestDialogListener listener
+            ISalesRequestDialogListener listener
     ) {
         Stage dialog = createDialog(owner);
         BorderPane root = loadRoot(dialog, input, listener);
@@ -56,7 +56,7 @@ public final class SalesRequestEditDialog implements SalesRequestEditDialogLaunc
     private BorderPane loadRoot(
             Stage dialog,
             SalesRequestEditDialogInput input,
-            SalesRequestDialogListener listener
+            ISalesRequestDialogListener listener
     ) {
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(

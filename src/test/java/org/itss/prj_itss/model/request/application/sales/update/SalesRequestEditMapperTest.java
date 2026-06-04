@@ -1,12 +1,14 @@
 package org.itss.prj_itss.model.request.application.sales.update;
 
 import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
-import org.itss.prj_itss.model.request.application.sales.shared.RequestFormView;
 import org.itss.prj_itss.model.request.application.sales.shared.SalesRequestItemSubmission;
+import org.itss.prj_itss.model.request.domain.request.Request;
+import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -18,26 +20,25 @@ class SalesRequestEditMapperTest {
     @Test
     void mapsFormViewToStateAndBackToServiceInput() {
         MerchandiseOption option = new MerchandiseOption(10, "MH-001", "Item 1", "box");
-        RequestFormView form = new RequestFormView(
+        Request request = new Request(
             1,
-            "YC-2026-001",
-            "25/05/2026",
+            LocalDateTime.of(2026, 5, 25, 0, 0),
             "pending",
-            "Cho xu ly",
-            "",
-            List.of(new RequestFormView.RequestItemFormRow(
-                option,
-                "2.5",
-                "26/05/2026"
-            ))
+            ""
+        );
+        RequestMerchandise item = new RequestMerchandise(
+            1,
+            10,
+            new BigDecimal("2.5"),
+            LocalDate.of(2026, 5, 26)
         );
 
-        SalesRequestEditState state = mapper.toState(form);
+        SalesRequestEditState state = mapper.toState(request, List.of(item), List.of(option));
         SalesRequestEditDraft draft = state.snapshot();
         List<SalesRequestItemSubmission> inputs = mapper.toInput(draft);
 
         assertEquals(1, draft.requestId());
-        assertEquals("YC-2026-001", draft.requestCode());
+        assertEquals(LocalDateTime.of(2026, 5, 25, 0, 0), draft.createdAt());
         assertEquals(1, draft.items().size());
         assertEquals(option, draft.items().get(0).merchandise());
         assertEquals(new BigDecimal("2.5"), draft.items().get(0).quantity());
