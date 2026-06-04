@@ -6,7 +6,6 @@ import org.itss.prj_itss.model.catalog.CatalogModule;
 import org.itss.prj_itss.model.order.OrderModule;
 import org.itss.prj_itss.model.request.application.RequestManagementUseCase;
 import org.itss.prj_itss.model.request.application.listing.ReceivedRequestsApplicationService;
-import org.itss.prj_itss.model.request.application.port.RequestRepository;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
 import org.itss.prj_itss.model.request.application.sales.detail.RequestDetailApplicationService;
 import org.itss.prj_itss.model.request.application.sales.RequestSalesApplicationService;
