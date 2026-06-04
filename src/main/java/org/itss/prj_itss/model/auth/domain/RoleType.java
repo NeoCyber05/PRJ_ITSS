@@ -56,6 +56,29 @@ public enum RoleType {
         return this == WAREHOUSE;
     }
 
+    public int id() {
+        return id;
+    }
+
+    public boolean isAdminRole() {
+        return this == ADMIN;
+    }
+
+    public boolean isSiteRole() {
+        return this == SITE;
+    }
+
+    public boolean isInternalUserRole() {
+        return this == ADMIN || this == SALES || this == ORDERING || this == WAREHOUSE;
+    }
+
+    public static RoleType fromRoleId(int roleId) {
+        for (RoleType roleType : values()) {
+            if (roleType.id == roleId) return roleType;
+        }
+        return UNKNOWN;
+    }
+
     private static String normalizeText(String value) {
         if (value == null) {
             return "";

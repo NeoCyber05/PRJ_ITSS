@@ -11,8 +11,7 @@ public final class HomeControllerModule {
     public HomeControllerModule(SimpleNavigator navigator, DashboardModule dashboardModule, RequestModule requestModule) {
         this.homeController = new HomeController(
             navigator,
-            dashboardModule.dashboardQuery(),
-            requestModule.requestManagementUseCase()
+            dashboardModule.dashboardQuery()
         );
     }
 

@@ -2,8 +2,13 @@ package org.itss.prj_itss.model.site.infrastructure.persistence;
 
 import org.itss.prj_itss.model.shared.database.JdbcRepositorySupport;
 
+import org.itss.prj_itss.model.site.application.SiteDraft;
+import org.itss.prj_itss.model.site.application.self.SiteProfileDraft;
 import org.itss.prj_itss.model.site.domain.Site;
 import org.itss.prj_itss.model.site.application.port.InventoryRepository;
+import org.itss.prj_itss.model.site.application.port.SiteCommandRepository;
+import org.itss.prj_itss.model.site.application.port.SiteInventoryCommandPort;
+import org.itss.prj_itss.model.site.application.port.SiteProfileCommandPort;
 import org.itss.prj_itss.model.site.application.port.SiteRepository;
 
 import java.sql.*;
@@ -12,7 +17,45 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class JdbcSiteRepository extends JdbcRepositorySupport implements SiteRepository, InventoryRepository {
+public class JdbcSiteRepository extends JdbcRepositorySupport implements SiteRepository, InventoryRepository, SiteCommandRepository, SiteProfileCommandPort, SiteInventoryCommandPort {
+
+    private static final String CREATE_SITE_SQL = """
+        INSERT INTO public.site (site_code, name, description, ship_delivery_days, air_delivery_days)
+        VALUES (?, ?, ?, ?, ?)
+        RETURNING id
+        """;
+
+    private static final String UPDATE_SITE_SQL = """
+        UPDATE public.site
+        SET site_code = ?, name = ?, description = ?, ship_delivery_days = ?, air_delivery_days = ?
+        WHERE id = ?
+        """;
+
+    private static final String EXISTS_BY_SITE_CODE_SQL = """
+        SELECT EXISTS(SELECT 1 FROM public.site WHERE LOWER(site_code) = LOWER(?))
+        """;
+
+    private static final String EXISTS_BY_SITE_CODE_EXCEPT_ID_SQL = """
+        SELECT EXISTS(SELECT 1 FROM public.site WHERE LOWER(site_code) = LOWER(?) AND id <> ?)
+        """;
+
+    private static final String UPDATE_PROFILE_SQL = """
+        UPDATE public.site
+        SET name = ?, description = ?, ship_delivery_days = ?, air_delivery_days = ?
+        WHERE id = ?
+        """;
+
+    private static final String UPSERT_INVENTORY_SQL = """
+        INSERT INTO public.site_inventory (site_id, merchandise_id, stock_quantity)
+        VALUES (?, ?, ?)
+        ON CONFLICT (site_id, merchandise_id)
+        DO UPDATE SET stock_quantity = EXCLUDED.stock_quantity
+        """;
+
+    private static final String REMOVE_INVENTORY_SQL = """
+        DELETE FROM public.site_inventory
+        WHERE site_id = ? AND merchandise_id = ?
+        """;
 
     public JdbcSiteRepository(org.itss.prj_itss.model.shared.database.ConnectionProvider connectionProvider) {
         super(connectionProvider);
@@ -160,6 +203,114 @@ public class JdbcSiteRepository extends JdbcRepositorySupport implements SiteRep
             System.err.println("SiteRepository.countMerchandiseAtSite: " + e.getMessage());
         }
         return 0;
+    }
+
+    // SiteCommandRepository
+
+    @Override
+    public int createSite(SiteDraft draft) {
+        try (PreparedStatement ps = getConnection().prepareStatement(CREATE_SITE_SQL)) {
+            ps.setString(1, draft.siteCode());
+            ps.setString(2, draft.name());
+            ps.setString(3, draft.description());
+            if (draft.shipDeliveryDays() == null) ps.setNull(4, java.sql.Types.INTEGER);
+            else ps.setInt(4, draft.shipDeliveryDays());
+            if (draft.airDeliveryDays() == null) ps.setNull(5, java.sql.Types.INTEGER);
+            else ps.setInt(5, draft.airDeliveryDays());
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) return rs.getInt(1);
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to create site", e);
+        }
+        return 0;
+    }
+
+    @Override
+    public void updateSite(int siteId, SiteDraft draft) {
+        try (PreparedStatement ps = getConnection().prepareStatement(UPDATE_SITE_SQL)) {
+            ps.setString(1, draft.siteCode());
+            ps.setString(2, draft.name());
+            ps.setString(3, draft.description());
+            if (draft.shipDeliveryDays() == null) ps.setNull(4, java.sql.Types.INTEGER);
+            else ps.setInt(4, draft.shipDeliveryDays());
+            if (draft.airDeliveryDays() == null) ps.setNull(5, java.sql.Types.INTEGER);
+            else ps.setInt(5, draft.airDeliveryDays());
+            ps.setInt(6, siteId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to update site", e);
+        }
+    }
+
+    @Override
+    public boolean existsBySiteCode(String siteCode) {
+        try (PreparedStatement ps = getConnection().prepareStatement(EXISTS_BY_SITE_CODE_SQL)) {
+            ps.setString(1, siteCode);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getBoolean(1);
+            }
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    @Override
+    public boolean existsBySiteCodeExceptId(String siteCode, int siteId) {
+        try (PreparedStatement ps = getConnection().prepareStatement(EXISTS_BY_SITE_CODE_EXCEPT_ID_SQL)) {
+            ps.setString(1, siteCode);
+            ps.setInt(2, siteId);
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next() && rs.getBoolean(1);
+            }
+        } catch (SQLException e) {
+            return false;
+        }
+    }
+
+    @Override
+    public void updateProfile(int siteId, SiteProfileDraft draft) {
+        try (PreparedStatement ps = getConnection().prepareStatement(UPDATE_PROFILE_SQL)) {
+            ps.setString(1, draft.name().trim());
+            ps.setString(2, draft.description() == null || draft.description().isBlank() ? null : draft.description().trim());
+            setNullableInteger(ps, 3, draft.shipDeliveryDays());
+            setNullableInteger(ps, 4, draft.airDeliveryDays());
+            ps.setInt(5, siteId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Unable to update site profile", e);
+        }
+    }
+
+    @Override
+    public void upsertInventoryItem(int siteId, int merchandiseId, int stockQuantity) {
+        try (PreparedStatement ps = getConnection().prepareStatement(UPSERT_INVENTORY_SQL)) {
+            ps.setInt(1, siteId);
+            ps.setInt(2, merchandiseId);
+            ps.setInt(3, stockQuantity);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Unable to update site inventory", e);
+        }
+    }
+
+    @Override
+    public void removeInventoryItem(int siteId, int merchandiseId) {
+        try (PreparedStatement ps = getConnection().prepareStatement(REMOVE_INVENTORY_SQL)) {
+            ps.setInt(1, siteId);
+            ps.setInt(2, merchandiseId);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Unable to remove site inventory item", e);
+        }
+    }
+
+    private void setNullableInteger(PreparedStatement ps, int index, Integer value) throws SQLException {
+        if (value == null) {
+            ps.setNull(index, Types.INTEGER);
+        } else {
+            ps.setInt(index, value);
+        }
     }
 
     private Site mapSite(ResultSet rs) throws SQLException {

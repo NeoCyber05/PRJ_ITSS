@@ -9,6 +9,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import org.itss.prj_itss.model.dashboard.application.DashboardData;
+import org.itss.prj_itss.model.dashboard.application.DashboardRequestInfo;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestStatus;
@@ -64,7 +65,7 @@ public class HomeView implements ViewLifecycle {
             return;
         }
         DashboardData dashboardData = controller.loadDashboardData();
-        List<Request> requests = dashboardData.requests();
+        List<DashboardRequestInfo> requests = dashboardData.requests();
         List<Order> orders = dashboardData.orders();
 
         rebuildQuickCards();
@@ -80,12 +81,12 @@ public class HomeView implements ViewLifecycle {
         );
     }
 
-    private void rebuildPendingRows(List<Request> requests) {
+    private void rebuildPendingRows(List<DashboardRequestInfo> requests) {
         pendingRowsContainer.getChildren().clear();
 
         requests.stream()
-            .filter(request -> request.getStatus() == RequestStatus.PENDING)
-            .sorted(Comparator.comparing(this::resolveDeadline, Comparator.nullsLast(Comparator.naturalOrder())))
+            .filter(info -> info.request().getStatus() == RequestStatus.PENDING)
+            .sorted(Comparator.comparing(DashboardRequestInfo::earliestDeliveryDate, Comparator.nullsLast(Comparator.naturalOrder())))
             .limit(3)
             .map(this::buildPendingRow)
             .forEach(pendingRowsContainer.getChildren()::add);
@@ -97,7 +98,7 @@ public class HomeView implements ViewLifecycle {
         }
     }
 
-    private void rebuildActivityRows(List<Request> requests, List<Order> orders) {
+    private void rebuildActivityRows(List<DashboardRequestInfo> requests, List<Order> orders) {
         activityRowsContainer.getChildren().clear();
 
         orders.stream()
@@ -107,6 +108,7 @@ public class HomeView implements ViewLifecycle {
             .forEach(activityRowsContainer.getChildren()::add);
 
         requests.stream()
+            .map(DashboardRequestInfo::request)
             .sorted(Comparator.comparing(Request::getCreatedAt, Comparator.nullsLast(LocalDateTime::compareTo)).reversed())
             .limit(1)
             .map(this::buildRequestActivityItem)
@@ -162,7 +164,7 @@ public class HomeView implements ViewLifecycle {
         return card;
     }
 
-    private HBox buildPendingRow(Request request) {
+    private HBox buildPendingRow(DashboardRequestInfo info) {
         HBox row = new HBox(14);
         row.setAlignment(Pos.CENTER_LEFT);
         row.setPadding(new Insets(16, 20, 16, 20));
@@ -171,11 +173,12 @@ public class HomeView implements ViewLifecycle {
         VBox textBox = new VBox(4);
         HBox.setHgrow(textBox, Priority.ALWAYS);
 
+        Request request = info.request();
         Label title = new Label(String.format("YC-2026-%03d", request.getId()));
         title.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #0F172A;");
 
-        String deadline = resolveDeadline(request) == null ? "N/A" : resolveDeadline(request).format(DATE_FORMAT);
-        int itemCount = controller != null ? controller.countItemTypes(request.getId()) : 0;
+        String deadline = info.earliestDeliveryDate() == null ? "N/A" : info.earliestDeliveryDate().format(DATE_FORMAT);
+        int itemCount = info.itemCount();
         Label meta = new Label("Hạn nhận: " + deadline + "  •  " + itemCount + " mặt hàng");
         meta.setStyle("-fx-font-size: 12px; -fx-text-fill: #64748B;");
 
@@ -237,10 +240,6 @@ public class HomeView implements ViewLifecycle {
         textBox.getChildren().addAll(messageLabel, timeLabel);
         row.getChildren().addAll(badge, textBox);
         return row;
-    }
-
-    private LocalDate resolveDeadline(Request request) {
-        return controller != null ? controller.getEarliestDeliveryDate(request.getId()) : null;
     }
 
     private String formatActivityTime(LocalDateTime createdAt) {

@@ -1,15 +1,13 @@
 package org.itss.prj_itss.model.request.application.processing;
 
-import org.itss.prj_itss.model.request.domain.allocation.model.Allocation;
-import org.itss.prj_itss.model.request.domain.allocation.suggester.AllocationSuggester;
-import org.itss.prj_itss.model.request.domain.allocation.suggester.DefaultAllocationSuggester;
-import org.itss.prj_itss.model.request.domain.allocation.validator.AllocationValidator;
-import org.itss.prj_itss.model.request.domain.allocation.validator.DefaultAllocationValidator;
+import org.itss.prj_itss.model.request.domain.processing.allocation.Allocation;
+import org.itss.prj_itss.model.request.domain.processing.suggestion.AllocationSuggester;
+import org.itss.prj_itss.model.request.domain.processing.allocation.validator.AllocationValidator;
 import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.model.request.domain.processing.RequestProcessingData;
 import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
-import org.itss.prj_itss.model.request.application.port.RequestProcessingGateway;
-import org.itss.prj_itss.model.request.application.port.RequestProcessingGatewayException;
+import org.itss.prj_itss.model.request.application.processing.RequestProcessingGateway;
+import org.itss.prj_itss.model.request.application.processing.RequestProcessingGatewayException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -20,14 +18,9 @@ public final class RequestProcessingUseCase {
     private final RequestProcessingGateway gateway;
     private final AllocationValidator allocationValidator;
     private final AllocationSuggester allocationSuggester;
-    private final RequestProcessingPreviewBuilder previewBuilder = new RequestProcessingPreviewBuilder();
-
-    public RequestProcessingUseCase(RequestProcessingGateway gateway) {
-        this(gateway, new DefaultAllocationValidator(), new DefaultAllocationSuggester());
-    }
 
     public RequestProcessingUseCase(
-        RequestProcessingGateway gateway,
+            RequestProcessingGateway gateway,
         AllocationValidator allocationValidator,
         AllocationSuggester allocationSuggester
     ) {
@@ -73,7 +66,12 @@ public final class RequestProcessingUseCase {
         Map<Integer, Map<Integer, Allocation>> allocations,
         Map<Integer, LocalDate> desiredDeliveryDates
     ) {
-        return previewBuilder.build(items, allSites, allocations, desiredDeliveryDates);
+        return new RequestProcessingPreviewBuilder()
+            .items(items)
+            .sites(allSites)
+            .allocations(allocations)
+            .desiredDeliveryDates(desiredDeliveryDates)
+            .getProduct();
     }
 
     public void createAllocatedOrders(

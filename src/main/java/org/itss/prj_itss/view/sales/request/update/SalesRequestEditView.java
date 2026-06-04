@@ -11,12 +11,9 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.CheckBox;
 import javafx.scene.control.ComboBox;
-import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
@@ -29,18 +26,17 @@ import javafx.scene.control.TextField;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
-import javafx.scene.shape.SVGPath;
 import javafx.stage.Window;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
-import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditActions;
-import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditViewPort;
+import org.itss.prj_itss.controller.sales.request.update.ISalesRequestEditActions;
+import org.itss.prj_itss.controller.sales.request.update.ISalesRequestEditViewPort;
+import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditFieldViolationView;
+import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditItemView;
+import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditMerchandiseOptionView;
+import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditValidationView;
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditViewState;
-import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
-import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditFieldViolation;
-import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditItemDraft;
-import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidationResult;
 import org.itss.prj_itss.view.sales.request.shared.ItemRow;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 
@@ -52,19 +48,19 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.function.Supplier;
 
-public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEditViewPort {
+public final class SalesRequestEditView implements ViewLifecycle, ISalesRequestEditViewPort {
 
     private static final int PAGE_SIZE = 10;
 
-    private SalesRequestEditActions events;
+    private ISalesRequestEditActions events;
     private Runnable closeHandler;
-    private SalesRequestEditValidationResult validationResult = SalesRequestEditValidationResult.valid();
-    private int currentPage = 0;
+    private SalesRequestEditValidationView validation = SalesRequestEditValidationView.valid();
+    private SalesRequestEditPaginationController paginationController;
 
     private final ObservableList<ItemRow> allItems = FXCollections.observableArrayList();
     private final ObservableList<ItemRow> pageItems = FXCollections.observableArrayList();
     private FilteredList<ItemRow> filteredItems;
-    private List<MerchandiseOption> merchandiseOptions = List.of();
+    private List<SalesRequestEditMerchandiseOptionView> merchandiseOptions = List.of();
 
     @FXML private Label headerTitle;
     @FXML private Button closeButton;
@@ -81,8 +77,8 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
 
     @FXML private TableView<ItemRow> itemsTable;
     @FXML private TableColumn<ItemRow, Boolean> checkboxColumn;
-    @FXML private TableColumn<ItemRow, MerchandiseOption> merchandiseCodeColumn;
-    @FXML private TableColumn<ItemRow, MerchandiseOption> merchandiseNameColumn;
+    @FXML private TableColumn<ItemRow, SalesRequestEditMerchandiseOptionView> merchandiseCodeColumn;
+    @FXML private TableColumn<ItemRow, SalesRequestEditMerchandiseOptionView> merchandiseNameColumn;
     @FXML private TableColumn<ItemRow, ItemRow> quantityColumn;
     @FXML private TableColumn<ItemRow, String> unitColumn;
     @FXML private TableColumn<ItemRow, ItemRow> desiredDateColumn;
@@ -96,6 +92,13 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
     @FXML
     private void initialize() {
         filteredItems = new FilteredList<>(allItems, row -> true);
+        paginationController = new SalesRequestEditPaginationController(
+            PAGE_SIZE,
+            filteredItems,
+            pageItems,
+            itemCountLabel,
+            paginationBox
+        );
 
         closeButton.setOnAction(event -> cancelRequested());
         cancelButton.setOnAction(event -> cancelRequested());
@@ -116,7 +119,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
     }
 
     @Override
-    public void bindEvents(SalesRequestEditActions events) {
+    public void bindEvents(ISalesRequestEditActions events) {
         this.events = events;
     }
 
@@ -132,36 +135,36 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
             ? viewModel.createdAt()
             : "N/A");
         buildStatusBadge(viewModel.status());
-        renderItems(viewModel.draft().items());
-        renderValidation(viewModel.validationResult());
+        renderItems(viewModel.items());
+        renderValidation(viewModel.validation());
     }
 
     @Override
-    public void renderItems(List<SalesRequestEditItemDraft> items) {
+    public void renderItems(List<SalesRequestEditItemView> items) {
         allItems.setAll(items.stream().map(ItemRow::new).toList());
         applySearchFilter(searchField == null ? "" : searchField.getText());
     }
 
     @Override
-    public void renderValidation(SalesRequestEditValidationResult validationResult) {
-        this.validationResult = validationResult;
-        if (validationResult.validForm()) {
+    public void renderValidation(SalesRequestEditValidationView validation) {
+        this.validation = validation;
+        if (validation.validForm()) {
             errorLabel.setVisible(false);
             updateButton.setDisable(false);
         } else {
-            showError(validationResult.firstMessage());
+            showError(validation.firstMessage());
             updateButton.setDisable(true);
         }
         itemsTable.refresh();
     }
 
     @Override
-    public void focusFirstViolation(List<SalesRequestEditFieldViolation> violations) {
+    public void focusFirstViolation(List<SalesRequestEditFieldViolationView> violations) {
         if (violations == null || violations.isEmpty()) {
             return;
         }
 
-        for (SalesRequestEditFieldViolation violation : violations) {
+        for (SalesRequestEditFieldViolationView violation : violations) {
             if (violation.lineId() <= 0) {
                 return;
             }
@@ -173,9 +176,8 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
             if (filteredIndex < 0) {
                 continue;
             }
-            currentPage = filteredIndex / PAGE_SIZE;
-            updatePageView();
-            int pageIndex = filteredIndex % PAGE_SIZE;
+            paginationController.showFilteredIndex(filteredIndex);
+            int pageIndex = paginationController.pageIndex(filteredIndex);
             itemsTable.scrollTo(pageIndex);
             itemsTable.getSelectionModel().select(pageIndex);
             return;
@@ -184,13 +186,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
 
     @Override
     public void showSuccess(String message) {
-        Alert alert = new Alert(Alert.AlertType.INFORMATION, message, ButtonType.OK);
-        alert.setHeaderText(null);
-        Window owner = ownerWindow();
-        if (owner != null) {
-            alert.initOwner(owner);
-        }
-        alert.showAndWait();
+        SalesRequestEditAlertHelper.showInfo(ownerWindow(), message);
     }
 
     @Override
@@ -233,14 +229,13 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
             if (lower.isEmpty()) {
                 return true;
             }
-            MerchandiseOption merchandise = row.merchandise();
+            SalesRequestEditMerchandiseOptionView merchandise = row.merchandise();
             if (merchandise == null) {
                 return true;
             }
             return contains(merchandise.code(), lower) || contains(merchandise.name(), lower);
         });
-        currentPage = Math.min(currentPage, Math.max(0, pageCount() - 1));
-        updatePageView();
+        paginationController.updatePageView();
     }
 
     private void setupTable() {
@@ -260,7 +255,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
             protected void updateItem(ItemRow item, boolean empty) {
                 super.updateItem(item, empty);
                 getStyleClass().remove("error-row");
-                if (!empty && item != null && validationResult.hasViolation(item.lineId())) {
+                if (!empty && item != null && validation.hasViolation(item.lineId())) {
                     getStyleClass().add("error-row");
                 }
             }
@@ -293,7 +288,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
         merchandiseCodeColumn.setCellValueFactory(data -> data.getValue().merchandiseProperty());
         merchandiseCodeColumn.setCellFactory(column -> new TableCell<>() {
             @Override
-            protected void updateItem(MerchandiseOption item, boolean empty) {
+            protected void updateItem(SalesRequestEditMerchandiseOptionView item, boolean empty) {
                 super.updateItem(item, empty);
                 ItemRow row = currentRow();
                 if (empty || row == null) {
@@ -308,7 +303,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
                     return;
                 }
 
-                ComboBox<MerchandiseOption> comboBox = createSearchableComboBox(true, row);
+                ComboBox<SalesRequestEditMerchandiseOptionView> comboBox = createSearchableComboBox(true, row);
                 comboBox.valueProperty().addListener((obs, oldValue, newValue) -> merchandiseChanged(row, newValue));
                 setGraphic(comboBox);
             }
@@ -323,7 +318,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
         merchandiseNameColumn.setCellValueFactory(data -> data.getValue().merchandiseProperty());
         merchandiseNameColumn.setCellFactory(column -> new TableCell<>() {
             @Override
-            protected void updateItem(MerchandiseOption item, boolean empty) {
+            protected void updateItem(SalesRequestEditMerchandiseOptionView item, boolean empty) {
                 super.updateItem(item, empty);
                 ItemRow row = currentRow();
                 if (empty || row == null) {
@@ -338,7 +333,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
                     return;
                 }
 
-                ComboBox<MerchandiseOption> comboBox = createSearchableComboBox(false, row);
+                ComboBox<SalesRequestEditMerchandiseOptionView> comboBox = createSearchableComboBox(false, row);
                 comboBox.valueProperty().addListener((obs, oldValue, newValue) -> merchandiseChanged(row, newValue));
                 setGraphic(comboBox);
             }
@@ -416,26 +411,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
                         events.desiredDateChanged(currentRow.lineId(), newValue);
                     }
                 });
-                datePicker.setDayCellFactory(picker -> new DateCell() {
-                    @Override
-                    public void updateItem(LocalDate date, boolean empty) {
-                        super.updateItem(date, empty);
-                        if (empty || date == null) {
-                            return;
-                        }
-                        LocalDate today = LocalDate.now();
-                        if (date.isBefore(today)) {
-                            setDisable(true);
-                            setStyle("-fx-background-color: #f3f4f6; -fx-text-fill: #9ca3af; -fx-border-color: transparent;");
-                        } else if (datePicker.getValue() != null && date.equals(datePicker.getValue())) {
-                            setStyle("-fx-background-color: #bfdbfe; -fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-border-color: transparent;");
-                        } else if (date.equals(today)) {
-                            setStyle("-fx-border-color: transparent;");
-                        } else {
-                            setStyle("");
-                        }
-                    }
-                });
+                datePicker.setDayCellFactory(SalesRequestEditDateCellFactory.disablePastDates(datePicker));
             }
 
             @Override
@@ -467,7 +443,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
                 }
 
                 Button deleteButton = new Button();
-                deleteButton.setGraphic(trashIcon());
+                deleteButton.setGraphic(SalesRequestEditIcons.trashIcon());
                 deleteButton.setStyle("-fx-background-color: transparent; -fx-cursor: hand; -fx-padding: 4;");
                 deleteButton.setOnAction(event -> {
                     if (events != null) {
@@ -480,61 +456,6 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
                 setGraphic(box);
             }
         });
-    }
-
-    private void updatePageView() {
-        int total = filteredItems.size();
-        int totalPages = pageCount();
-        if (currentPage >= totalPages) {
-            currentPage = totalPages - 1;
-        }
-        if (currentPage < 0) {
-            currentPage = 0;
-        }
-
-        int from = currentPage * PAGE_SIZE;
-        int to = Math.min(from + PAGE_SIZE, total);
-        pageItems.setAll(filteredItems.subList(from, to));
-
-        itemCountLabel.setText(total == 0
-            ? "Không có mặt hàng"
-            : "Hiển thị " + (from + 1) + " - " + to + " / " + total + " mặt hàng");
-
-        buildPaginationButtons(totalPages);
-    }
-
-    private void buildPaginationButtons(int totalPages) {
-        paginationBox.getChildren().clear();
-        if (totalPages <= 1) {
-            return;
-        }
-
-        Button prev = pageBtn("<");
-        prev.setDisable(currentPage <= 0);
-        prev.setOnAction(event -> {
-            currentPage--;
-            updatePageView();
-        });
-        paginationBox.getChildren().add(prev);
-
-        for (int i = 0; i < totalPages; i++) {
-            Button button = pageBtn(String.valueOf(i + 1));
-            button.setStyle(pageBtnStyle(i == currentPage));
-            int page = i;
-            button.setOnAction(event -> {
-                currentPage = page;
-                updatePageView();
-            });
-            paginationBox.getChildren().add(button);
-        }
-
-        Button next = pageBtn(">");
-        next.setDisable(currentPage >= totalPages - 1);
-        next.setOnAction(event -> {
-            currentPage++;
-            updatePageView();
-        });
-        paginationBox.getChildren().add(next);
     }
 
     private void refreshBulkDelete() {
@@ -560,7 +481,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
         events.deleteItemsRequested(lineIds);
     }
 
-    private void merchandiseChanged(ItemRow row, MerchandiseOption merchandise) {
+    private void merchandiseChanged(ItemRow row, SalesRequestEditMerchandiseOptionView merchandise) {
         row.setMerchandise(merchandise);
         if (events != null) {
             events.merchandiseChanged(row.lineId(), merchandise == null ? null : merchandise.id());
@@ -584,12 +505,12 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
         statusBadge.getChildren().setAll(badge);
     }
 
-    private ComboBox<MerchandiseOption> createSearchableComboBox(boolean useCode, ItemRow currentRow) {
-        ComboBox<MerchandiseOption> comboBox = new ComboBox<>();
+    private ComboBox<SalesRequestEditMerchandiseOptionView> createSearchableComboBox(boolean useCode, ItemRow currentRow) {
+        ComboBox<SalesRequestEditMerchandiseOptionView> comboBox = new ComboBox<>();
         comboBox.setEditable(true);
         comboBox.setPrefWidth(useCode ? 110 : 240);
 
-        Supplier<ObservableList<MerchandiseOption>> available = () -> {
+        Supplier<ObservableList<SalesRequestEditMerchandiseOptionView>> available = () -> {
             Set<Integer> usedMerchandiseIds = new HashSet<>();
             for (ItemRow row : allItems) {
                 if (row != currentRow && row.merchandise() != null) {
@@ -606,12 +527,12 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
         comboBox.setItems(available.get());
         comboBox.setConverter(new StringConverter<>() {
             @Override
-            public String toString(MerchandiseOption merchandise) {
+            public String toString(SalesRequestEditMerchandiseOptionView merchandise) {
                 return merchandise == null ? "" : (useCode ? merchandise.code() : merchandise.name());
             }
 
             @Override
-            public MerchandiseOption fromString(String text) {
+            public SalesRequestEditMerchandiseOptionView fromString(String text) {
                 return comboBox.getItems().stream()
                     .filter(merchandise -> String.valueOf(useCode ? merchandise.code() : merchandise.name()).equals(text))
                     .findFirst()
@@ -620,12 +541,12 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
         });
 
         comboBox.getEditor().textProperty().addListener((obs, oldValue, newValue) -> {
-            MerchandiseOption selected = comboBox.getSelectionModel().getSelectedItem();
+            SalesRequestEditMerchandiseOptionView selected = comboBox.getSelectionModel().getSelectedItem();
             if (selected != null && String.valueOf(useCode ? selected.code() : selected.name()).equals(newValue)) {
                 return;
             }
 
-            ObservableList<MerchandiseOption> current = available.get();
+            ObservableList<SalesRequestEditMerchandiseOptionView> current = available.get();
             if (newValue == null || newValue.isBlank()) {
                 comboBox.setItems(current);
             } else {
@@ -658,16 +579,12 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
             .orElse(null);
     }
 
-    private int pageCount() {
-        return Math.max(1, (int) Math.ceil((double) filteredItems.size() / PAGE_SIZE));
-    }
-
     private boolean hasViolation(int lineId, String field) {
-        return validationResult.violations().stream()
+        return validation.violations().stream()
             .anyMatch(violation -> violation.lineId() == lineId && violation.field().equals(field));
     }
 
-    private String unitOf(MerchandiseOption merchandise) {
+    private String unitOf(SalesRequestEditMerchandiseOptionView merchandise) {
         return merchandise == null ? "" : merchandise.unit();
     }
 
@@ -684,27 +601,6 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
         } catch (NumberFormatException exception) {
             return null;
         }
-    }
-
-    private SVGPath trashIcon() {
-        SVGPath trashIcon = new SVGPath();
-        trashIcon.setContent("M9 3v1H4v2h1v13a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V6h1V4h-5V3H9m2 2h2v1h-2V5m-4 3h2v10H7V8m4 0h2v10h-2V8m4 0h2v10h-2V8Z");
-        trashIcon.setFill(javafx.scene.paint.Color.web("#EF4444"));
-        trashIcon.setScaleX(0.8);
-        trashIcon.setScaleY(0.8);
-        return trashIcon;
-    }
-
-    private Button pageBtn(String text) {
-        Button button = new Button(text);
-        button.setStyle(pageBtnStyle(false));
-        return button;
-    }
-
-    private String pageBtnStyle(boolean active) {
-        return active
-            ? "-fx-background-color: #253D2C; -fx-text-fill: white; -fx-background-radius: 6; -fx-min-width: 30; -fx-min-height: 30; -fx-cursor: hand;"
-            : "-fx-background-color: #F3F4F6; -fx-text-fill: #374151; -fx-background-radius: 6; -fx-min-width: 30; -fx-min-height: 30; -fx-cursor: hand;";
     }
 
     private static void applyInputStyle(Node node, boolean invalid) {

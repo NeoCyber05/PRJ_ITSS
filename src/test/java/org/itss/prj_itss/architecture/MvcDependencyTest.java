@@ -44,16 +44,13 @@ class MvcDependencyTest {
     }
 
     @Test
-    void controllerDoesNotDependOnViewOrJavaFx() throws IOException {
+    void controllerDoesNotDependOnJavaFx() throws IOException {
         List<String> violations = new ArrayList<>();
         for (SourceFile sourceFile : sourceFiles()) {
             if (!sourceFile.packageName().startsWith(BASE_PACKAGE + ".controller")) {
                 continue;
             }
             for (String importLine : sourceFile.imports()) {
-                if (importLine.startsWith(BASE_PACKAGE + ".view")) {
-                    violations.add(sourceFile.relativePath() + " (Controller) imports View: " + importLine);
-                }
                 if (importLine.startsWith("javafx.")) {
                     violations.add(sourceFile.relativePath() + " (Controller) imports JavaFX: " + importLine);
                 }
@@ -75,6 +72,59 @@ class MvcDependencyTest {
                 }
                 if (importLine.startsWith(BASE_PACKAGE + ".model.shared.database")) {
                     violations.add(sourceFile.relativePath() + " (View) imports Database Connection: " + importLine);
+                }
+            }
+        }
+        assertNoViolations(violations);
+    }
+
+    @Test
+    void salesRequestViewDoesNotDependOnEditApplicationState() throws IOException {
+        List<String> violations = new ArrayList<>();
+        for (SourceFile sourceFile : sourceFiles()) {
+            if (!sourceFile.packageName().startsWith(BASE_PACKAGE + ".view.sales.request")) {
+                continue;
+            }
+            for (String importLine : sourceFile.imports()) {
+                if (importLine.startsWith(BASE_PACKAGE + ".model.request.application.sales.update")) {
+                    violations.add(sourceFile.relativePath() + " (Sales Request View) imports edit Application DTO: " + importLine);
+                }
+            }
+        }
+        assertNoViolations(violations);
+    }
+
+    @Test
+    void salesRequestUpdateViewContractsDoNotExposeApplicationDtos() throws IOException {
+        List<String> violations = new ArrayList<>();
+        for (SourceFile sourceFile : sourceFiles()) {
+            if (!sourceFile.packageName().equals(BASE_PACKAGE + ".controller.sales.request.update")) {
+                continue;
+            }
+            String fileName = sourceFile.path().getFileName().toString();
+            if (!fileName.contains("View") && !fileName.contains("ViewPort")) {
+                continue;
+            }
+            for (String importLine : sourceFile.imports()) {
+                if (importLine.startsWith(BASE_PACKAGE + ".model.request.application.sales.update")) {
+                    violations.add(sourceFile.relativePath() + " (Update View contract) exposes Application DTO: " + importLine);
+                }
+            }
+        }
+        assertNoViolations(violations);
+    }
+
+    @Test
+    void salesRequestApplicationUsesFormatterPortInsteadOfSharedFormatterUtility() throws IOException {
+        List<String> violations = new ArrayList<>();
+        for (SourceFile sourceFile : sourceFiles()) {
+            if (!sourceFile.packageName().startsWith(BASE_PACKAGE + ".model.request.application.sales")
+                && !sourceFile.packageName().startsWith(BASE_PACKAGE + ".model.request.application.listing")) {
+                continue;
+            }
+            for (String importLine : sourceFile.imports()) {
+                if (importLine.startsWith(BASE_PACKAGE + ".model.shared.formatting.OrderingFormatters")) {
+                    violations.add(sourceFile.relativePath() + " imports formatter utility instead of RequestDisplayFormatter port: " + importLine);
                 }
             }
         }

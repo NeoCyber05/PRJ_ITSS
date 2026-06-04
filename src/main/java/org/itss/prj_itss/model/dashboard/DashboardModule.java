@@ -11,7 +11,7 @@ public final class DashboardModule {
 
     public DashboardModule(RequestModule requestModule, OrderModule orderModule, SiteModule siteModule) {
         this.dashboardQuery = new DashboardQuery(
-            requestModule.requestManagementUseCase(),
+            requestModule.dashboardRequestPort(),
             orderModule.orderUseCase(),
             siteModule.siteUseCase()
         );

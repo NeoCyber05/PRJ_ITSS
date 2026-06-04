@@ -3,9 +3,10 @@ package org.itss.prj_itss.model.warehouse;
 import org.itss.prj_itss.model.shared.database.ConnectionProvider;
 import org.itss.prj_itss.model.shared.database.TransactionRunner;
 import org.itss.prj_itss.model.auth.AuthModule;
-import org.itss.prj_itss.model.catalog.CatalogModule;
+import org.itss.prj_itss.model.merchandise.MerchandiseModule;
 import org.itss.prj_itss.model.order.OrderModule;
 import org.itss.prj_itss.model.site.SiteModule;
+import org.itss.prj_itss.model.warehouse.application.WarehouseIncomingOrderQuery;
 import org.itss.prj_itss.model.warehouse.application.WarehouseReceivingUseCase;
 import org.itss.prj_itss.model.warehouse.application.port.WarehouseReceiptRepository;
 import org.itss.prj_itss.model.warehouse.infrastructure.persistence.JdbcWarehouseReceiptRepository;
@@ -14,6 +15,7 @@ public final class WarehouseModule {
 
     private final WarehouseReceiptRepository warehouseReceiptRepository;
     private final WarehouseReceivingUseCase warehouseReceivingUseCase;
+    private final WarehouseIncomingOrderQuery warehouseIncomingOrderQuery;
 
     public WarehouseModule(
         ConnectionProvider warehouseConnectionProvider,
@@ -21,20 +23,29 @@ public final class WarehouseModule {
         AuthModule authModule,
         OrderModule orderModule,
         SiteModule siteModule,
-        CatalogModule catalogModule
+        MerchandiseModule merchandiseModule
     ) {
         this.warehouseReceiptRepository = new JdbcWarehouseReceiptRepository(warehouseConnectionProvider);
         this.warehouseReceivingUseCase = new WarehouseReceivingUseCase(
             orderModule.orderUseCase(),
             siteModule.siteUseCase(),
-            catalogModule.catalogUseCase(),
+            merchandiseModule.merchandiseUseCase(),
             warehouseReceiptRepository,
             warehouseTransactionRunner,
             authModule.currentUserSupplier()
+        );
+        this.warehouseIncomingOrderQuery = new WarehouseIncomingOrderQuery(
+            orderModule.orderUseCase(),
+            siteModule.siteUseCase(),
+            merchandiseModule.merchandiseUseCase()
         );
     }
 
     public WarehouseReceivingUseCase warehouseReceivingUseCase() {
         return warehouseReceivingUseCase;
+    }
+
+    public WarehouseIncomingOrderQuery warehouseIncomingOrderQuery() {
+        return warehouseIncomingOrderQuery;
     }
 }

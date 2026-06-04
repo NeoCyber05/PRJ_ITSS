@@ -128,5 +128,10 @@ class OrderCancellationApplicationServiceTest {
             order.setStatus(newStatus);
             return true;
         }
+
+        @Override
+        public java.time.LocalDate findDesiredDeliveryDate(int orderId, int merchandiseId) {
+            return null;
+        }
     }
 }

@@ -1,7 +1,7 @@
 package org.itss.prj_itss.controller.ordering.request.process.site;
 
-import org.itss.prj_itss.model.request.application.processing.ProcessingSiteView;
-import org.itss.prj_itss.model.request.application.processing.SiteFilterModel;
+import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;
+import org.itss.prj_itss.view.ordering.request.process.state.SiteFilterModel;
 
 import java.util.List;
 import java.util.Set;
@@ -27,13 +27,13 @@ public final class SiteFilterController {
         refreshVisibleSites();
     }
 
-    public void prioritizeSite(ProcessingSiteView site) {
-        model.prioritize(site);
+    public void selectSite(ProcessingSiteView site) {
+        model.select(site);
         refreshVisibleSites();
     }
 
-    public void unprioritizeSite(ProcessingSiteView site) {
-        model.unprioritize(site);
+    public void deselectSite(ProcessingSiteView site) {
+        model.deselect(site);
         refreshVisibleSites();
     }
 
@@ -42,8 +42,8 @@ public final class SiteFilterController {
         refreshVisibleSites();
     }
 
-    public void removePriority(int siteId) {
-        model.removePriority(siteId);
+    public void removeSelected(int siteId) {
+        model.removeSelected(siteId);
         refreshVisibleSites();
     }
 
@@ -60,24 +60,24 @@ public final class SiteFilterController {
         return model.visibleSites();
     }
 
-    public List<ProcessingSiteView> prioritySites() {
-        return model.prioritySites();
+    public List<ProcessingSiteView> selectedSites() {
+        return model.selectedSites();
     }
 
     public List<ProcessingSiteView> excludedSites() {
         return model.excludedSites();
     }
 
-    public Set<Integer> prioritySiteIds() {
-        return model.prioritySiteIds();
+    public Set<Integer> selectedSiteIds() {
+        return model.selectedSiteIds();
     }
 
     public Set<Integer> excludedSiteIds() {
         return model.excludedSiteIds();
     }
 
-    public boolean isPriority(ProcessingSiteView site) {
-        return model.isPriority(site);
+    public boolean isSelected(ProcessingSiteView site) {
+        return model.isSelected(site);
     }
 
     public String keyword() {

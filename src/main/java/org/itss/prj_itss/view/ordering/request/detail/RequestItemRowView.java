@@ -4,7 +4,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
-import org.itss.prj_itss.model.request.application.sales.view.RequestDetailItemRow;
+import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailItemRow;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -25,7 +25,7 @@ public final class RequestItemRowView {
     @FXML
     private Label desiredDateCell;
 
-    public static HBox load(RequestDetailItemRow item) {
+    public static HBox load(ReceivedRequestDetailItemRow item) {
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
                 RequestItemRowView.class.getResource(VIEW_RESOURCE),
@@ -40,7 +40,7 @@ public final class RequestItemRowView {
         }
     }
 
-    private void init(RequestDetailItemRow item) {
+    private void init(ReceivedRequestDetailItemRow item) {
         codeCell.setText(item.code());
         nameCell.setText(item.name());
         quantityCell.setText(item.quantity());

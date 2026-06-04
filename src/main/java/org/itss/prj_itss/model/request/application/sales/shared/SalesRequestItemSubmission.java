@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 
 public record SalesRequestItemSubmission(
-    String merchandiseCode,
+    int merchandiseId,
     BigDecimal quantityOrdered,
     LocalDate desiredDeliveryDate
 ) {

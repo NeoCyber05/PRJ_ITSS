@@ -12,7 +12,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import org.itss.prj_itss.controller.navigation.Navigator;
-import org.itss.prj_itss.controller.sales.request.shared.SalesRequestDialogListener;
+import org.itss.prj_itss.controller.sales.request.shared.ISalesRequestDialogListener;
 import org.itss.prj_itss.controller.sales.request.shared.SalesRequestSavedEvent;
 import org.itss.prj_itss.controller.sales.request.list.SalesRequestListController;
 import org.itss.prj_itss.controller.sales.request.create.SalesRequestCreationController;
@@ -20,7 +20,7 @@ import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditDialogI
 import org.itss.prj_itss.controller.sales.request.view.ViewOrderRequestController;
 import org.itss.prj_itss.model.request.application.listing.RequestRow;
 import org.itss.prj_itss.view.sales.request.create.SalesRequestCreationDialog;
-import org.itss.prj_itss.view.sales.request.shared.SalesRequestEditDialogLauncher;
+import org.itss.prj_itss.view.sales.request.shared.ISalesRequestEditDialogLauncher;
 import org.itss.prj_itss.view.sales.request.view.ViewOrderRequestPopup;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 
@@ -47,7 +47,7 @@ public final class SalesRequestListView implements ViewLifecycle {
     private Navigator navigator;
     private SalesRequestListController controller;
     private SalesRequestCreationController createController;
-    private SalesRequestEditDialogLauncher editDialogLauncher;
+    private ISalesRequestEditDialogLauncher editDialogLauncher;
     private ViewOrderRequestController viewController;
     private int currentPage = 1;
 
@@ -120,7 +120,7 @@ public final class SalesRequestListView implements ViewLifecycle {
             Navigator navigator,
             SalesRequestListController controller,
             SalesRequestCreationController createController,
-            SalesRequestEditDialogLauncher editDialogLauncher,
+            ISalesRequestEditDialogLauncher editDialogLauncher,
             ViewOrderRequestController viewController
     ) {
         this.navigator = navigator;
@@ -294,7 +294,7 @@ public final class SalesRequestListView implements ViewLifecycle {
                 editDialogLauncher.showEdit(
                     requestTable.getScene().getWindow(),
                     new SalesRequestEditDialogInput(row.requestId()),
-                    new SalesRequestDialogListener() {
+                    new ISalesRequestDialogListener() {
                         @Override
                         public void onSalesRequestSaved(SalesRequestSavedEvent event) {
                             reload();

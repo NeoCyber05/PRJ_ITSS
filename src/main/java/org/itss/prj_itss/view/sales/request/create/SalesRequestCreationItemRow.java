@@ -11,7 +11,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
 import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -60,10 +59,9 @@ final class SalesRequestCreationItemRow extends HBox {
         String code = codeField.getText();
         String rawQuantity = quantityField.getText();
         LocalDate desiredDate = desiredDatePicker.getValue();
-        BigDecimal quantity = parseQuantity(rawQuantity).orElse(null);
         return Optional.of(new SalesRequestCreationItemCandidate(
             code == null ? "" : code.trim(),
-            quantity,
+            rawQuantity == null ? "" : rawQuantity.trim(),
             desiredDate
         ));
     }
@@ -149,15 +147,4 @@ final class SalesRequestCreationItemRow extends HBox {
         deleteButton.setOnAction(event -> deleteHandler.accept(this));
     }
 
-    private Optional<BigDecimal> parseQuantity(String rawQuantity) {
-        if (rawQuantity == null || rawQuantity.isBlank()) {
-            return Optional.empty();
-        }
-        try {
-            BigDecimal quantity = new BigDecimal(rawQuantity.trim());
-            return quantity.compareTo(BigDecimal.ZERO) > 0 ? Optional.of(quantity) : Optional.empty();
-        } catch (NumberFormatException exception) {
-            return Optional.empty();
-        }
-    }
 }

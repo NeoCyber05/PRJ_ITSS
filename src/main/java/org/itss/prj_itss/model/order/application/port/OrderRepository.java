@@ -13,4 +13,8 @@ public interface OrderRepository {
     int create(Order order);
     boolean addItem(OrderMerchandise item);
     boolean updateStatus(int orderId, String newStatus);
+    java.time.LocalDate findDesiredDeliveryDate(int orderId, int merchandiseId);
+    default java.util.Map<Integer, Integer> countItemsGroupedByOrderId() {
+        return java.util.Map.of();
+    }
 }
