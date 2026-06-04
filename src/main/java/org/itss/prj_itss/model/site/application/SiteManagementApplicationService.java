@@ -68,6 +68,49 @@ public final class SiteManagementApplicationService {
         );
     }
 
+    public SiteManagementResult createSiteWithAccount(SiteDraft siteDraft, SiteAccountDraft accountDraft) {
+        if (siteDraft.siteCode() == null || siteDraft.siteCode().isBlank()) {
+            return SiteManagementResult.failure("Mã site không được để trống.");
+        }
+        if (siteDraft.name() == null || siteDraft.name().isBlank()) {
+            return SiteManagementResult.failure("Tên site không được để trống.");
+        }
+        if (siteDraft.shipDeliveryDays() != null && siteDraft.shipDeliveryDays() < 0) {
+            return SiteManagementResult.failure("Ngày vận chuyển đường biển không hợp lệ.");
+        }
+        if (siteDraft.airDeliveryDays() != null && siteDraft.airDeliveryDays() < 0) {
+            return SiteManagementResult.failure("Ngày vận chuyển đường hàng không không hợp lệ.");
+        }
+        if (siteCommandRepository.existsBySiteCode(siteDraft.siteCode())) {
+            return SiteManagementResult.failure("Mã site đã tồn tại.");
+        }
+
+        if (accountDraft.username() == null || accountDraft.username().isBlank()) {
+            return SiteManagementResult.failure("Tên đăng nhập không được để trống.");
+        }
+        if (accountDraft.password() == null || accountDraft.password().isBlank()) {
+            return SiteManagementResult.failure("Mật khẩu không được để trống.");
+        }
+        if (accountDraft.fullName() == null || accountDraft.fullName().isBlank()) {
+            return SiteManagementResult.failure("Họ và tên không được để trống.");
+        }
+        if (siteAccountProvisioningPort.usernameExists(accountDraft.username())) {
+            return SiteManagementResult.failure("Tên đăng nhập đã tồn tại.");
+        }
+
+        int[] createdSiteId = { 0 };
+        try {
+            transactionRunner.execute(() -> {
+                int siteId = siteCommandRepository.createSite(siteDraft);
+                siteAccountProvisioningPort.createSiteAccount(accountDraft, siteId);
+                createdSiteId[0] = siteId;
+            });
+        } catch (TransactionException e) {
+            return SiteManagementResult.failure("Lỗi tạo site và tài khoản: " + e.getMessage());
+        }
+        return SiteManagementResult.success("Tạo site và tài khoản thành công.", createdSiteId[0]);
+    }
+
     public SiteManagementResult createSite(SiteDraft draft) {
         if (draft.siteCode() == null || draft.siteCode().isBlank()) {
             return SiteManagementResult.failure("Mã site không được để trống.");

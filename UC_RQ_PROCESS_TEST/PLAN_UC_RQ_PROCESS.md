@@ -85,19 +85,19 @@ Yêu cầu:
 | Mã TC | Mô tả | Kết quả mong đợi |
 |---|---|---|
 | TC_01 | `items` rỗng | `null` |
-| TC_02 | Phân bổ thiếu 9/10 | `"Chua du so luong hang can"` |
-| TC_03 | Phân bổ thừa 11/10 | `"So luong phan bo vuot yeu cau"` |
+| TC_02 | Phân bổ thiếu 9/10 | `"Chưa đủ số lượng hàng cần"` |
+| TC_03 | Phân bổ thừa 11/10 | `"Số lượng phân bổ vượt yêu cầu"` |
 | TC_04 | Phân bổ đúng, không có `desiredDate`, `deadlineDays = 7`, `shipDays = 5` | `null` |
 | TC_05 | `desiredDate` quá khứ, deadline bị chặn về 1, `airDays = 1` | `null` |
 | TC_06 | `desiredDate` tương lai 5 ngày, `airDays = 3` | `null` |
-| TC_07 | Allocation dùng `siteId` không tồn tại | `"Khong dap ung ngay nhan mong muon"` |
-| TC_08 | Phương thức vận chuyển không hỗ trợ, `shipDays = 999` | `"Khong dap ung ngay nhan mong muon"` |
-| TC_09 | Giao trễ, `shipDays = 5`, deadline item là 3 ngày | `"Khong dap ung ngay nhan mong muon"` |
+| TC_07 | Allocation dùng `siteId` không tồn tại | `"Không đáp ứng ngày nhận mong muốn"` |
+| TC_08 | Phương thức vận chuyển không hỗ trợ, `shipDays = 999` | `"Không đáp ứng ngày nhận mong muốn"` |
+| TC_09 | Giao trễ, `shipDays = 5`, deadline item là 3 ngày | `"Không đáp ứng ngày nhận mong muốn"` |
 | TC_10 | Item yêu cầu 0, không có allocation | `null` |
 
 ## Ràng buộc
 
-- Không sửa public API hoặc production code.
+- Không sửa public API; nếu cần chỉ chuẩn hóa thông báo trả về sang tiếng Việt có dấu.
 - Không tạo module kiểm thử khác song song.
 - Không đụng tới các thay đổi không liên quan trong worktree.
 - Tài liệu phải viết bằng tiếng Việt UTF-8.

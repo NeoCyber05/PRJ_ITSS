@@ -236,4 +236,55 @@ class SiteManagementApplicationServiceTest {
         // Returned id is the fake account id (42)
         assertEquals(42, result.siteId());
     }
+
+    @Test
+    void createSiteWithAccountSucceedsForValidData() {
+        FakeSiteCommandRepository siteRepository = new FakeSiteCommandRepository();
+        FakeSiteAccountProvisioningPort accountPort = new FakeSiteAccountProvisioningPort();
+        SiteManagementApplicationService service = newService(siteRepository, accountPort);
+
+        SiteDraft siteDraft = new SiteDraft("BERLIN", "Berlin Import Site", "Germany partner", 10, 2);
+        SiteAccountDraft accountDraft = new SiteAccountDraft("berlin-admin", "pass123", "Berlin Admin");
+
+        SiteManagementResult result = service.createSiteWithAccount(siteDraft, accountDraft);
+
+        assertTrue(result.success());
+        assertEquals(1, siteRepository.createdSites.size());
+        assertEquals("BERLIN", siteRepository.createdSites.get(0).siteCode());
+        assertEquals(100, accountPort.createdSiteId); // nextId starts at 100 in fake repo
+    }
+
+    @Test
+    void createSiteWithAccountRejectsDuplicateSiteCode() {
+        FakeSiteCommandRepository siteRepository = new FakeSiteCommandRepository();
+        siteRepository.existingSiteCodes.add("TOKYO");
+        FakeSiteAccountProvisioningPort accountPort = new FakeSiteAccountProvisioningPort();
+        SiteManagementApplicationService service = newService(siteRepository, accountPort);
+
+        SiteDraft siteDraft = new SiteDraft("TOKYO", "Tokyo Import Site", "Japan partner", 14, 3);
+        SiteAccountDraft accountDraft = new SiteAccountDraft("tokyo-admin", "pass123", "Tokyo Admin");
+
+        SiteManagementResult result = service.createSiteWithAccount(siteDraft, accountDraft);
+
+        assertFalse(result.success());
+        assertTrue(result.message().contains("Mã site đã tồn tại"));
+        assertEquals(0, siteRepository.createdSites.size());
+    }
+
+    @Test
+    void createSiteWithAccountRejectsDuplicateUsername() {
+        FakeSiteCommandRepository siteRepository = new FakeSiteCommandRepository();
+        FakeSiteAccountProvisioningPort accountPort = new FakeSiteAccountProvisioningPort();
+        accountPort.usernameExistsResult = true;
+        SiteManagementApplicationService service = newService(siteRepository, accountPort);
+
+        SiteDraft siteDraft = new SiteDraft("BERLIN", "Berlin Import Site", "Germany partner", 10, 2);
+        SiteAccountDraft accountDraft = new SiteAccountDraft("existing-user", "pass123", "Berlin Admin");
+
+        SiteManagementResult result = service.createSiteWithAccount(siteDraft, accountDraft);
+
+        assertFalse(result.success());
+        assertTrue(result.message().contains("Tên đăng nhập đã tồn tại"));
+        assertEquals(0, siteRepository.createdSites.size());
+    }
 }

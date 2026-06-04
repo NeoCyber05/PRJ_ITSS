@@ -6,8 +6,6 @@ import org.itss.prj_itss.model.request.domain.processing.allocation.validator.Al
 import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.model.request.domain.processing.RequestProcessingData;
 import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
-import org.itss.prj_itss.model.request.application.processing.RequestProcessingGateway;
-import org.itss.prj_itss.model.request.application.processing.RequestProcessingGatewayException;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -48,15 +46,13 @@ public final class RequestProcessingUseCase {
         List<ItemRequirement> items,
         List<SiteStockOption> allSites,
         Map<Integer, Map<Integer, Allocation>> allocations,
-        Map<Integer, LocalDate> desiredDeliveryDates,
-        int deadlineDays
+        Map<Integer, LocalDate> desiredDeliveryDates
     ) {
         return allocationValidator.validateSubmission(
             items,
             allSites,
             allocations,
-            desiredDeliveryDates,
-            deadlineDays
+            desiredDeliveryDates
         );
     }
 

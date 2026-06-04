@@ -5,37 +5,50 @@ import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
 import org.itss.prj_itss.model.request.domain.processing.allocation.Allocation;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.MethodOrderer;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestMethodOrder;
+import org.junit.jupiter.api.extension.AfterAllCallback;
+import org.junit.jupiter.api.extension.ExtensionContext;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.extension.TestWatcher;
 
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
-@DisplayName("DefaultAllocationValidator")
+@DisplayName("Bộ kiểm thử DefaultAllocationValidator")
+@TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 final class DefaultAllocationValidatorTest {
 
     private final DefaultAllocationValidator validator = new DefaultAllocationValidator();
 
+    @RegisterExtension
+    private static final ConsoleResultPrinter RESULTS = new ConsoleResultPrinter("DefaultAllocationValidatorTest");
+
     @Test
-    @DisplayName("TC_01: empty items are valid")
+    @Order(1)
+    @DisplayName("TC_01: danh sách mặt hàng rỗng hợp lệ")
     void validateSubmission_shouldReturnNull_whenItemsAreEmpty() {
         String result = validator.validateSubmission(
             List.of(),
             List.of(),
             Map.of(),
-            Map.of(),
-            7
+            Map.of()
         );
 
-        assertNull(result, "A request with no items has no invalid allocation to reject");
+        assertNull(result, "Yêu cầu không có mặt hàng thì không có phân bổ sai để từ chối");
     }
 
     @Test
-    @DisplayName("TC_02: missing quantity is rejected")
+    @Order(2)
+    @DisplayName("TC_02: thiếu số lượng bị từ chối")
     void validateSubmission_shouldReturnMissingQuantityMessage_whenAllocationBelowRequirement() {
         ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 10);
         Allocation allocation = new Allocation(101, 1, 9, DeliveryMethod.SHIP.storageValue());
@@ -45,19 +58,19 @@ final class DefaultAllocationValidatorTest {
             List.of(item),
             List.of(),
             allocations,
-            Map.of(),
-            7
+            Map.of()
         );
 
         assertEquals(
-            "Chua du so luong hang can",
+            "Chưa đủ số lượng hàng cần",
             result,
-            "Allocated quantity below the requirement must be rejected"
+            "Số lượng phân bổ thấp hơn yêu cầu phải bị từ chối"
         );
     }
 
     @Test
-    @DisplayName("TC_03: excess quantity is rejected")
+    @Order(3)
+    @DisplayName("TC_03: thừa số lượng bị từ chối")
     void validateSubmission_shouldReturnExcessQuantityMessage_whenAllocationAboveRequirement() {
         ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 10);
         Allocation allocation = new Allocation(101, 1, 11, DeliveryMethod.SHIP.storageValue());
@@ -67,57 +80,19 @@ final class DefaultAllocationValidatorTest {
             List.of(item),
             List.of(),
             allocations,
-            Map.of(),
-            7
+            Map.of()
         );
 
         assertEquals(
-            "So luong phan bo vuot yeu cau",
+            "Số lượng phân bổ vượt yêu cầu",
             result,
-            "Allocated quantity above the requirement must be rejected"
+            "Số lượng phân bổ cao hơn yêu cầu phải bị từ chối"
         );
     }
 
     @Test
-    @DisplayName("TC_04: default deadline accepts on-time delivery")
-    void validateSubmission_shouldReturnNull_whenNoDesiredDateAndDeliveryMeetsDefaultDeadline() {
-        ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 10);
-        Allocation allocation = new Allocation(101, 1, 10, DeliveryMethod.SHIP.storageValue());
-        Map<Integer, Map<Integer, Allocation>> allocations = allocationsFor(1, allocation);
-        SiteStockOption site = new SiteStockOption(101, "S101", "Site 101", "", 5, 2, Map.of(1, 10));
-
-        String result = validator.validateSubmission(
-            List.of(item),
-            List.of(site),
-            allocations,
-            Map.of(),
-            7
-        );
-
-        assertNull(result, "Ship delivery in 5 days should satisfy the default 7-day deadline");
-    }
-
-    @Test
-    @DisplayName("TC_05: past desired date falls back to one-day deadline")
-    void validateSubmission_shouldReturnNull_whenPastDesiredDateFallsBackToOneDayDeadline() {
-        ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 10);
-        Allocation allocation = new Allocation(101, 1, 10, DeliveryMethod.AIR.storageValue());
-        Map<Integer, Map<Integer, Allocation>> allocations = allocationsFor(1, allocation);
-        SiteStockOption site = new SiteStockOption(101, "S101", "Site 101", "", 5, 1, Map.of(1, 10));
-
-        String result = validator.validateSubmission(
-            List.of(item),
-            List.of(site),
-            allocations,
-            Map.of(1, LocalDate.now().minusDays(1)),
-            7
-        );
-
-        assertNull(result, "Air delivery in 1 day should satisfy the minimum one-day deadline");
-    }
-
-    @Test
-    @DisplayName("TC_06: future desired date accepts on-time delivery")
+    @Order(4)
+    @DisplayName("TC_06: ngày nhận tương lai chấp nhận giao kịp hạn")
     void validateSubmission_shouldReturnNull_whenFutureDesiredDateCanBeMet() {
         ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 10);
         Allocation allocation = new Allocation(101, 1, 10, DeliveryMethod.AIR.storageValue());
@@ -128,15 +103,15 @@ final class DefaultAllocationValidatorTest {
             List.of(item),
             List.of(site),
             allocations,
-            Map.of(1, LocalDate.now().plusDays(5)),
-            7
+            Map.of(1, LocalDate.now().plusDays(5))
         );
 
-        assertNull(result, "Air delivery in 3 days should satisfy a desired date 5 days ahead");
+        assertNull(result, "Giao bằng đường hàng không trong 3 ngày phải đáp ứng ngày nhận mong muốn sau 5 ngày");
     }
 
     @Test
-    @DisplayName("TC_07: unknown site is rejected")
+    @Order(5)
+    @DisplayName("TC_07: site không tồn tại bị từ chối")
     void validateSubmission_shouldReturnDeliveryMessage_whenSiteCannotBeFound() {
         ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 10);
         Allocation allocation = new Allocation(999, 1, 10, DeliveryMethod.SHIP.storageValue());
@@ -147,19 +122,19 @@ final class DefaultAllocationValidatorTest {
             List.of(item),
             List.of(site),
             allocations,
-            Map.of(),
-            7
+            Map.of(1, LocalDate.now().plusDays(7))
         );
 
         assertEquals(
-            "Khong dap ung ngay nhan mong muon",
+            "Không đáp ứng ngày nhận mong muốn",
             result,
-            "An allocation referencing a missing site must be rejected"
+            "Phân bổ tham chiếu tới site không tồn tại phải bị từ chối"
         );
     }
 
     @Test
-    @DisplayName("TC_08: unsupported transport is rejected")
+    @Order(6)
+    @DisplayName("TC_08: phương thức vận chuyển không hỗ trợ bị từ chối")
     void validateSubmission_shouldReturnDeliveryMessage_whenTransportIsUnsupported() {
         ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 10);
         Allocation allocation = new Allocation(101, 1, 10, DeliveryMethod.SHIP.storageValue());
@@ -170,19 +145,19 @@ final class DefaultAllocationValidatorTest {
             List.of(item),
             List.of(site),
             allocations,
-            Map.of(),
-            7
+            Map.of(1, LocalDate.now().plusDays(7))
         );
 
         assertEquals(
-            "Khong dap ung ngay nhan mong muon",
+            "Không đáp ứng ngày nhận mong muốn",
             result,
-            "A transport option with deliveryDays >= 999 is treated as unsupported"
+            "Phương thức vận chuyển có deliveryDays >= 999 phải được xem là không hỗ trợ"
         );
     }
 
     @Test
-    @DisplayName("TC_09: late delivery is rejected")
+    @Order(7)
+    @DisplayName("TC_09: giao trễ hạn bị từ chối")
     void validateSubmission_shouldReturnDeliveryMessage_whenDeliveryExceedsDesiredDeadline() {
         ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 10);
         Allocation allocation = new Allocation(101, 1, 10, DeliveryMethod.SHIP.storageValue());
@@ -193,19 +168,19 @@ final class DefaultAllocationValidatorTest {
             List.of(item),
             List.of(site),
             allocations,
-            Map.of(1, LocalDate.now().plusDays(3)),
-            7
+            Map.of(1, LocalDate.now().plusDays(3))
         );
 
         assertEquals(
-            "Khong dap ung ngay nhan mong muon",
+            "Không đáp ứng ngày nhận mong muốn",
             result,
-            "Ship delivery in 5 days should not satisfy a desired date 3 days ahead"
+            "Giao bằng đường biển trong 5 ngày không được đáp ứng ngày nhận mong muốn sau 3 ngày"
         );
     }
 
     @Test
-    @DisplayName("TC_10: zero requirement accepts empty allocations")
+    @Order(8)
+    @DisplayName("TC_10: yêu cầu số lượng 0 chấp nhận phân bổ rỗng")
     void validateSubmission_shouldReturnNull_whenZeroRequirementHasNoAllocations() {
         ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 0);
 
@@ -213,11 +188,10 @@ final class DefaultAllocationValidatorTest {
             List.of(item),
             List.of(),
             Map.of(),
-            Map.of(),
-            7
+            Map.of()
         );
 
-        assertNull(result, "An item requiring zero quantity can have no allocation");
+        assertNull(result, "Mặt hàng yêu cầu số lượng 0 có thể không cần phân bổ");
     }
 
     private static Map<Integer, Map<Integer, Allocation>> allocationsFor(
@@ -232,5 +206,61 @@ final class DefaultAllocationValidatorTest {
         Map<Integer, Map<Integer, Allocation>> result = new LinkedHashMap<>();
         result.put(merchandiseId, siteAllocations);
         return result;
+    }
+
+    private static final class ConsoleResultPrinter implements TestWatcher, AfterAllCallback {
+        private final String testClassName;
+        private int passed;
+        private int failures;
+        private int errors;
+        private int skipped;
+
+        private ConsoleResultPrinter(String testClassName) {
+            this.testClassName = testClassName;
+        }
+
+        @Override
+        public void testSuccessful(ExtensionContext context) {
+            passed++;
+            System.out.println("[ĐẠT] " + context.getDisplayName());
+        }
+
+        @Override
+        public void testFailed(ExtensionContext context, Throwable cause) {
+            if (cause instanceof AssertionError) {
+                failures++;
+                System.out.println("[KHÔNG ĐẠT] " + context.getDisplayName() + " -> " + cause.getMessage());
+                return;
+            }
+            errors++;
+            System.out.println("[LỖI] " + context.getDisplayName() + " -> " + cause.getMessage());
+        }
+
+        @Override
+        public void testAborted(ExtensionContext context, Throwable cause) {
+            skipped++;
+            System.out.println("[BỎ QUA] " + context.getDisplayName() + " -> " + cause.getMessage());
+        }
+
+        @Override
+        public void testDisabled(ExtensionContext context, Optional<String> reason) {
+            skipped++;
+            String suffix = reason.map(value -> " -> " + value).orElse("");
+            System.out.println("[BỎ QUA] " + context.getDisplayName() + suffix);
+        }
+
+        @Override
+        public void afterAll(ExtensionContext context) {
+            int testsRun = passed + failures + errors + skipped;
+            System.out.println();
+            System.out.println("Bộ test: " + context.getDisplayName() + " (" + testClassName + ")");
+            System.out.println(
+                "Số test chạy: " + testsRun
+                    + ", Thất bại: " + failures
+                    + ", Lỗi: " + errors
+                    + ", Bỏ qua: " + skipped
+            );
+            System.out.println(failures == 0 && errors == 0 ? "Kết quả: ĐẠT" : "Kết quả: KHÔNG ĐẠT");
+        }
     }
 }

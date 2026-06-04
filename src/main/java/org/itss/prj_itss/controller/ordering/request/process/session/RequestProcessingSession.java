@@ -260,8 +260,7 @@ public final class RequestProcessingSession {
             items,
             allSites,
             allocations,
-            desiredDeliveryDates,
-            deadlineDays
+            desiredDeliveryDates
         );
     }
 

@@ -12,8 +12,7 @@
       xmlns:fx="http://javafx.com/fxml/1"
       fx:controller="org.itss.prj_itss.view.warehouse.WarehouseIncomingOrdersView"
       spacing="18"
-      styleClass="workspace-shell"
-      stylesheets="@/org/itss/prj_itss/view/shared/styles.css">
+      styleClass="workspace-shell">
     <padding>
         <Insets top="24" right="24" bottom="24" left="24"/>
     </padding>

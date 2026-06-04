@@ -72,7 +72,7 @@ public final class RequestProcessingLayoutView {
 
     private void showPreviewDialog(List<ProcessingPreviewOrderView> previewOrders) {
         new RequestProcessingPreviewDialog(
-            () -> navigateToView.accept("orders"),
+            () -> navigateToView.accept("received-requests"),
             new RequestProcessingPreviewDialogController(controller, previewOrders)
         ).show(itemsTableContainer);
     }

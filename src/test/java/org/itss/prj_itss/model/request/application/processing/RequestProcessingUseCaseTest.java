@@ -44,8 +44,7 @@ class RequestProcessingUseCaseTest {
             List.of(item),
             List.of(site),
             allocations(item.merchandiseId, new Allocation(site.id, item.merchandiseId, 5, DeliveryMethod.SHIP.storageValue())),
-            Map.of(item.merchandiseId, LocalDate.now().plusDays(7)),
-            7
+            Map.of(item.merchandiseId, LocalDate.now().plusDays(7))
         );
 
         assertNull(validationMessage);
@@ -84,11 +83,10 @@ class RequestProcessingUseCaseTest {
             List.of(item),
             List.of(site),
             allocations(item.merchandiseId, new Allocation(1, item.merchandiseId, 5, DeliveryMethod.SHIP.storageValue())),
-            Map.of(item.merchandiseId, LocalDate.now().plusDays(3)),
-            14
+            Map.of(item.merchandiseId, LocalDate.now().plusDays(3))
         );
 
-        assertEquals("Khong dap ung ngay nhan mong muon", validationMessage);
+        assertEquals("Không đáp ứng ngày nhận mong muốn", validationMessage);
     }
 
     @Test
@@ -101,8 +99,7 @@ class RequestProcessingUseCaseTest {
             List.of(item),
             List.of(site),
             allocations(item.merchandiseId, new Allocation(1, item.merchandiseId, 5, DeliveryMethod.SHIP.storageValue())),
-            Map.of(item.merchandiseId, LocalDate.now().plusDays(4)),
-            14
+            Map.of(item.merchandiseId, LocalDate.now().plusDays(4))
         );
 
         assertNull(validationMessage);

@@ -240,8 +240,7 @@ public final class CancelledOrderProcessingSession {
             items,
             allSites,
             allocations,
-            desiredDeliveryDates,
-            deadlineDays
+            desiredDeliveryDates
         );
         if (validationMessage != null) {
             return ConfirmResult.invalid(validationMessage);
