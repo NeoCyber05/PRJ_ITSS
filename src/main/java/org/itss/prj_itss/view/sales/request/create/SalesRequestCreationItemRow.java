@@ -13,7 +13,11 @@ import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOptio
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
+import javafx.geometry.Side;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -36,6 +40,7 @@ final class SalesRequestCreationItemRow extends HBox {
     SalesRequestCreationItemRow(
             int index,
             Function<String, MerchandiseOption> merchandiseLookup,
+            List<String> availableCodes,
             Consumer<SalesRequestCreationItemRow> deleteHandler
     ) {
         super(12);
@@ -43,8 +48,8 @@ final class SalesRequestCreationItemRow extends HBox {
         setStyle(ROW_STYLE);
 
         configureIndexLabel(index);
-        configureCodeField(merchandiseLookup);
-        configureQuantityField();
+        configureCodeField(merchandiseLookup, availableCodes);
+        configureQuantityField(merchandiseLookup);
         configureUnitField();
         configureDesiredDatePicker();
         configureDeleteButton(deleteHandler);
@@ -76,13 +81,37 @@ final class SalesRequestCreationItemRow extends HBox {
         updateIndex(index);
     }
 
-    private void configureCodeField(Function<String, MerchandiseOption> merchandiseLookup) {
+    private void configureCodeField(Function<String, MerchandiseOption> merchandiseLookup, List<String> availableCodes) {
         codeField.setPromptText("VD: MH-001");
         codeField.setPrefWidth(150);
         codeField.setMaxWidth(150);
         codeField.setStyle(INPUT_STYLE);
+        
+        ContextMenu suggestionPopup = new ContextMenu();
         codeField.textProperty().addListener((observable, oldValue, newValue) -> {
+            suggestionPopup.getItems().clear();
             String code = newValue == null ? "" : newValue.trim();
+            if (!code.isEmpty()) {
+                availableCodes.stream()
+                    .filter(c -> c.toLowerCase().contains(code.toLowerCase()))
+                    .limit(5)
+                    .forEach(c -> {
+                        MenuItem item = new MenuItem(c);
+                        item.setOnAction(e -> {
+                            codeField.setText(c);
+                            codeField.positionCaret(c.length());
+                        });
+                        suggestionPopup.getItems().add(item);
+                    });
+                if (!suggestionPopup.getItems().isEmpty() && codeField.isFocused()) {
+                    suggestionPopup.show(codeField, Side.BOTTOM, 0, 0);
+                } else {
+                    suggestionPopup.hide();
+                }
+            } else {
+                suggestionPopup.hide();
+            }
+
             if (code.isEmpty()) {
                 codeField.setStyle(INPUT_STYLE);
                 unitField.setText("");
@@ -98,14 +127,42 @@ final class SalesRequestCreationItemRow extends HBox {
 
             codeField.setStyle(INPUT_STYLE);
             unitField.setText(merchandise.unit());
+            validateQuantity(merchandiseLookup);
         });
     }
 
-    private void configureQuantityField() {
+    private void configureQuantityField(Function<String, MerchandiseOption> merchandiseLookup) {
         quantityField.setPromptText("0");
         quantityField.setPrefWidth(100);
         quantityField.setMaxWidth(100);
         quantityField.setStyle(INPUT_STYLE);
+        quantityField.textProperty().addListener((observable, oldValue, newValue) -> {
+            validateQuantity(merchandiseLookup);
+        });
+    }
+
+    private void validateQuantity(Function<String, MerchandiseOption> merchandiseLookup) {
+        String code = codeField.getText() == null ? "" : codeField.getText().trim();
+        if (code.isEmpty()) {
+            quantityField.setStyle(INPUT_STYLE);
+            return;
+        }
+        MerchandiseOption merchandise = merchandiseLookup.apply(code);
+        if (merchandise == null) {
+            quantityField.setStyle(INPUT_STYLE);
+            return;
+        }
+        Optional<BigDecimal> qtyOpt = parseQuantity(quantityField.getText());
+        if (qtyOpt.isPresent()) {
+            BigDecimal qty = qtyOpt.get();
+            if (qty.compareTo(new BigDecimal(merchandise.totalStock())) > 0) {
+                quantityField.setStyle(ERROR_STYLE);
+            } else {
+                quantityField.setStyle(INPUT_STYLE);
+            }
+        } else {
+            quantityField.setStyle(INPUT_STYLE);
+        }
     }
 
     private void configureUnitField() {
@@ -121,6 +178,15 @@ final class SalesRequestCreationItemRow extends HBox {
         desiredDatePicker.setPrefWidth(180);
         desiredDatePicker.setMaxWidth(180);
         desiredDatePicker.setStyle("-fx-background-color: white; -fx-border-color: #CBD5E1; -fx-border-radius: 4;");
+        
+        desiredDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null && newValue.isBefore(LocalDate.now())) {
+                desiredDatePicker.setStyle(ERROR_STYLE);
+            } else {
+                desiredDatePicker.setStyle("-fx-background-color: white; -fx-border-color: #CBD5E1; -fx-border-radius: 4; -fx-padding: 6 10;");
+            }
+        });
+
         desiredDatePicker.setDayCellFactory(picker -> new DateCell() {
             @Override
             public void updateItem(LocalDate date, boolean empty) {

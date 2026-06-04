@@ -17,7 +17,7 @@ class SalesRequestEditMapperTest {
 
     @Test
     void mapsFormViewToStateAndBackToServiceInput() {
-        MerchandiseOption option = new MerchandiseOption(10, "MH-001", "Item 1", "box");
+        MerchandiseOption option = new MerchandiseOption(10, "MH-001", "Item 1", "box", 0);
         RequestFormView form = new RequestFormView(
             1,
             "YC-2026-001",

@@ -9,6 +9,7 @@ import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOptio
 import org.itss.prj_itss.model.request.application.sales.shared.RequestFormView;
 import org.itss.prj_itss.model.request.application.sales.view.RequestDetailItemRow;
 import org.itss.prj_itss.model.request.application.sales.view.RequestReadOnlyView;
+import org.itss.prj_itss.model.site.application.port.InventoryRepository;
 
 import java.util.List;
 
@@ -16,28 +17,30 @@ public final class SalesRequestQueryService {
 
     private final SalesRequestQueryPort queryPort;
     private final MerchandiseUseCase MerchandiseUseCase;
+    private final InventoryRepository inventoryRepository;
 
-    public SalesRequestQueryService(SalesRequestQueryPort queryPort, MerchandiseUseCase MerchandiseUseCase) {
+    public SalesRequestQueryService(SalesRequestQueryPort queryPort, MerchandiseUseCase MerchandiseUseCase, InventoryRepository inventoryRepository) {
         this.queryPort = queryPort;
         this.MerchandiseUseCase = MerchandiseUseCase;
+        this.inventoryRepository = inventoryRepository;
     }
 
     public List<MerchandiseOption> findMerchandiseOptions() {
         return MerchandiseUseCase.findActive().stream()
-            .map(m -> new MerchandiseOption(m.getId(), m.getCode(), m.getName(), m.getUnit()))
+            .map(m -> new MerchandiseOption(m.getId(), m.getCode(), m.getName(), m.getUnit(), inventoryRepository.getTotalStock(m.getId())))
             .toList();
     }
 
     public MerchandiseOption findMerchandiseOptionByCode(String code) {
         Merchandise m = MerchandiseUseCase.findByCode(code);
         if (m == null) return null;
-        return new MerchandiseOption(m.getId(), m.getCode(), m.getName(), m.getUnit());
+        return new MerchandiseOption(m.getId(), m.getCode(), m.getName(), m.getUnit(), inventoryRepository.getTotalStock(m.getId()));
     }
 
     public MerchandiseOption findMerchandiseOptionById(int id) {
         Merchandise m = MerchandiseUseCase.findById(id);
         if (m == null) return null;
-        return new MerchandiseOption(m.getId(), m.getCode(), m.getName(), m.getUnit());
+        return new MerchandiseOption(m.getId(), m.getCode(), m.getName(), m.getUnit(), inventoryRepository.getTotalStock(m.getId()));
     }
 
     public RequestReadOnlyView findReadOnlyView(int requestId) {
