@@ -24,6 +24,7 @@ public final class SalesRequestCreationView implements ViewLifecycle {
 
     @FXML private Button closeButton;
     @FXML private Button cancelButton;
+    @FXML private javafx.scene.control.ScrollPane itemsScroll;
     @FXML private VBox itemsContainer;
     @FXML private Button addItemButton;
     @FXML private Button submitButton;
@@ -31,6 +32,11 @@ public final class SalesRequestCreationView implements ViewLifecycle {
     public void init(Stage dialog, SalesRequestCreationController controller) {
         this.dialog = dialog;
         this.controller = controller;
+
+        if (itemsScroll != null && itemsContainer != null) {
+            itemsScroll.prefHeightProperty().bind(itemsContainer.heightProperty());
+            itemsScroll.setMaxHeight(400);
+        }
 
         closeButton.setOnAction(event -> closePopup());
         cancelButton.setOnAction(event -> closePopup());

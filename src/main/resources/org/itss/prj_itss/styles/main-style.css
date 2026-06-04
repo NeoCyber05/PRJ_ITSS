@@ -1180,6 +1180,34 @@
     -fx-background: transparent;
 }
 
+.transparent-scroll-pane .scroll-bar:vertical {
+    -fx-pref-width: 8;
+    -fx-background-color: transparent;
+}
+.transparent-scroll-pane .scroll-bar:vertical .track,
+.transparent-scroll-pane .scroll-bar:vertical .track-background {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+}
+.transparent-scroll-pane .scroll-bar:vertical .thumb {
+    -fx-background-color: #CBD5E1;
+    -fx-background-radius: 4;
+}
+.transparent-scroll-pane .scroll-bar:vertical .thumb:hover {
+    -fx-background-color: #94A3B8;
+}
+.transparent-scroll-pane .scroll-bar:vertical .increment-button,
+.transparent-scroll-pane .scroll-bar:vertical .decrement-button {
+    -fx-padding: 0;
+    -fx-pref-height: 0;
+    -fx-background-color: transparent;
+}
+.transparent-scroll-pane .scroll-bar:vertical .increment-arrow,
+.transparent-scroll-pane .scroll-bar:vertical .decrement-arrow {
+    -fx-shape: " ";
+    -fx-padding: 0;
+}
+
 .button.forest-primary-button {
     -fx-background-color: #2E6F40;
     -fx-text-fill: white;
