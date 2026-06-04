@@ -32,6 +32,7 @@ import org.itss.prj_itss.view.ordering.order.OrderCancellationView;
 import org.itss.prj_itss.view.ordering.order.OrderDetailView;
 import org.itss.prj_itss.view.ordering.order.OrderManagementView;
 import org.itss.prj_itss.view.ordering.request.ReceivedRequestsView;
+import org.itss.prj_itss.view.ordering.request.RequestDetailContext;
 import org.itss.prj_itss.view.ordering.request.process.layout.RequestProcessingLayoutView;
 import org.itss.prj_itss.view.ordering.site.SiteManagementView;
 import org.itss.prj_itss.view.sales.request.list.SalesRequestListView;
@@ -104,9 +105,12 @@ public final class MvcContext {
                 ((ReceivedRequestsView) viewInstance).init(
                     navigator,
                     requestControllers.receivedRequestsController(),
-                    requestControllers.requestDetailPopupController(),
-                    orderControllers.orderDetailController(),
-                    orderControllers.orderManagementController()
+                    new RequestDetailContext(
+                        requestControllers.requestDetailPopupController(),
+                        orderControllers.orderDetailController(),
+                        orderControllers.orderManagementController(),
+                        navigator
+                    )
                 )
         ),
         RouteRegistry.fxml(

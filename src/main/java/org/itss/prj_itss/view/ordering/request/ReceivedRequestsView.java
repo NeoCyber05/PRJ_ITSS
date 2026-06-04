@@ -11,12 +11,10 @@ import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.HBox;
 import org.itss.prj_itss.controller.navigation.Navigator;
-import org.itss.prj_itss.controller.ordering.order.OrderDetailController;
-import org.itss.prj_itss.controller.ordering.order.OrderManagementController;
 import org.itss.prj_itss.controller.ordering.request.ReceivedRequestsController;
-import org.itss.prj_itss.controller.ordering.request.RequestDetailPopupController;
 import org.itss.prj_itss.model.request.application.listing.RequestRow;
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
+import org.itss.prj_itss.view.shared.ui.PaginationSupport;
 import org.itss.prj_itss.view.shared.ui.StatusBadgeFactory;
 import org.itss.prj_itss.view.shared.ui.TableViewSupport;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
@@ -25,17 +23,16 @@ import java.util.Locale;
 
 public final class ReceivedRequestsView implements ViewLifecycle {
 
+    private static final String EMPTY_MESSAGE = "Không có yêu cầu phù hợp";
+    private static final String ITEM_LABEL = "yêu cầu";
+
     private final ObservableList<RequestRow> rows = FXCollections.observableArrayList();
     private final FilteredList<RequestRow> filteredRows = new FilteredList<>(rows, row -> true);
-    private final ObservableList<RequestRow> paginatedRows = FXCollections.observableArrayList();
-    private int currentPage = 0;
-    private int pageSize = 10;
+    private final PaginationSupport<RequestRow> pagination = new PaginationSupport<>(10);
 
     private Navigator navigator;
     private ReceivedRequestsController controller;
-    private RequestDetailPopupController detailPopupController;
-    private OrderDetailController orderDetailController;
-    private OrderManagementController orderManagementController;
+    private RequestDetailContext detailContext;
 
     @FXML
     private TableView<RequestRow> requestTable;
@@ -85,7 +82,7 @@ public final class ReceivedRequestsView implements ViewLifecycle {
 
         requestTable.setFixedCellSize(46);
         requestTable.prefHeightProperty().bind(
-            Bindings.max(1, Bindings.size(paginatedRows)).multiply(requestTable.getFixedCellSize()).add(36)
+            Bindings.max(1, Bindings.size(pagination.paginatedItems())).multiply(requestTable.getFixedCellSize()).add(36)
         );
         requestTable.minHeightProperty().bind(requestTable.prefHeightProperty());
         requestTable.maxHeightProperty().bind(requestTable.prefHeightProperty());
@@ -127,14 +124,11 @@ public final class ReceivedRequestsView implements ViewLifecycle {
                 detailButton.setOnAction(event -> RequestDetailPopup.show(
                     requestTable.getScene() == null ? null : requestTable.getScene().getWindow(),
                     row.requestCode(),
-                    detailPopupController,
-                    orderDetailController,
-                    orderManagementController,
-                    navigator
+                    detailContext
                 ));
                 actions.getChildren().add(detailButton);
 
-                if ("pending".equals(OrderingFormatters.normalizeStatusKey(row.status()))) {
+                if (OrderingFormatters.STATUS_PENDING.equals(OrderingFormatters.normalizeStatusKey(row.status()))) {
                     Button processButton = new Button("Xử lý");
                     processButton.getStyleClass().add("forest-dark-button");
                     processButton.setOnAction(event -> {
@@ -150,7 +144,7 @@ public final class ReceivedRequestsView implements ViewLifecycle {
             }
         });
 
-        requestTable.setItems(paginatedRows);
+        requestTable.setItems(pagination.paginatedItems());
 
         statusFilter.getItems().addAll(
             "Mọi trạng thái",
@@ -163,14 +157,13 @@ public final class ReceivedRequestsView implements ViewLifecycle {
         statusFilter.setValue("Mọi trạng thái");
 
         pageSizeComboBox.getItems().addAll(5, 10, 20, 50);
-        pageSizeComboBox.setValue(pageSize);
-        pageSizeComboBox.valueProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue != null) {
-                pageSize = newValue;
-                currentPage = 0;
-                updatePagination();
-            }
-        });
+        pageSizeComboBox.setValue(10);
+        pagination.bindPageSizeComboBox(
+            pageSizeComboBox, filteredRows,
+            paginationInfoLabel, pageIndicatorLabel,
+            prevPageButton, nextPageButton,
+            EMPTY_MESSAGE, ITEM_LABEL
+        );
 
         searchField.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         statusFilter.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());
@@ -179,14 +172,10 @@ public final class ReceivedRequestsView implements ViewLifecycle {
     public void init(
             Navigator navigator,
             ReceivedRequestsController controller,
-            RequestDetailPopupController detailPopupController,
-            OrderDetailController orderDetailController,
-            OrderManagementController orderManagementController) {
+            RequestDetailContext detailContext) {
         this.navigator = navigator;
         this.controller = controller;
-        this.detailPopupController = detailPopupController;
-        this.orderDetailController = orderDetailController;
-        this.orderManagementController = orderManagementController;
+        this.detailContext = detailContext;
         reload();
     }
 
@@ -215,57 +204,26 @@ public final class ReceivedRequestsView implements ViewLifecycle {
             return matchesKeyword && matchesStatus;
         });
 
-        currentPage = 0;
-        updatePagination();
-    }
-
-    private void updatePagination() {
-        int totalItems = filteredRows.size();
-        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
-        if (totalPages == 0) totalPages = 1;
-
-        if (currentPage >= totalPages) {
-            currentPage = totalPages - 1;
-        }
-        if (currentPage < 0) {
-            currentPage = 0;
-        }
-
-        int fromIndex = currentPage * pageSize;
-        int toIndex = Math.min(fromIndex + pageSize, totalItems);
-
-        if (fromIndex <= totalItems && fromIndex < toIndex) {
-            paginatedRows.setAll(filteredRows.subList(fromIndex, toIndex));
-        } else {
-            paginatedRows.clear();
-        }
-
-        int displayFrom = totalItems == 0 ? 0 : fromIndex + 1;
-        paginationInfoLabel.setText(totalItems == 0
-            ? "Không có yêu cầu phù hợp"
-            : String.format("Hiển thị %d - %d của %d yêu cầu", displayFrom, toIndex, totalItems));
-
-        pageIndicatorLabel.setText(String.format("Trang %d / %d", currentPage + 1, totalPages));
-
-        prevPageButton.setDisable(currentPage <= 0);
-        nextPageButton.setDisable(currentPage >= totalPages - 1);
+        pagination.resetPage();
+        pagination.update(
+            filteredRows, paginationInfoLabel, pageIndicatorLabel,
+            prevPageButton, nextPageButton, EMPTY_MESSAGE, ITEM_LABEL
+        );
     }
 
     @FXML
     private void goToPrevPage() {
-        if (currentPage > 0) {
-            currentPage--;
-            updatePagination();
-        }
+        pagination.goToPrevPage(
+            filteredRows, paginationInfoLabel, pageIndicatorLabel,
+            prevPageButton, nextPageButton, EMPTY_MESSAGE, ITEM_LABEL
+        );
     }
 
     @FXML
     private void goToNextPage() {
-        int totalItems = filteredRows.size();
-        int totalPages = (int) Math.ceil((double) totalItems / pageSize);
-        if (currentPage < totalPages - 1) {
-            currentPage++;
-            updatePagination();
-        }
+        pagination.goToNextPage(
+            filteredRows, paginationInfoLabel, pageIndicatorLabel,
+            prevPageButton, nextPageButton, EMPTY_MESSAGE, ITEM_LABEL
+        );
     }
 }

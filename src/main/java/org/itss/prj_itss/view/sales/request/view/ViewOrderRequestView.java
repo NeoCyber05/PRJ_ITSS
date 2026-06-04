@@ -13,8 +13,7 @@ import org.itss.prj_itss.controller.sales.request.view.ViewOrderRequestControlle
 import org.itss.prj_itss.model.request.application.sales.view.RequestDetailItemRow;
 import org.itss.prj_itss.model.request.application.sales.view.RequestReadOnlyView;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
-
-import java.util.Locale;
+import org.itss.prj_itss.view.shared.ui.StatusBadgeFactory;
 
 public final class ViewOrderRequestView implements ViewLifecycle {
 
@@ -173,7 +172,7 @@ public final class ViewOrderRequestView implements ViewLifecycle {
 
         requestCodeLabel.setText(view.requestCode());
         createdAtLabel.setText(view.createdAt() != null && !view.createdAt().isBlank() ? view.createdAt() : "N/A");
-        buildStatusBadge(view.status());
+        statusBadge.getChildren().setAll(StatusBadgeFactory.statusBadge(view.status(), StatusBadgeFactory.StatusKind.REQUEST));
 
         items.setAll(view.items());
         noteArea.setText(view.note() != null ? view.note() : "");
@@ -189,44 +188,6 @@ public final class ViewOrderRequestView implements ViewLifecycle {
         );
     }
 
-    private void buildStatusBadge(String status) {
-        String normalized = status == null ? "" : status.trim().toLowerCase(Locale.ROOT);
-        String[] colors = resolveStatusColors(normalized);
-        String display = resolveStatusDisplay(normalized, status);
-
-        Label badge = new Label("● " + display);
-        badge.setStyle(
-            "-fx-background-color: " + colors[0] + ";" +
-            "-fx-text-fill: " + colors[1] + ";" +
-            "-fx-background-radius: 999;" +
-            "-fx-padding: 4 12;" +
-            "-fx-font-size: 12px;" +
-            "-fx-font-weight: bold;"
-        );
-        statusBadge.getChildren().setAll(badge);
-    }
-
-    private static String[] resolveStatusColors(String normalized) {
-        return switch (normalized) {
-            case "pending"    -> new String[]{"#FFF4E5", "#D97706"};
-            case "processing" -> new String[]{"#E8F1FF", "#2563EB"};
-            case "shipping"   -> new String[]{"#F2EAFF", "#7C3ED"};
-            case "completed"  -> new String[]{"#EAF8EF", "#15803D"};
-            case "cancelled"  -> new String[]{"#FEE2E2", "#B91C1C"};
-            default           -> new String[]{"#F3F4F6", "#6B7280"};
-        };
-    }
-
-    private static String resolveStatusDisplay(String normalized, String fallback) {
-        return switch (normalized) {
-            case "pending"    -> "Chờ xử lý";
-            case "processing" -> "Đang xử lý";
-            case "shipping"   -> "Đang giao";
-            case "completed"  -> "Đã hoàn thành";
-            case "cancelled"  -> "Đã hủy";
-            default           -> fallback != null ? fallback : "N/A";
-        };
-    }
 
     private void goBack() {
         if (stage != null) {

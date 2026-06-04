@@ -8,10 +8,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
-import org.itss.prj_itss.controller.navigation.Navigator;
-import org.itss.prj_itss.controller.ordering.order.OrderDetailController;
-import org.itss.prj_itss.controller.ordering.order.OrderManagementController;
-import org.itss.prj_itss.controller.ordering.request.RequestDetailPopupController;
 import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailViewModel;
 import org.itss.prj_itss.view.ordering.request.detail.RequestDetailPopupView;
 import org.itss.prj_itss.view.ordering.request.process.shared.AllocationViewSupport;
@@ -26,14 +22,8 @@ public final class RequestDetailPopup {
     private RequestDetailPopup() {
     }
 
-    public static void show(
-            Window owner,
-            String requestCode,
-            RequestDetailPopupController controller,
-            OrderDetailController orderDetailController,
-            OrderManagementController orderManagementController,
-            Navigator navigator) {
-        ReceivedRequestDetailViewModel detail = controller.load(requestCode);
+    public static void show(Window owner, String requestCode, RequestDetailContext context) {
+        ReceivedRequestDetailViewModel detail = context.requestController().load(requestCode);
 
         Stage dialog = createDialog(owner);
 
@@ -47,10 +37,7 @@ public final class RequestDetailPopup {
         StackPane root = loadRoot(
                 dialog,
                 requestCode,
-                controller,
-                orderDetailController,
-                orderManagementController,
-                navigator,
+                context,
                 detail,
                 sceneWidth,
                 requestCollapsedWidth,
@@ -83,10 +70,7 @@ public final class RequestDetailPopup {
     private static StackPane loadRoot(
             Stage dialog,
             String requestCode,
-            RequestDetailPopupController controller,
-            OrderDetailController orderDetailController,
-            OrderManagementController orderManagementController,
-            Navigator navigator,
+            RequestDetailContext context,
             ReceivedRequestDetailViewModel detail,
             double sceneWidth,
             double requestCollapsedWidth,
@@ -101,10 +85,7 @@ public final class RequestDetailPopup {
             view.init(
                     dialog,
                     requestCode,
-                    controller,
-                    orderDetailController,
-                    orderManagementController,
-                    navigator,
+                    context,
                     detail,
                     sceneWidth,
                     requestCollapsedWidth,

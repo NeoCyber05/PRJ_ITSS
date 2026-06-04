@@ -13,10 +13,8 @@ public final class OrderControllerModule {
     public OrderControllerModule(OrderModule orderModule, SiteModule siteModule, CatalogModule catalogModule) {
         this.orderManagementController = new OrderManagementController(orderModule.orderManagementApplicationService());
         this.orderDetailController = new OrderDetailController(
-            orderModule.orderUseCase(),
-            orderModule.orderCancellationApplicationService(),
-            siteModule.siteUseCase(),
-            catalogModule.catalogUseCase()
+            orderModule.orderDetailApplicationService(),
+            orderModule.orderCancellationApplicationService()
         );
         this.orderCancellationController =
             new OrderCancellationController(orderModule.orderCancellationApplicationService());
