@@ -60,6 +60,9 @@ public class Request {
      * @throws IllegalStateException nếu yêu cầu không đang ở trạng thái PENDING.
      */
     public void addItem(int merchandiseId, BigDecimal quantityOrdered, LocalDate desiredDeliveryDate) {
+        if (desiredDeliveryDate != null && desiredDeliveryDate.isBefore(LocalDate.now())) {
+            throw new IllegalArgumentException("Ngày nhận mong muốn không được ở trong quá khứ.");
+        }
         items.add(new RequestMerchandise(id, merchandiseId, quantityOrdered, desiredDeliveryDate));
     }
 

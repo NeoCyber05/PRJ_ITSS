@@ -69,7 +69,7 @@ public final class RequestModule {
         this.receivedRequestDetailApplicationService = new ReceivedRequestDetailApplicationService(
             new JdbcReceivedRequestDetailQuery(connectionProvider)
         );
-        this.salesRequestQueryService = new SalesRequestQueryService(jdbcSalesRequestQueryRepository, merchandiseModule.merchandiseUseCase());
+        this.salesRequestQueryService = new SalesRequestQueryService(jdbcSalesRequestQueryRepository, merchandiseModule.merchandiseUseCase(), siteModule.inventoryRepository());
         this.salesRequestCommandService = new SalesRequestCommandService(jdbcSalesRequestCommandRepository);
         this.createSalesRequestService = new CreateSalesRequestService(jdbcSalesRequestCommandRepository);
     }

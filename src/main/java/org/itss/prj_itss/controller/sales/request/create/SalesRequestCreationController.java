@@ -22,6 +22,12 @@ public final class SalesRequestCreationController {
         return queryService.findMerchandiseOptionByCode(code);
     }
 
+    public List<String> getAllMerchandiseCodes() {
+        return queryService.findMerchandiseOptions().stream()
+            .map(MerchandiseOption::code)
+            .toList();
+    }
+
     public ActionResult createRequest(List<SalesRequestItemSubmission> items) {
         try {
             createUseCase.createRequest(items, "");
