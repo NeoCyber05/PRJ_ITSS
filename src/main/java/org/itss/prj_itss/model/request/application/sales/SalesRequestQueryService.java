@@ -19,7 +19,8 @@ public final class SalesRequestQueryService {
     private final MerchandiseUseCase MerchandiseUseCase;
     private final InventoryRepository inventoryRepository;
 
-    public SalesRequestQueryService(SalesRequestQueryPort queryPort, MerchandiseUseCase MerchandiseUseCase, InventoryRepository inventoryRepository) {
+    public SalesRequestQueryService(SalesRequestQueryPort queryPort, MerchandiseUseCase MerchandiseUseCase,
+            InventoryRepository inventoryRepository) {
         this.queryPort = queryPort;
         this.MerchandiseUseCase = MerchandiseUseCase;
         this.inventoryRepository = inventoryRepository;
@@ -27,75 +28,84 @@ public final class SalesRequestQueryService {
 
     public List<MerchandiseOption> findMerchandiseOptions() {
         return MerchandiseUseCase.findActive().stream()
-            .map(m -> new MerchandiseOption(m.getId(), m.getCode(), m.getName(), m.getUnit(), inventoryRepository.getTotalStock(m.getId())))
-            .toList();
+                .map(m -> new MerchandiseOption(m.getId(), m.getCode(), m.getName(), m.getUnit()))
+                .toList();
     }
 
     public MerchandiseOption findMerchandiseOptionByCode(String code) {
         Merchandise m = MerchandiseUseCase.findByCode(code);
-        if (m == null) return null;
-        return new MerchandiseOption(m.getId(), m.getCode(), m.getName(), m.getUnit(), inventoryRepository.getTotalStock(m.getId()));
+        if (m == null)
+            return null;
+        return new MerchandiseOption(m.getId(), m.getCode(), m.getName(), m.getUnit());
+    }
+
+    public int getAvailableStock(String code) {
+        Merchandise m = MerchandiseUseCase.findByCode(code);
+        if (m == null)
+            return 0;
+        return inventoryRepository.getTotalStock(m.getId());
     }
 
     public MerchandiseOption findMerchandiseOptionById(int id) {
         Merchandise m = MerchandiseUseCase.findById(id);
-        if (m == null) return null;
-        return new MerchandiseOption(m.getId(), m.getCode(), m.getName(), m.getUnit(), inventoryRepository.getTotalStock(m.getId()));
+        if (m == null)
+            return null;
+        return new MerchandiseOption(m.getId(), m.getCode(), m.getName(), m.getUnit());
     }
 
     public RequestReadOnlyView findReadOnlyView(int requestId) {
         Request request = queryPort.findById(requestId);
-        if (request == null) return null;
+        if (request == null)
+            return null;
 
         List<RequestDetailItemRow> itemRows = queryPort.findItemsByRequestId(requestId).stream()
-            .map(this::toDetailRow)
-            .toList();
+                .map(this::toDetailRow)
+                .toList();
 
         return new RequestReadOnlyView(
-            request.getId(),
-            OrderingFormatters.formatRequestCode(request.getId()),
-            OrderingFormatters.formatDateOrEmpty(request.getCreatedAt()),
-            request.getStatusKey(),
-            OrderingFormatters.requestStatusText(request.getStatusKey()),
-            request.getNote(),
-            itemRows
-        );
+                request.getId(),
+                OrderingFormatters.formatRequestCode(request.getId()),
+                OrderingFormatters.formatDateOrEmpty(request.getCreatedAt()),
+                request.getStatusKey(),
+                OrderingFormatters.requestStatusText(request.getStatusKey()),
+                request.getNote(),
+                itemRows);
     }
 
     public RequestFormView findFormView(int requestId) {
         Request request = queryPort.findById(requestId);
-        if (request == null) return null;
+        if (request == null)
+            return null;
 
         List<RequestFormView.RequestItemFormRow> itemRows = queryPort.findItemsByRequestId(requestId).stream()
-            .map(item -> {
-                MerchandiseOption m = findMerchandiseOptionById(item.getMerchandiseId());
-                return new RequestFormView.RequestItemFormRow(
-                    m,
-                    item.getQuantityOrdered() != null ? OrderingFormatters.formatQuantity(item.getQuantityOrdered()) : "0",
-                    OrderingFormatters.formatDate(item.getDesiredDeliveryDate())
-                );
-            })
-            .toList();
+                .map(item -> {
+                    MerchandiseOption m = findMerchandiseOptionById(item.getMerchandiseId());
+                    return new RequestFormView.RequestItemFormRow(
+                            m,
+                            item.getQuantityOrdered() != null
+                                    ? OrderingFormatters.formatQuantity(item.getQuantityOrdered())
+                                    : "0",
+                            OrderingFormatters.formatDate(item.getDesiredDeliveryDate()));
+                })
+                .toList();
 
         return new RequestFormView(
-            request.getId(),
-            OrderingFormatters.formatRequestCode(request.getId()),
-            OrderingFormatters.formatDateOrEmpty(request.getCreatedAt()),
-            request.getStatusKey(),
-            OrderingFormatters.requestStatusText(request.getStatusKey()),
-            request.getNote(),
-            itemRows
-        );
+                request.getId(),
+                OrderingFormatters.formatRequestCode(request.getId()),
+                OrderingFormatters.formatDateOrEmpty(request.getCreatedAt()),
+                request.getStatusKey(),
+                OrderingFormatters.requestStatusText(request.getStatusKey()),
+                request.getNote(),
+                itemRows);
     }
 
     private RequestDetailItemRow toDetailRow(RequestMerchandise item) {
         MerchandiseOption m = findMerchandiseOptionById(item.getMerchandiseId());
         return new RequestDetailItemRow(
-            m != null ? m.code() : "N/A",
-            m != null ? m.name() : "N/A",
-            item.getQuantityOrdered() != null ? OrderingFormatters.formatQuantity(item.getQuantityOrdered()) : "0",
-            m != null ? m.unit() : "N/A",
-            OrderingFormatters.formatDate(item.getDesiredDeliveryDate())
-        );
+                m != null ? m.code() : "N/A",
+                m != null ? m.name() : "N/A",
+                item.getQuantityOrdered() != null ? OrderingFormatters.formatQuantity(item.getQuantityOrdered()) : "0",
+                m != null ? m.unit() : "N/A",
+                OrderingFormatters.formatDate(item.getDesiredDeliveryDate()));
     }
 }

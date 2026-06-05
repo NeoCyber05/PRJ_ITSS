@@ -22,9 +22,25 @@ public final class SalesRequestCreationController {
         return queryService.findMerchandiseOptionByCode(code);
     }
 
+    public int getAvailableStock(String code) {
+        return queryService.getAvailableStock(code);
+    }
+
     public List<String> getAllMerchandiseCodes() {
         return queryService.findMerchandiseOptions().stream()
             .map(MerchandiseOption::code)
+            .toList();
+    }
+
+    public List<String> suggestMerchandiseCodes(String keyword) {
+        if (keyword == null || keyword.trim().isEmpty()) {
+            return List.of();
+        }
+        String lowerKeyword = keyword.toLowerCase();
+        return queryService.findMerchandiseOptions().stream()
+            .map(MerchandiseOption::code)
+            .filter(code -> code.toLowerCase().contains(lowerKeyword))
+            .limit(5)
             .toList();
     }
 

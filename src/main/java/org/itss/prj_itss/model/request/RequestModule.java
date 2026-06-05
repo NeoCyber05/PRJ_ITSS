@@ -71,7 +71,7 @@ public final class RequestModule {
         );
         this.salesRequestQueryService = new SalesRequestQueryService(jdbcSalesRequestQueryRepository, merchandiseModule.merchandiseUseCase(), siteModule.inventoryRepository());
         this.salesRequestCommandService = new SalesRequestCommandService(jdbcSalesRequestCommandRepository);
-        this.createSalesRequestService = new CreateSalesRequestService(jdbcSalesRequestCommandRepository);
+        this.createSalesRequestService = new CreateSalesRequestService(jdbcSalesRequestCommandRepository, siteModule.inventoryRepository());
     }
 
     public DashboardRequestPort dashboardRequestPort() {

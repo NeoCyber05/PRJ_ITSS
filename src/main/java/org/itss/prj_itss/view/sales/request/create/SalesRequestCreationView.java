@@ -11,7 +11,6 @@ import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOptio
 import org.itss.prj_itss.model.request.application.sales.shared.SalesRequestItemSubmission;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,7 +21,6 @@ public final class SalesRequestCreationView implements ViewLifecycle {
     private Stage dialog;
     private SalesRequestCreationController controller;
     private Runnable onSaveCallback;
-    private List<String> availableCodes;
 
     @FXML private Button closeButton;
     @FXML private Button cancelButton;
@@ -44,13 +42,6 @@ public final class SalesRequestCreationView implements ViewLifecycle {
         cancelButton.setOnAction(event -> closePopup());
         addItemButton.setOnAction(event -> addNewRow());
         submitButton.setOnAction(event -> submitRequest());
-
-        if (controller != null) {
-            availableCodes = controller.getAllMerchandiseCodes();
-        } else {
-            availableCodes = new ArrayList<>();
-        }
-
         itemRows.clear();
         itemsContainer.getChildren().clear();
         addNewRow();
@@ -76,11 +67,6 @@ public final class SalesRequestCreationView implements ViewLifecycle {
             MerchandiseOption merchandise = controller.getMerchandiseOptionByCode(candidate.merchandiseCode());
             if (merchandise == null) {
                 showError("Mã hàng \"" + candidate.merchandiseCode() + "\" không tồn tại trong hệ thống.");
-                return;
-            }
-            
-            if (candidate.quantity().compareTo(new BigDecimal(merchandise.totalStock())) > 0) {
-                showError("Mặt hàng \"" + merchandise.name() + "\" chỉ còn tồn kho " + merchandise.totalStock() + " " + merchandise.unit() + ". Vui lòng nhập số lượng nhỏ hơn hoặc bằng tồn kho.");
                 return;
             }
 
@@ -119,7 +105,8 @@ public final class SalesRequestCreationView implements ViewLifecycle {
         SalesRequestCreationItemRow row = new SalesRequestCreationItemRow(
             itemRows.size() + 1,
             this::findMerchandiseByCode,
-            availableCodes,
+            controller != null ? controller::suggestMerchandiseCodes : (kw) -> List.of(),
+            controller != null ? controller::getAvailableStock : (kw) -> 0,
             this::removeRow
         );
         itemRows.add(row);

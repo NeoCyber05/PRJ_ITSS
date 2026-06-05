@@ -28,7 +28,7 @@ class SalesRequestEditStateTest {
             null
         )));
 
-        MerchandiseOption option = new MerchandiseOption(10, "MH-001", "Item 1", "box", 0);
+        MerchandiseOption option = new MerchandiseOption(10, "MH-001", "Item 1", "box");
         LocalDate desiredDate = LocalDate.of(2026, 5, 26);
         state.changeMerchandise(1, option);
         state.changeQuantity(1, new BigDecimal("3"));
