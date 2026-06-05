@@ -71,11 +71,11 @@ public final class DefaultAllocationValidator implements AllocationValidator {
                     return "Không đáp ứng ngày nhận mong muốn";
                 }
 
-                int deliveryDays = DeliveryOptions.deliveryDays(
+                Integer deliveryDays = DeliveryOptions.deliveryDays(
                     site,
                     DeliveryOptions.resolve(site, allocation.transport, itemDeadlineDays)
                 );
-                if (deliveryDays >= 999 || deliveryDays > itemDeadlineDays) {
+                if (deliveryDays == null || deliveryDays > itemDeadlineDays) {
                     return "Không đáp ứng ngày nhận mong muốn";
                 }
             }

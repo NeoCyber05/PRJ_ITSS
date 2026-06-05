@@ -7,8 +7,8 @@ public final class SiteStockOption {
     public final String siteCode;
     public final String name;
     public final String description;
-    public final int shipDays;
-    public final int airDays;
+    public final Integer shipDays;
+    public final Integer airDays;
     public final Map<Integer, Integer> stock;
 
     public SiteStockOption(
@@ -16,8 +16,8 @@ public final class SiteStockOption {
         String siteCode,
         String name,
         String description,
-        int shipDays,
-        int airDays,
+        Integer shipDays,
+        Integer airDays,
         Map<Integer, Integer> stock
     ) {
         this.id = id;

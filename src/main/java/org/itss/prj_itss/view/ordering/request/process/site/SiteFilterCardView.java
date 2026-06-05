@@ -104,7 +104,9 @@ public final class SiteFilterCardView {
         setStateClass(nameLabel, SITE_NAME_STATE_CLASSES,
             selected ? "site-filter-site-name-priority" : "site-filter-site-name-normal");
 
-        codeLabel.setText(siteCode(site) + " | Tàu: " + site.shipDays() + " ngày | Bay: " + site.airDays() + " ngày");
+        codeLabel.setText(siteCode(site)
+            + " | Tàu: " + deliveryDaysLabel(site.shipDays())
+            + " | Bay: " + deliveryDaysLabel(site.airDays()));
 
         priorityButton.setText(selected ? "Bỏ chọn" : "Chọn");
         priorityButton.getStyleClass().removeAll("site-filter-priority-button", "site-filter-unprioritize-button");
@@ -117,5 +119,9 @@ public final class SiteFilterCardView {
 
     private static String siteCode(ProcessingSiteView site) {
         return site.siteCode() == null ? "" : site.siteCode();
+    }
+
+    private static String deliveryDaysLabel(Integer days) {
+        return days == null ? "Không khả dụng" : days + " ngày";
     }
 }

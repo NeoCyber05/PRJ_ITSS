@@ -138,10 +138,10 @@ public class AllocationControl {
 
     private List<String> transportLabels(SiteStockOption site) {
         List<String> labels = new ArrayList<>();
-        if (site.shipDays < 999) {
+        if (site.shipDays != null) {
             labels.add(DeliveryMethod.SHIP.displayLabel());
         }
-        if (site.airDays < 999) {
+        if (site.airDays != null) {
             labels.add(DeliveryMethod.AIR.displayLabel());
         }
         if (labels.isEmpty()) {
@@ -151,10 +151,11 @@ public class AllocationControl {
     }
 
     private DeliveryStatus deliveryStatus(SiteStockOption site, String transport) {
-        int deliveryDays = DeliveryOptions.deliveryDays(
+        Integer deliveryDays = DeliveryOptions.deliveryDays(
             site,
             DeliveryOptions.resolve(site, transport, deadlineDays)
         );
+        if (deliveryDays == null) return new DeliveryStatus(Integer.MAX_VALUE, Integer.MIN_VALUE / 2);
         return new DeliveryStatus(deliveryDays, deadlineDays - deliveryDays);
     }
 
@@ -255,7 +256,7 @@ public class AllocationControl {
 
     public record DeliveryStatus(int deliveryDays, int dayDelta) {
         public boolean available() {
-            return deliveryDays < 999;
+            return deliveryDays != Integer.MAX_VALUE;
         }
     }
 }

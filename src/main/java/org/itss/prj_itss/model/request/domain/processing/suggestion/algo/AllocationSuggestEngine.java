@@ -153,8 +153,8 @@ public final class AllocationSuggestEngine {
     }
 
     private int bestDeliveryDays(SiteStockOption site) {
-        int ship = site.shipDays >= 999 ? Integer.MAX_VALUE : site.shipDays;
-        int air = site.airDays >= 999 ? Integer.MAX_VALUE : site.airDays;
+        int ship = site.shipDays != null ? site.shipDays : Integer.MAX_VALUE;
+        int air = site.airDays != null ? site.airDays : Integer.MAX_VALUE;
         return Math.min(ship, air);
     }
 

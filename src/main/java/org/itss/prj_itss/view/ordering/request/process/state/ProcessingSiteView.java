@@ -7,8 +7,8 @@ public record ProcessingSiteView(
     String siteCode,
     String name,
     String description,
-    int shipDays,
-    int airDays,
+    Integer shipDays,
+    Integer airDays,
     Map<Integer, Integer> stock
 ) {
 }
