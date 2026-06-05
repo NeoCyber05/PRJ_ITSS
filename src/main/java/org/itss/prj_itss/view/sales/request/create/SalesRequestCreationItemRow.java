@@ -40,7 +40,8 @@ final class SalesRequestCreationItemRow extends HBox {
     SalesRequestCreationItemRow(
             int index,
             Function<String, MerchandiseOption> merchandiseLookup,
-            List<String> availableCodes,
+            Function<String, List<String>> codeSuggester,
+            Function<String, Integer> stockLookup,
             Consumer<SalesRequestCreationItemRow> deleteHandler
     ) {
         super(12);
@@ -48,8 +49,8 @@ final class SalesRequestCreationItemRow extends HBox {
         setStyle(ROW_STYLE);
 
         configureIndexLabel(index);
-        configureCodeField(merchandiseLookup, availableCodes);
-        configureQuantityField(merchandiseLookup);
+        configureCodeField(merchandiseLookup, codeSuggester, stockLookup);
+        configureQuantityField(merchandiseLookup, stockLookup);
         configureUnitField();
         configureDesiredDatePicker();
         configureDeleteButton(deleteHandler);
@@ -81,7 +82,7 @@ final class SalesRequestCreationItemRow extends HBox {
         updateIndex(index);
     }
 
-    private void configureCodeField(Function<String, MerchandiseOption> merchandiseLookup, List<String> availableCodes) {
+    private void configureCodeField(Function<String, MerchandiseOption> merchandiseLookup, Function<String, List<String>> codeSuggester, Function<String, Integer> stockLookup) {
         codeField.setPromptText("VD: MH-001");
         codeField.setPrefWidth(150);
         codeField.setMaxWidth(150);
@@ -92,10 +93,7 @@ final class SalesRequestCreationItemRow extends HBox {
             suggestionPopup.getItems().clear();
             String code = newValue == null ? "" : newValue.trim();
             if (!code.isEmpty()) {
-                availableCodes.stream()
-                    .filter(c -> c.toLowerCase().contains(code.toLowerCase()))
-                    .limit(5)
-                    .forEach(c -> {
+                codeSuggester.apply(code).forEach(c -> {
                         MenuItem item = new MenuItem(c);
                         item.setOnAction(e -> {
                             codeField.setText(c);
@@ -127,21 +125,21 @@ final class SalesRequestCreationItemRow extends HBox {
 
             codeField.setStyle(INPUT_STYLE);
             unitField.setText(merchandise.unit());
-            validateQuantity(merchandiseLookup);
+            validateQuantity(merchandiseLookup, stockLookup);
         });
     }
 
-    private void configureQuantityField(Function<String, MerchandiseOption> merchandiseLookup) {
+    private void configureQuantityField(Function<String, MerchandiseOption> merchandiseLookup, Function<String, Integer> stockLookup) {
         quantityField.setPromptText("0");
         quantityField.setPrefWidth(100);
         quantityField.setMaxWidth(100);
         quantityField.setStyle(INPUT_STYLE);
         quantityField.textProperty().addListener((observable, oldValue, newValue) -> {
-            validateQuantity(merchandiseLookup);
+            validateQuantity(merchandiseLookup, stockLookup);
         });
     }
 
-    private void validateQuantity(Function<String, MerchandiseOption> merchandiseLookup) {
+    private void validateQuantity(Function<String, MerchandiseOption> merchandiseLookup, Function<String, Integer> stockLookup) {
         String code = codeField.getText() == null ? "" : codeField.getText().trim();
         if (code.isEmpty()) {
             quantityField.setStyle(INPUT_STYLE);
@@ -155,7 +153,8 @@ final class SalesRequestCreationItemRow extends HBox {
         Optional<BigDecimal> qtyOpt = parseQuantity(quantityField.getText());
         if (qtyOpt.isPresent()) {
             BigDecimal qty = qtyOpt.get();
-            if (qty.compareTo(new BigDecimal(merchandise.totalStock())) > 0) {
+            Integer stock = stockLookup.apply(code);
+            if (stock != null && qty.compareTo(new BigDecimal(stock)) > 0) {
                 quantityField.setStyle(ERROR_STYLE);
             } else {
                 quantityField.setStyle(INPUT_STYLE);

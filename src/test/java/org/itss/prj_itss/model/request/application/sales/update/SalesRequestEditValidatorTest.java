@@ -18,17 +18,15 @@ class SalesRequestEditValidatorTest {
     void validDraftHasNoViolations() {
         LocalDate today = LocalDate.of(2026, 5, 25);
         SalesRequestEditDraft draft = new SalesRequestEditDraft(
-            1,
-            "YC-2026-001",
-            "25/05/2026",
-            "pending",
-            List.of(new SalesRequestEditItemDraft(
                 1,
-                new MerchandiseOption(10, "MH-001", "Item 1", "box"),
-                new BigDecimal("2"),
-                today
-            ))
-        );
+                "YC-2026-001",
+                "25/05/2026",
+                "pending",
+                List.of(new SalesRequestEditItemDraft(
+                        1,
+                        new MerchandiseOption(10, "MH-001", "Item 1", "box"),
+                        new BigDecimal("2"),
+                        today)));
 
         SalesRequestEditValidationResult result = validator.validate(draft, today);
 
@@ -39,17 +37,15 @@ class SalesRequestEditValidatorTest {
     @Test
     void duplicateMerchandiseInvalidQuantityAndPastDateProduceViolations() {
         LocalDate today = LocalDate.of(2026, 5, 25);
-        MerchandiseOption option = new MerchandiseOption(10, "MH-001", "Item 1", "box", 0);
+        MerchandiseOption option = new MerchandiseOption(10, "MH-001", "Item 1", "box");
         SalesRequestEditDraft draft = new SalesRequestEditDraft(
-            1,
-            "YC-2026-001",
-            "25/05/2026",
-            "pending",
-            List.of(
-                new SalesRequestEditItemDraft(1, option, BigDecimal.ONE, today),
-                new SalesRequestEditItemDraft(2, option, BigDecimal.ZERO, today.minusDays(1))
-            )
-        );
+                1,
+                "YC-2026-001",
+                "25/05/2026",
+                "pending",
+                List.of(
+                        new SalesRequestEditItemDraft(1, option, BigDecimal.ONE, today),
+                        new SalesRequestEditItemDraft(2, option, BigDecimal.ZERO, today.minusDays(1))));
 
         SalesRequestEditValidationResult result = validator.validate(draft, today);
 

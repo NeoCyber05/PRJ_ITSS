@@ -4,7 +4,6 @@ public record MerchandiseOption(
     int id,
     String code,
     String name,
-    String unit,
-    int totalStock
+    String unit
 ) {
 }
