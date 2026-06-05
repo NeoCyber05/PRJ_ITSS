@@ -34,7 +34,10 @@ public final class SiteManagementApplicationService {
 
     public Snapshot load() {
         List<Site> sites = siteService.findAll();
-        List<SiteRow> rows = sites.stream().map(this::toRow).toList();
+        java.util.Map<Integer, Integer> merchandiseCounts = siteService.countMerchandiseGroupedBySiteId();
+        List<SiteRow> rows = sites.stream()
+            .map(site -> toRow(site, merchandiseCounts))
+            .toList();
         return new Snapshot(rows, sites.size(), sites.size(), merchandiseService.countAll());
     }
 
@@ -56,6 +59,20 @@ public final class SiteManagementApplicationService {
 
     public SiteRow toRow(Site site) {
         int itemCount = siteService.countMerchandiseAtSite(site.getId());
+        return new SiteRow(
+            site,
+            site.getId(),
+            site.getSiteCode(),
+            site.getName(),
+            OrderingFormatters.blankToFallback(site.getDescription(), "-"),
+            OrderingFormatters.formatDays(site.getShipDeliveryDays()),
+            OrderingFormatters.formatDays(site.getAirDeliveryDays()),
+            String.valueOf(itemCount)
+        );
+    }
+
+    private SiteRow toRow(Site site, java.util.Map<Integer, Integer> merchandiseCounts) {
+        int itemCount = merchandiseCounts.getOrDefault(site.getId(), 0);
         return new SiteRow(
             site,
             site.getId(),

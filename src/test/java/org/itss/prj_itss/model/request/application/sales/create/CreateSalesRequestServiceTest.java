@@ -59,6 +59,9 @@ public class CreateSalesRequestServiceTest {
 
         @Override
         public int countMerchandiseAtSite(int siteId) { return 0; }
+
+        @Override
+        public Map<Integer, Integer> countMerchandiseGroupedBySiteId() { return Map.of(); }
     }
 
     private StubCommandPort commandPort;
@@ -106,7 +109,7 @@ public class CreateSalesRequestServiceTest {
         int stock = 50;
         BigDecimal orderQuantity = new BigDecimal("50"); // Số lượng bằng đúng tồn kho
         LocalDate futureDate = LocalDate.now().plusDays(5);
-        
+
         List<SalesRequestItemSubmission> items = Collections.singletonList(
                 new SalesRequestItemSubmission(merchandiseId, orderQuantity, futureDate)
         );
@@ -121,7 +124,7 @@ public class CreateSalesRequestServiceTest {
         assertEquals(2, result);
         assertEquals(1, inventoryRepository.callCount, "InventoryRepository phải được gọi 1 lần");
         assertEquals(1, commandPort.callCount, "CommandPort phải được gọi 1 lần");
-        
+
         Request capturedRequest = commandPort.capturedRequest;
         assertNotNull(capturedRequest);
         assertEquals(1, capturedRequest.getItems().size());
@@ -154,7 +157,7 @@ public class CreateSalesRequestServiceTest {
         });
 
         assertEquals("Số lượng đặt hàng vượt quá tồn kho hiện tại.", exception.getMessage());
-        
+
         assertEquals(1, inventoryRepository.callCount, "InventoryRepository phải được gọi 1 lần");
         assertEquals(0, commandPort.callCount, "CommandPort không nên được gọi vì có lỗi");
     }
@@ -169,7 +172,7 @@ public class CreateSalesRequestServiceTest {
     public void testCreateRequest_ZeroQuantity() {
         // Arrange
         int merchandiseId = 100;
-        BigDecimal orderQuantity = BigDecimal.ZERO; 
+        BigDecimal orderQuantity = BigDecimal.ZERO;
         LocalDate futureDate = LocalDate.now().plusDays(5);
 
         List<SalesRequestItemSubmission> items = Collections.singletonList(
@@ -196,7 +199,7 @@ public class CreateSalesRequestServiceTest {
     public void testCreateRequest_NegativeQuantity() {
         // Arrange
         int merchandiseId = 100;
-        BigDecimal orderQuantity = new BigDecimal("-5"); 
+        BigDecimal orderQuantity = new BigDecimal("-5");
         LocalDate futureDate = LocalDate.now().plusDays(5);
 
         List<SalesRequestItemSubmission> items = Collections.singletonList(

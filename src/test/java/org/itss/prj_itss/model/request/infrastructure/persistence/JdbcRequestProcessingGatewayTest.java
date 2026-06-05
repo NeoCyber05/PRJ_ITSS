@@ -292,6 +292,11 @@ class JdbcRequestProcessingGatewayTest {
         public int countMerchandiseAtSite(int siteId) {
             return 0;
         }
+
+        @Override
+        public Map<Integer, Integer> countMerchandiseGroupedBySiteId() {
+            return Map.of();
+        }
     }
 
     private static class EmptyMerchandiseRepository implements MerchandiseRepository {

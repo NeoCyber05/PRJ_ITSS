@@ -278,6 +278,17 @@ class OverseasSiteApplicationServiceTest {
         }
 
         @Override
+        public Map<Integer, Integer> countMerchandiseGroupedBySiteId() {
+            Map<Integer, Integer> counts = new LinkedHashMap<>();
+            for (Map.Entry<Integer, Map<Integer, Integer>> entry : inventory.entrySet()) {
+                int siteId = entry.getKey();
+                int count = (int) entry.getValue().values().stream().filter(stock -> stock > 0).count();
+                counts.put(siteId, count);
+            }
+            return counts;
+        }
+
+        @Override
         public void updateProfile(int siteId, SiteProfileDraft draft) {
             Site site = sites.get(siteId);
             site.setName(draft.name());

@@ -3,7 +3,6 @@ package org.itss.prj_itss.model.warehouse.application;
 import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
 import org.itss.prj_itss.model.merchandise.application.port.MerchandiseRepository;
 import org.itss.prj_itss.model.merchandise.domain.Merchandise;
-
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
@@ -54,6 +53,7 @@ class WarehouseIncomingOrderQueryTest {
         assertEquals(1, rows.get(1).orderId());
         assertEquals("DH-2026-002", rows.get(0).orderCode());
         assertEquals("Tokyo", rows.get(1).siteName());
+        assertEquals(0, orderRepo.findItemsByOrderIdCalls);
     }
 
     @Test
@@ -104,6 +104,7 @@ class WarehouseIncomingOrderQueryTest {
     static final class FakeOrderRepository implements OrderRepository {
         final List<Order> orders = new ArrayList<>();
         final Map<Integer, List<OrderMerchandise>> items = new LinkedHashMap<>();
+        int findItemsByOrderIdCalls;
 
         @Override
         public List<Order> findAll() {
@@ -124,7 +125,17 @@ class WarehouseIncomingOrderQueryTest {
 
         @Override
         public List<OrderMerchandise> findItemsByOrderId(int orderId) {
+            findItemsByOrderIdCalls++;
             return items.getOrDefault(orderId, List.of());
+        }
+
+        @Override
+        public java.util.Map<Integer, Integer> countItemsGroupedByOrderId() {
+            java.util.Map<Integer, Integer> counts = new LinkedHashMap<>();
+            for (java.util.Map.Entry<Integer, List<OrderMerchandise>> entry : items.entrySet()) {
+                counts.put(entry.getKey(), entry.getValue().size());
+            }
+            return counts;
         }
 
         @Override
@@ -194,6 +205,11 @@ class WarehouseIncomingOrderQueryTest {
         @Override
         public int countMerchandiseAtSite(int siteId) {
             return 0;
+        }
+
+        @Override
+        public Map<Integer, Integer> countMerchandiseGroupedBySiteId() {
+            return Map.of();
         }
     }
 

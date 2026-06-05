@@ -161,7 +161,6 @@ public final class OrderManagementView implements ViewLifecycle {
     public void init(Navigator navigator, OrderManagementController controller) {
         this.navigator = navigator;
         this.controller = controller;
-        reload();
     }
 
     @Override

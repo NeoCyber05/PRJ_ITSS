@@ -129,7 +129,7 @@ public final class ReceivedRequestsView implements ViewLifecycle {
                      detailContext
                  ));
                  actions.getChildren().add(detailButton);
- 
+
                  if (OrderingFormatters.STATUS_PENDING.equals(OrderingFormatters.normalizeStatusKey(row.status()))) {
                      Button processButton = new Button("Xử lý");
                      processButton.getStyleClass().add("forest-dark-button");
@@ -179,7 +179,6 @@ public final class ReceivedRequestsView implements ViewLifecycle {
         this.navigator = navigator;
         this.controller = controller;
         this.detailContext = detailContext;
-        reload();
     }
 
     @Override
