@@ -17,11 +17,20 @@ public final class DashboardQuery {
     }
 
     public DashboardData loadDashboardData() {
-        java.util.List<DashboardRequestInfo> requestInfos = requestService.findAll().stream()
+        java.util.List<org.itss.prj_itss.model.request.domain.request.Request> requests = requestService.findAll();
+        java.util.Set<Integer> requestIds = requests.stream()
+            .map(org.itss.prj_itss.model.request.domain.request.Request::getId)
+            .collect(java.util.stream.Collectors.toCollection(java.util.LinkedHashSet::new));
+        java.util.Map<Integer, java.time.LocalDate> earliestDeliveries =
+            requestService.findEarliestDeliveryDatesByRequestIds(requestIds);
+        java.util.Map<Integer, Integer> itemCounts =
+            requestService.countItemTypesByRequestIds(requestIds);
+
+        java.util.List<DashboardRequestInfo> requestInfos = requests.stream()
             .map(req -> new DashboardRequestInfo(
                 req,
-                requestService.getEarliestDeliveryDate(req.getId()),
-                requestService.countItemTypes(req.getId())
+                earliestDeliveries.get(req.getId()),
+                itemCounts.getOrDefault(req.getId(), 0)
             ))
             .toList();
 

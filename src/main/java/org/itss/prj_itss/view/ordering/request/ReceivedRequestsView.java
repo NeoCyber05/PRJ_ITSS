@@ -176,7 +176,6 @@ public final class ReceivedRequestsView implements ViewLifecycle {
         this.navigator = navigator;
         this.controller = controller;
         this.detailContext = detailContext;
-        reload();
     }
 
     @Override

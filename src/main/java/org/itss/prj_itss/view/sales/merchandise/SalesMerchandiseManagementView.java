@@ -93,7 +93,6 @@ public final class SalesMerchandiseManagementView implements ViewLifecycle {
     public void init(Navigator navigator, SalesMerchandiseController controller) {
         this.navigator = navigator;
         this.controller = controller;
-        reload();
     }
 
     @Override

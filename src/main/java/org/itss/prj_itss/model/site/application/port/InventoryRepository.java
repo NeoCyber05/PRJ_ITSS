@@ -7,4 +7,5 @@ public interface InventoryRepository {
     int getStockQuantity(int siteId, int merchandiseId);
     int getTotalStock(int merchandiseId);
     int countMerchandiseAtSite(int siteId);
+    Map<Integer, Integer> countMerchandiseGroupedBySiteId();
 }

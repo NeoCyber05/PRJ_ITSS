@@ -60,7 +60,6 @@ public final class AccountManagementView implements ViewLifecycle {
     public void init(Navigator navigator, AccountManagementController controller) {
         this.navigator = navigator;
         this.controller = controller;
-        reload();
     }
 
     @Override

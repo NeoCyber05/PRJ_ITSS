@@ -153,11 +153,218 @@ package "View Layer" {
         - void renderItems()
         - void handleItemAllocationChanged(int)
     }
+
+    class SiteFilterState {
+        - List<ProcessingSiteView> allSites
+        - List<ProcessingSiteView> visibleSites
+        - Set<Integer> selectedSiteIds
+        - Set<Integer> excludedSiteIds
+        + void setSites(List<ProcessingSiteView>)
+        + List<ProcessingSiteView> allSites()
+        + List<ProcessingSiteView> visibleSites()
+        + Set<Integer> selectedSiteIds()
+        + Set<Integer> excludedSiteIds()
+        + void clearFilters()
+        + void select(ProcessingSiteView)
+        + void deselect(ProcessingSiteView)
+        + void exclude(ProcessingSiteView)
+        + void removeSelected(int)
+        + void removeExcluded(int)
+        + boolean isSelected(ProcessingSiteView)
+        + void refreshVisibleSites(String)
+        + List<ProcessingSiteView> selectedSites()
+        + List<ProcessingSiteView> excludedSites()
+        - List<ProcessingSiteView> sitesFor(Set<Integer>)
+        - {static} Optional<ProcessingSiteView> findSite(List<ProcessingSiteView>, int)
+        - {static} boolean matches(ProcessingSiteView, String)
+        - {static} String normalizeKeyword(String)
+        - {static} String normalizeText(String)
+    }
+
+    class RequestProcessingViewModel <<record>> {
+        + int requestId
+        + String requestCode
+        + String earliestDeliveryDate
+        + int deadlineDays
+        + List<ProcessingItemView> items
+        + List<ProcessingSiteView> sites
+        + Map<Integer, String> desiredDeliveryDates
+        + List<AllocationItemViewModel> allocationItems
+    }
+
+    class AllocationItemViewModel <<record>> {
+        + int merchandiseId
+        + String code
+        + String name
+        + int required
+        + int allocated
+        + int totalStock
+        + String allocationStatusText
+        + String allocationFractionText
+        + boolean expanded
+        + List<AllocationSiteRowViewModel> siteRows
+    }
+
+    class AllocationSiteRowViewModel <<record>> {
+        + int itemMerchandiseId
+        + int siteId
+        + String siteName
+        + String siteDetail
+        + int stock
+        + int quantity
+        + String selectedTransportLabel
+        + List<String> transportLabels
+        + boolean transportDisabled
+        + String deliveryStatusText
+        + String deliveryStatusClass
+    }
+
+    class ProcessingSiteView <<record>> {
+        + int id
+        + String siteCode
+        + String name
+        + String description
+        + Integer shipDays
+        + Integer airDays
+        + Map<Integer, Integer> stock
+    }
+
+    class ProcessingItemView <<record>> {
+        + int merchandiseId
+        + String code
+        + String name
+        + int required
+    }
+
+    class ProcessingPreviewOrderView <<record>> {
+        + String siteName
+        + String siteCode
+        + List<ProcessingPreviewLineView> lines
+    }
+
+    class ProcessingPreviewLineView <<record>> {
+        + String merchandiseCode
+        + String merchandiseName
+        + int quantity
+        + String transport
+        + String desiredDate
+        + String estimatedDate
+    }
+
+    class SuggestedPlanView <<record>> {
+        + String signature
+        + int totalQuantity
+        + int totalLineCount
+        + int siteCount
+        + int totalDeliveryDays
+    }
+
+    class AllocationChangeCommand <<record>> {
+        + int itemMerchandiseId
+        + int siteId
+        + String quantityText
+        + String transportLabel
+    }
+
+    class AllocationChangeResultView <<record>> {
+        + boolean applied
+        + String errorType
+        + int stock
+        + int deliveryDays
+        + int dayDelta
+        + boolean deliveryAvailable
+        + String deliveryStatusText
+        + String deliveryStatusClass
+    }
+
+    class ItemsSectionItemRowView {
+        - {static} String VIEW_RESOURCE
+        - Label codeLabel
+        - Label nameLabel
+        - Label requiredLabel
+        - Label deadlineLabel
+        - Label allocationStatusLabel
+        - Label allocationFractionLabel
+        - Label stockValueLabel
+        - Button toggleButton
+        - HBox root
+        - int itemIndex
+        - IntConsumer onToggle
+        + {static} ItemsSectionItemRowView load(AllocationItemViewModel, int, String, IntConsumer)
+        + HBox root()
+        + void refresh(AllocationItemViewModel)
+        - void handleToggle()
+        - void init(AllocationItemViewModel, int, String, IntConsumer)
+        - void updateAllocationLabels(AllocationItemViewModel)
+    }
+
+    class AllocationItemEditorView {
+        - {static} String VIEW_RESOURCE
+        - Label titleLabel
+        - Label subtitleLabel
+        - Label allocatedBadgeLabel
+        - Label remainingBadgeLabel
+        - VBox siteRowsBox
+        - Label emptyLabel
+        - AllocationItemViewModel item
+        - int itemIndex
+        - List<AllocationSiteRowViewModel> siteRows
+        - Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged
+        - IntConsumer onItemAllocationChanged
+        + {static} VBox load(AllocationItemViewModel, int, List<AllocationSiteRowViewModel>, Function<AllocationChangeCommand, AllocationChangeResultView>, IntConsumer)
+        - void init(AllocationItemViewModel, int, List<AllocationSiteRowViewModel>, Function<AllocationChangeCommand, AllocationChangeResultView>, IntConsumer)
+        - void renderSiteRows()
+        - void refreshSummaryBadges()
+        - int countAvailableSites()
+    }
+
+    class AllocationSiteRowView {
+        - {static} String VIEW_RESOURCE
+        - Label siteNameLabel
+        - Label siteStockLabel
+        - TextField quantityField
+        - ComboBox<String> transportCombo
+        - Label deliveryDaysLabel
+        - HBox root
+        - AllocationSiteRowViewModel siteRow
+        - Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged
+        - Runnable onRowChanged
+        + {static} HBox load(AllocationSiteRowViewModel, Function<AllocationChangeCommand, AllocationChangeResultView>, Runnable)
+        - void initialize()
+        - void init(AllocationSiteRowViewModel, Function<AllocationChangeCommand, AllocationChangeResultView>, Runnable)
+        - void handleQuantityChanged(String)
+        - void handleTransportChanged(String)
+        - void handleResult(AllocationChangeResultView)
+    }
+
+    class PreviewOrderCardView {
+        - {static} String VIEW_RESOURCE
+        - Label siteNameLabel
+        - VBox tableRowsBox
+        - HBox root
+        + {static} HBox load(ProcessingPreviewOrderView)
+        + HBox root()
+        - void init(ProcessingPreviewOrderView)
+    }
+
+    class PreviewTableRowView {
+        - {static} String VIEW_RESOURCE
+        - Label codeLabel
+        - Label nameLabel
+        - Label quantityLabel
+        - Label transportLabel
+        - Label desiredDateLabel
+        - Label estimatedDateLabel
+        - HBox root
+        + {static} HBox load(ProcessingPreviewLineView)
+        + HBox root()
+        - void init(ProcessingPreviewLineView)
+    }
 }
 
 package "Controller Layer" {
     class SiteFilterController {
-        - SiteFilterModel model
+        - SiteFilterState model
         - String keyword
         + void init(List<ProcessingSiteView>)
         + void search(String)
@@ -568,33 +775,6 @@ package Model {
             + List<SiteStockOption> candidateSites()
         }
 
-        class SiteFilterModel {
-            - List<ProcessingSiteView> allSites
-            - List<ProcessingSiteView> visibleSites
-            - Set<Integer> selectedSiteIds
-            - Set<Integer> excludedSiteIds
-            + void setSites(List<ProcessingSiteView>)
-            + List<ProcessingSiteView> allSites()
-            + List<ProcessingSiteView> visibleSites()
-            + Set<Integer> selectedSiteIds()
-            + Set<Integer> excludedSiteIds()
-            + void clearFilters()
-            + void select(ProcessingSiteView)
-            + void deselect(ProcessingSiteView)
-            + void exclude(ProcessingSiteView)
-            + void removeSelected(int)
-            + void removeExcluded(int)
-            + boolean isSelected(ProcessingSiteView)
-            + void refreshVisibleSites(String)
-            + List<ProcessingSiteView> selectedSites()
-            + List<ProcessingSiteView> excludedSites()
-            - List<ProcessingSiteView> sitesFor(Set<Integer>)
-            - {static} Optional<ProcessingSiteView> findSite(List<ProcessingSiteView>, int)
-            - {static} boolean matches(ProcessingSiteView, String)
-            - {static} String normalizeKeyword(String)
-            - {static} String normalizeText(String)
-        }
-
         class AllSuggest {
             - AllocationSuggestEngine engine
             + AllSuggest(List<ItemRequirement>, List<SiteStockOption>, Set<Integer>, Set<Integer>, int, AllocationObjective)
@@ -637,7 +817,7 @@ ItemsSectionView ..> AllocationChangeCommand
 ItemsSectionView ..> AllocationChangeResultView
 
 ' --- Controller Relations ---
-SiteFilterController *-- SiteFilterModel
+SiteFilterController *-- SiteFilterState
 RequestProcessingLayoutController *-- RequestProcessingSession
 RequestProcessingSession --> RequestProcessingUseCase
 RequestProcessingPreviewDialogController --> RequestProcessingLayoutController
@@ -691,4 +871,16 @@ OrderLineSuggestion --> ItemRequirement
 AllocationPlan --> Allocation
 ApplyPlan --> Allocation
 ApplyPlan --> AllocationDraft
+
+' --- View & State Internal Relations ---
+RequestProcessingViewModel *-- ProcessingItemView
+RequestProcessingViewModel *-- ProcessingSiteView
+RequestProcessingViewModel *-- AllocationItemViewModel
+AllocationItemViewModel *-- AllocationSiteRowViewModel
+ProcessingPreviewOrderView *-- ProcessingPreviewLineView
+ItemsSectionView *-- ItemsSectionItemRowView
+ItemsSectionView *-- AllocationItemEditorView
+AllocationItemEditorView *-- AllocationSiteRowView
+RequestProcessingPreviewDialogView *-- PreviewOrderCardView
+PreviewOrderCardView *-- PreviewTableRowView
 @enduml

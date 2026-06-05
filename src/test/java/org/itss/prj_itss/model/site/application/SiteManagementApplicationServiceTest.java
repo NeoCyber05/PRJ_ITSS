@@ -29,6 +29,9 @@ class SiteManagementApplicationServiceTest {
         final Set<String> existingSiteCodes = new HashSet<>();
         final Map<Integer, Site> sites = new HashMap<>();
         final List<SiteDraft> createdSites = new ArrayList<>();
+        final Map<Integer, Integer> merchandiseCountsBySiteId = new HashMap<>();
+        int countMerchandiseAtSiteCalls;
+        int groupedCountCalls;
         int nextId = 100;
 
         // SiteCommandRepository
@@ -95,7 +98,14 @@ class SiteManagementApplicationServiceTest {
 
         @Override
         public int countMerchandiseAtSite(int siteId) {
-            return 0;
+            countMerchandiseAtSiteCalls++;
+            return merchandiseCountsBySiteId.getOrDefault(siteId, 0);
+        }
+
+        @Override
+        public Map<Integer, Integer> countMerchandiseGroupedBySiteId() {
+            groupedCountCalls++;
+            return new HashMap<>(merchandiseCountsBySiteId);
         }
     }
 
@@ -269,6 +279,23 @@ class SiteManagementApplicationServiceTest {
         assertFalse(result.success());
         assertTrue(result.message().contains("Mã site đã tồn tại"));
         assertEquals(0, siteRepository.createdSites.size());
+    }
+
+    @Test
+    void load_shouldUseGroupedMerchandiseCounts_whenBuildingRows() {
+        FakeSiteCommandRepository siteRepository = new FakeSiteCommandRepository();
+        siteRepository.sites.put(1, new Site(1, "TOKYO", "Tokyo", "", 10, 2));
+        siteRepository.sites.put(2, new Site(2, "OSAKA", "Osaka", "", 8, 3));
+        siteRepository.merchandiseCountsBySiteId.put(1, 3);
+        siteRepository.merchandiseCountsBySiteId.put(2, 1);
+        SiteManagementApplicationService service = newService(siteRepository);
+
+        SiteManagementApplicationService.Snapshot snapshot = service.load();
+
+        assertEquals(1, siteRepository.groupedCountCalls);
+        assertEquals(0, siteRepository.countMerchandiseAtSiteCalls);
+        assertEquals("3", snapshot.rows().get(0).itemCount());
+        assertEquals("1", snapshot.rows().get(1).itemCount());
     }
 
     @Test

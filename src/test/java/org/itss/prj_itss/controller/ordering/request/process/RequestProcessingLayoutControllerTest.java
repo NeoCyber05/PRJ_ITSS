@@ -30,6 +30,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -227,6 +228,15 @@ class RequestProcessingLayoutControllerTest {
         public int getTotalStock(int merchandiseId) { return scenario.inventoryBySiteId.values().stream().mapToInt(i -> i.getOrDefault(merchandiseId, 0)).sum(); }
         @Override
         public int countMerchandiseAtSite(int siteId) { return getInventoryBySiteId(siteId).size(); }
+
+        @Override
+        public Map<Integer, Integer> countMerchandiseGroupedBySiteId() {
+            Map<Integer, Integer> counts = new HashMap<>();
+            for (Integer siteId : scenario.inventoryBySiteId.keySet()) {
+                counts.put(siteId, scenario.inventoryBySiteId.get(siteId).size());
+            }
+            return counts;
+        }
     }
 
     private static final class FakeMerchandiseRepository implements MerchandiseRepository {

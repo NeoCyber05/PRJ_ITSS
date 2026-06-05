@@ -205,6 +205,24 @@ public class JdbcSiteRepository extends JdbcRepositorySupport implements SiteRep
         return 0;
     }
 
+    @Override
+    public Map<Integer, Integer> countMerchandiseGroupedBySiteId() {
+        Map<Integer, Integer> counts = new HashMap<>();
+        String sql = "SELECT site_id, COUNT(*) AS item_count " +
+                     "FROM site_inventory " +
+                     "WHERE stock_quantity > 0 " +
+                     "GROUP BY site_id";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                counts.put(rs.getInt("site_id"), rs.getInt("item_count"));
+            }
+        } catch (SQLException e) {
+            System.err.println("SiteRepository.countMerchandiseGroupedBySiteId: " + e.getMessage());
+        }
+        return counts;
+    }
+
     // SiteCommandRepository
 
     @Override

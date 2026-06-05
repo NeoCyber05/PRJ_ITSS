@@ -75,7 +75,7 @@ Session -> Session: createAllocationControl()
 actor "Bộ phận đặt hàng" as User #FFFFCC
 boundary "SiteFilterView" as FV #FFFFCC
 participant "SiteFilterController" as FC #FFFFCC
-participant "SiteFilterModel" as FM #FFFFCC
+participant "SiteFilterState" as FS #FFFFCC
 boundary "RequestProcessingLayoutView" as LV #FFFFCC
 participant "RequestProcessingLayoutController" as LC #FFFFCC
 participant "RequestProcessingSession" as Session #FFFFCC
@@ -83,10 +83,10 @@ participant "RequestProcessingSession" as Session #FFFFCC
 User -> FV: Nhấn chọn / Loại bỏ / Bỏ ưu tiên / Tìm kiếm
 alt Chọn Site (Ưu tiên)
     FV -> FC: selectSite(site)
-    FC -> FM: select(site)
+    FC -> FS: select(site)
 else Loại bỏ Site
     FV -> FC: excludeSite(site)
-    FC -> FM: exclude(site)
+    FC -> FS: exclude(site)
 else Tìm kiếm
     FV -> FC: search(keyword)
     FC -> FC: refreshVisibleSites()
@@ -123,10 +123,10 @@ LV -> LC: handleOptimizeAllocation()
 LC -> Session: handleOptimizeAllocation()
 Session -> AC: applyOptimalAllocation()
 AC -> Suggester: buildOptimalDrafts(...)
-Suggester -> OptSuggest: buildOptimalDrafts(items)
 create OptSuggest
-OptSuggest -> Engine: suggestMany(1, 12)
+Suggester -> OptSuggest: buildOptimalDrafts(items)
 create Engine
+OptSuggest -> Engine: suggestMany(1, 12)
 Engine -> OptSuggest: List<SuggestedPlan>
 OptSuggest -> Suggester: Map<Integer, Map<Integer, AllocationDraft>>
 Suggester -> AC: Map<Integer, Map<Integer, AllocationDraft>>
@@ -157,10 +157,10 @@ LV -> LC: handleShowAllPlans()
 LC -> Session: handleShowAllPlans()
 Session -> AC: buildSuggestedPlans()
 AC -> Suggester: buildSuggestedPlans(...)
-Suggester -> AllSuggest: buildSuggestedPlans(...)
 create AllSuggest
-AllSuggest -> Engine: suggestMany(limit, maxItemVariants)
+Suggester -> AllSuggest: buildSuggestedPlans(...)
 create Engine
+AllSuggest -> Engine: suggestMany(limit, maxItemVariants)
 Engine -> AllSuggest: List<SuggestedPlan>
 AllSuggest -> Suggester: List<SuggestedPlan>
 Suggester -> AC: List<SuggestedPlan>
@@ -200,9 +200,11 @@ create DialogController
 LV -> Dialog: new RequestProcessingPreviewDialog(onOrdersRequested, DialogController)
 create Dialog
 LV -> Dialog: show(itemsTableContainer)
-Dialog -> DialogView: loadRoot(dialog)
+Dialog -> Dialog: loadRoot(dialog)
 create DialogView
 Dialog -> DialogView: init(dialog, onOrdersRequested, controller)
+DialogView -> DialogController: previewOrders()
+DialogController -> DialogView: List<ProcessingPreviewOrderView>
 DialogView -> DialogView: render(previewOrders)
 User -> DialogView: Ấn nút Gửi
 DialogView -> DialogController: submit()
