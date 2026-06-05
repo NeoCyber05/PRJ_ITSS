@@ -119,7 +119,7 @@ class RequestProcessingLayoutControllerTest {
         scenario.requestItems = List.of(
             new RequestMerchandise(99, 10, BigDecimal.valueOf(5), scenario.desiredDeliveryDate)
         );
-        scenario.sites = List.of(new Site(1, "S1", "Site 1", "", 6, 999));
+        scenario.sites = List.of(new Site(1, "S1", "Site 1", "", 6, null));
 
         RequestProcessingLayoutController controller = controllerWith(scenario);
         controller.setRequestId(99);

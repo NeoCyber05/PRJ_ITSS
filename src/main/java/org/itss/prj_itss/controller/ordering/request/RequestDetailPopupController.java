@@ -1,7 +1,7 @@
 package org.itss.prj_itss.controller.ordering.request;
 
 import org.itss.prj_itss.controller.shared.ActionResult;
-import org.itss.prj_itss.model.order.application.OrderCancellationApplicationService;
+import org.itss.prj_itss.model.order.application.cancellation.OrderCancellationApplicationService;
 import org.itss.prj_itss.model.request.application.international.detail.AllocatedOrderRow;
 import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailApplicationService;
 import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailViewModel;

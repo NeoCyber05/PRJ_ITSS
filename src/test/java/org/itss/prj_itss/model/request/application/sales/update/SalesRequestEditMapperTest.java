@@ -14,6 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 class SalesRequestEditMapperTest {
 
     private final SalesRequestEditMapper mapper = new SalesRequestEditMapper();
+    private final SalesRequestEditValidator validator = new SalesRequestEditValidator();
 
     @Test
     void mapsFormViewToStateAndBackToServiceInput() {
@@ -34,7 +35,11 @@ class SalesRequestEditMapperTest {
 
         SalesRequestEditState state = mapper.toState(form);
         SalesRequestEditDraft draft = state.snapshot();
-        List<SalesRequestItemSubmission> inputs = mapper.toInput(draft);
+        ValidatedSalesRequestEditDraft validatedDraft = validator.validateForSubmission(
+            draft,
+            LocalDate.of(2026, 5, 25)
+        );
+        List<SalesRequestItemSubmission> inputs = mapper.toInput(validatedDraft);
 
         assertEquals(1, draft.requestId());
         assertEquals("YC-2026-001", draft.requestCode());

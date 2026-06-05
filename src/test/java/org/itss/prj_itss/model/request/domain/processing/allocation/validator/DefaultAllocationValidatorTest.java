@@ -139,7 +139,7 @@ final class DefaultAllocationValidatorTest {
         ItemRequirement item = new ItemRequirement(1, "M01", "Item 1", 10);
         Allocation allocation = new Allocation(101, 1, 10, DeliveryMethod.SHIP.storageValue());
         Map<Integer, Map<Integer, Allocation>> allocations = allocationsFor(1, allocation);
-        SiteStockOption site = new SiteStockOption(101, "S101", "Site 101", "", 999, 2, Map.of(1, 10));
+        SiteStockOption site = new SiteStockOption(101, "S101", "Site 101", "", null, 2, Map.of(1, 10));
 
         String result = validator.validateSubmission(
             List.of(item),
@@ -151,7 +151,7 @@ final class DefaultAllocationValidatorTest {
         assertEquals(
             "Không đáp ứng ngày nhận mong muốn",
             result,
-            "Phương thức vận chuyển có deliveryDays >= 999 phải được xem là không hỗ trợ"
+            "Site không có tuyến đường biển (shipDays == null) phải bị từ chối"
         );
     }
 

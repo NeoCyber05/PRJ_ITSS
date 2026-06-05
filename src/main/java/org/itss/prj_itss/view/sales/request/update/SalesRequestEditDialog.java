@@ -8,7 +8,6 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 import javafx.stage.Window;
-import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditController;
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditDialogInput;
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestDialogListener;
 
@@ -20,10 +19,10 @@ public final class SalesRequestEditDialog implements SalesRequestEditDialogLaunc
     private static final String VIEW_RESOURCE = "/org/itss/prj_itss/view/sales/request/update/sales-request-edit-view.fxml";
     private static final String MAIN_STYLESHEET = "/org/itss/prj_itss/styles/main-style.css";
 
-    private final SalesRequestEditController controller;
+    private final SalesRequestEditScreenStarter screenStarter;
 
-    public SalesRequestEditDialog(SalesRequestEditController controller) {
-        this.controller = Objects.requireNonNull(controller, "controller");
+    public SalesRequestEditDialog(SalesRequestEditScreenStarter screenStarter) {
+        this.screenStarter = Objects.requireNonNull(screenStarter, "screenStarter");
     }
 
     @Override
@@ -64,7 +63,7 @@ public final class SalesRequestEditDialog implements SalesRequestEditDialogLaunc
             BorderPane root = loader.load();
             SalesRequestEditView view = loader.getController();
             view.setCloseHandler(dialog::close);
-            controller.start(view, input, listener);
+            screenStarter.start(view, input, listener);
             root.setMaxWidth(1000);
             root.setStyle(
                 "-fx-background-color: white;" +

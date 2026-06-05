@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "clean-architecture": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "clean-architecture/SKILL.md",
+      "computedHash": "39cf5addffbea70a7f8d09c323eb3cc5637c0b746656f9111d657eb7a9efa559"
+    },
     "class-diagram": {
       "source": "athola/claude-night-market",
       "sourceType": "github",
@@ -48,12 +54,6 @@
       "sourceType": "github",
       "skillPath": "plugins/core/skills/solid-principles/SKILL.md",
       "computedHash": "3188df08407dd45dddbed592cb27e8c156f802999f88c9ad08b0fbf090f220bb"
-    },
-    "test-driven-development": {
-      "source": "obra/superpowers",
-      "sourceType": "github",
-      "skillPath": "skills/test-driven-development/SKILL.md",
-      "computedHash": "126f1ebf6ccd414f42544f6e83d8cc5adb089e1108eaffb7c400701e37eecd9f"
     }
   }
 }

@@ -1,8 +1,8 @@
 package org.itss.prj_itss.view.ordering.request;
 
 import org.itss.prj_itss.controller.navigation.Navigator;
-import org.itss.prj_itss.controller.ordering.order.OrderDetailController;
-import org.itss.prj_itss.controller.ordering.order.OrderManagementController;
+import org.itss.prj_itss.controller.ordering.order.detail.OrderDetailController;
+import org.itss.prj_itss.controller.ordering.order.management.OrderManagementController;
 import org.itss.prj_itss.controller.ordering.request.RequestDetailPopupController;
 
 /**

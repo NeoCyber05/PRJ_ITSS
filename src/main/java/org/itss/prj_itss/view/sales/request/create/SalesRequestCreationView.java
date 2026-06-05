@@ -7,8 +7,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.itss.prj_itss.controller.sales.request.create.SalesRequestCreationController;
 import org.itss.prj_itss.controller.shared.ActionResult;
-import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
-import org.itss.prj_itss.model.request.application.sales.shared.SalesRequestItemSubmission;
+import org.itss.prj_itss.controller.shared.MerchandiseOptionDTO;
+import org.itss.prj_itss.controller.shared.SalesRequestItemInput;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 
 import java.util.ArrayList;
@@ -24,6 +24,7 @@ public final class SalesRequestCreationView implements ViewLifecycle {
 
     @FXML private Button closeButton;
     @FXML private Button cancelButton;
+    @FXML private javafx.scene.control.ScrollPane itemsScroll;
     @FXML private VBox itemsContainer;
     @FXML private Button addItemButton;
     @FXML private Button submitButton;
@@ -32,11 +33,22 @@ public final class SalesRequestCreationView implements ViewLifecycle {
         this.dialog = dialog;
         this.controller = controller;
 
+        if (itemsScroll != null && itemsContainer != null) {
+            itemsScroll.setMinHeight(0);
+            itemsContainer.heightProperty().addListener((obs, oldVal, newVal) -> {
+                javafx.application.Platform.runLater(() -> {
+                    itemsScroll.setPrefHeight(newVal.doubleValue());
+                    itemsScroll.requestLayout();
+                });
+            });
+            itemsScroll.setMaxHeight(400);
+            itemsScroll.setPrefHeight(itemsContainer.prefHeight(-1));
+        }
+
         closeButton.setOnAction(event -> closePopup());
         cancelButton.setOnAction(event -> closePopup());
         addItemButton.setOnAction(event -> addNewRow());
         submitButton.setOnAction(event -> submitRequest());
-
         itemRows.clear();
         itemsContainer.getChildren().clear();
         addNewRow();
@@ -51,7 +63,7 @@ public final class SalesRequestCreationView implements ViewLifecycle {
             return;
         }
 
-        List<SalesRequestItemSubmission> items = new ArrayList<>();
+        List<SalesRequestItemInput> items = new ArrayList<>();
         for (SalesRequestCreationItemRow row : itemRows) {
             SalesRequestCreationItemCandidate candidate = row.inputCandidate().orElseThrow();
             if (!candidate.complete()) {
@@ -59,13 +71,13 @@ public final class SalesRequestCreationView implements ViewLifecycle {
                 return;
             }
 
-            MerchandiseOption merchandise = controller.getMerchandiseOptionByCode(candidate.merchandiseCode());
+            MerchandiseOptionDTO merchandise = controller.getMerchandiseOptionByCode(candidate.merchandiseCode());
             if (merchandise == null) {
                 showError("Mã hàng \"" + candidate.merchandiseCode() + "\" không tồn tại trong hệ thống.");
                 return;
             }
 
-            items.add(new SalesRequestItemSubmission(
+            items.add(new SalesRequestItemInput(
                 merchandise.id(),
                 candidate.quantity(),
                 candidate.desiredDate()
@@ -100,6 +112,8 @@ public final class SalesRequestCreationView implements ViewLifecycle {
         SalesRequestCreationItemRow row = new SalesRequestCreationItemRow(
             itemRows.size() + 1,
             this::findMerchandiseByCode,
+            controller != null ? controller::suggestMerchandiseCodes : (kw) -> List.of(),
+            controller != null ? controller::getAvailableStock : (kw) -> 0,
             this::removeRow
         );
         itemRows.add(row);
@@ -128,7 +142,7 @@ public final class SalesRequestCreationView implements ViewLifecycle {
         }
     }
 
-    private MerchandiseOption findMerchandiseByCode(String code) {
+    private MerchandiseOptionDTO findMerchandiseByCode(String code) {
         if (controller == null || code == null || code.isBlank()) {
             return null;
         }

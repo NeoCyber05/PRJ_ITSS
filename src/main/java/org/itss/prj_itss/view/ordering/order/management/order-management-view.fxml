@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<BorderPane xmlns="http://javafx.com/javafx/17"
+            xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="org.itss.prj_itss.view.ordering.order.management.OrderManagementView"
+            styleClass="content-area">
+    <top>
+        <VBox spacing="6" style="-fx-background-color: #EDFAF2; -fx-padding: 28 32 24 32; -fx-border-color: transparent transparent #D4EDE0 transparent; -fx-border-width: 0 0 1 0;">
+            <children>
+                <Label text="Quản lý đơn hàng"
+                       style="-fx-font-size: 24px; -fx-font-weight: bold; -fx-text-fill: #1a2e22;"/>
+            </children>
+        </VBox>
+    </top>
+
+    <center>
+        <VBox style="-fx-background-color: white;">
+            <children>
+                <HBox alignment="CENTER_LEFT"
+                      spacing="12"
+                      style="-fx-background-color: white; -fx-border-color: transparent transparent #EEF3EF transparent; -fx-border-width: 0 0 1 0;">
+                    <padding>
+                        <Insets top="20" right="32" bottom="20" left="32"/>
+                    </padding>
+                    <children>
+                        <TextField fx:id="searchField"
+                                   promptText="Tìm mã đơn hàng..."
+                                   prefWidth="280"
+                                   styleClass="search-field"/>
+                        <ComboBox fx:id="statusFilter" prefWidth="180"/>
+                    </children>
+                </HBox>
+
+                <TableView fx:id="orderTable">
+                    <columns>
+                        <TableColumn fx:id="orderCodeColumn" text="MÃ ĐƠN" prefWidth="120"/>
+                        <TableColumn fx:id="requestCodeColumn" text="MÃ YC GỐC" prefWidth="120"/>
+                        <TableColumn fx:id="siteColumn" text="MÃ SITE" prefWidth="120"/>
+                        <TableColumn fx:id="createdAtColumn" text="NGÀY TẠO" prefWidth="120"/>
+                        <TableColumn fx:id="statusColumn" text="TRẠNG THÁI" prefWidth="150"/>
+                        <TableColumn fx:id="actionsColumn" text="THAO TÁC" prefWidth="250"/>
+                    </columns>
+                </TableView>
+
+                <HBox alignment="CENTER" spacing="16" style="-fx-background-color: white;">
+                    <padding>
+                        <Insets top="20" right="32" bottom="24" left="32"/>
+                    </padding>
+                    <children>
+                        <Button fx:id="prevPageButton" text="&lt;" onAction="#handlePrevPage" styleClass="forest-secondary-button" style="-fx-font-size: 14px; -fx-padding: 4 12;"/>
+                        <Label fx:id="paginationInfoLabel" style="-fx-font-size: 13px; -fx-text-fill: #6B7C72;"/>
+                        <Button fx:id="nextPageButton" text="&gt;" onAction="#handleNextPage" styleClass="forest-secondary-button" style="-fx-font-size: 14px; -fx-padding: 4 12;"/>
+                    </children>
+                </HBox>
+            </children>
+        </VBox>
+    </center>
+</BorderPane>

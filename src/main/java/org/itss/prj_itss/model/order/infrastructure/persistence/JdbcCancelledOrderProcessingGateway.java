@@ -127,8 +127,8 @@ public final class JdbcCancelledOrderProcessingGateway implements CancelledOrder
                     site.getSiteCode(),
                     site.getName(),
                     site.getDescription(),
-                    site.getShipDeliveryDays() == null ? 999 : site.getShipDeliveryDays(),
-                    site.getAirDeliveryDays() == null ? 999 : site.getAirDeliveryDays(),
+                    site.getShipDeliveryDays(),
+                    site.getAirDeliveryDays(),
                     inventoryRepository.getInventoryBySiteId(site.getId())
                 ));
             }

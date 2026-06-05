@@ -13,7 +13,7 @@ import org.itss.prj_itss.controller.ordering.request.RequestDetailPopupControlle
 import org.itss.prj_itss.model.request.application.international.detail.AllocatedOrderRow;
 import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailViewModel;
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
-import org.itss.prj_itss.view.ordering.order.OrderDetailView;
+import org.itss.prj_itss.view.ordering.order.detail.OrderDetailView;
 import org.itss.prj_itss.view.ordering.request.RequestDetailContext;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 import org.itss.prj_itss.view.shared.ui.StatusBadgeFactory;

@@ -9,14 +9,13 @@ import org.itss.prj_itss.model.request.domain.processing.suggestion.SuggestedPla
 import java.util.Comparator;
 
 public final class FastDeliveryObjective implements AllocationObjective {
-    private static final int UNAVAILABLE_DAYS = 999;
 
     @Override
     public String pickTransport(SiteStockOption site, int deadlineDays) {
-        if (site.shipDays <= deadlineDays && site.shipDays < UNAVAILABLE_DAYS) {
+        if (site.shipDays != null && site.shipDays <= deadlineDays) {
             return DeliveryMethod.SHIP.storageValue();
         }
-        if (site.airDays <= deadlineDays && site.airDays < UNAVAILABLE_DAYS) {
+        if (site.airDays != null && site.airDays <= deadlineDays) {
             return DeliveryMethod.AIR.storageValue();
         }
         return null;

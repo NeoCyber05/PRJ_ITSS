@@ -5,11 +5,11 @@ import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOptio
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public final class SalesRequestEditValidator {
+
+    private final SalesRequestEditSelectionPolicy selectionPolicy = new SalesRequestEditSelectionPolicy();
 
     public SalesRequestEditValidationResult validate(SalesRequestEditDraft draft, LocalDate today) {
         List<SalesRequestEditFieldViolation> violations = new ArrayList<>();
@@ -18,12 +18,11 @@ public final class SalesRequestEditValidator {
             return new SalesRequestEditValidationResult(violations);
         }
 
-        Set<Integer> seenMerchandiseIds = new HashSet<>();
         for (SalesRequestEditItemDraft item : draft.items()) {
             MerchandiseOption merchandise = item.merchandise();
             if (merchandise == null) {
                 violations.add(new SalesRequestEditFieldViolation(item.lineId(), "merchandise", "Vui lòng chọn mặt hàng cho tất cả các dòng."));
-            } else if (!seenMerchandiseIds.add(merchandise.id())) {
+            } else if (selectionPolicy.isDuplicateSelection(item.lineId(), merchandise.id(), draft.items())) {
                 violations.add(new SalesRequestEditFieldViolation(item.lineId(), "merchandise", "Không được chọn trùng mặt hàng."));
             }
 
@@ -38,5 +37,13 @@ public final class SalesRequestEditValidator {
             }
         }
         return new SalesRequestEditValidationResult(violations);
+    }
+
+    public ValidatedSalesRequestEditDraft validateForSubmission(SalesRequestEditDraft draft, LocalDate today) {
+        SalesRequestEditValidationResult validationResult = validate(draft, today);
+        if (!validationResult.validForm()) {
+            throw new SalesRequestEditValidationException(validationResult);
+        }
+        return new ValidatedSalesRequestEditDraft(draft.requestId(), draft.requestCode(), draft.items());
     }
 }

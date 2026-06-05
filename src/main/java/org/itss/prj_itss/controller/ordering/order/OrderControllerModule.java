@@ -3,14 +3,16 @@ package org.itss.prj_itss.controller.ordering.order;
 import org.itss.prj_itss.model.merchandise.MerchandiseModule;
 import org.itss.prj_itss.model.order.OrderModule;
 import org.itss.prj_itss.model.site.SiteModule;
-import org.itss.prj_itss.view.ordering.order.cancellation.state.CancelledOrderProcessingSession;
+import org.itss.prj_itss.controller.ordering.order.management.OrderManagementController;
+import org.itss.prj_itss.controller.ordering.order.detail.OrderDetailController;
+import org.itss.prj_itss.controller.ordering.order.cancellation.OrderCancellationProcessingController;
+import org.itss.prj_itss.controller.ordering.order.cancellation.state.CancelledOrderProcessingSession;
 
 public final class OrderControllerModule {
 
     private final OrderModule orderModule;
     private final OrderManagementController orderManagementController;
     private final OrderDetailController orderDetailController;
-    private final OrderCancellationController orderCancellationController;
 
     public OrderControllerModule(OrderModule orderModule, SiteModule siteModule, MerchandiseModule merchandiseModule) {
         this.orderModule = orderModule;
@@ -19,8 +21,6 @@ public final class OrderControllerModule {
             orderModule.orderDetailApplicationService(),
             orderModule.orderCancellationApplicationService()
         );
-        this.orderCancellationController =
-            new OrderCancellationController(orderModule.orderCancellationApplicationService());
     }
 
     public OrderManagementController orderManagementController() {
@@ -29,10 +29,6 @@ public final class OrderControllerModule {
 
     public OrderDetailController orderDetailController() {
         return orderDetailController;
-    }
-
-    public OrderCancellationController orderCancellationController() {
-        return orderCancellationController;
     }
 
     public OrderCancellationProcessingController newCancellationProcessingController() {

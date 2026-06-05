@@ -7,21 +7,21 @@ public final class DeliveryOptions {
     private DeliveryOptions() {
     }
 
-    public static int deliveryDays(SiteStockOption site, DeliveryMethod method) {
+    public static Integer deliveryDays(SiteStockOption site, DeliveryMethod method) {
         return method == DeliveryMethod.AIR ? site.airDays : site.shipDays;
     }
 
     public static DeliveryMethod pickDefault(SiteStockOption site, int deadlineDays) {
-        if (site.shipDays <= deadlineDays && site.shipDays < 999) {
+        if (site.shipDays != null && site.shipDays <= deadlineDays) {
             return DeliveryMethod.SHIP;
         }
-        if (site.airDays <= deadlineDays && site.airDays < 999) {
+        if (site.airDays != null && site.airDays <= deadlineDays) {
             return DeliveryMethod.AIR;
         }
-        if (site.shipDays < 999) {
+        if (site.shipDays != null) {
             return DeliveryMethod.SHIP;
         }
-        if (site.airDays < 999) {
+        if (site.airDays != null) {
             return DeliveryMethod.AIR;
         }
         return DeliveryMethod.SHIP;

@@ -92,3 +92,14 @@ Hệ thống được thiết kế theo mô hình **MVC (Model-View-Controller)*
 #### D. Composition Root của Module (`RequestModule`)
 - Ráp nối thủ công (Manual Dependency Injection) các Adapter (`JdbcRequestRepository`, `JdbcRequestProcessingGateway`) vào các Application Service và Controller tương ứng, giúp giảm thiểu sự phụ thuộc vào các thư viện DI bên thứ ba và tăng tốc độ khởi động ứng dụng.
 
+
+## Hưng: lệnh run unitest
+```bash
+#Lệnh chạy hộp đen
+cd /Users/duyhung/Desktop/CHUNG/HUST/PRJ_ITSS
+./mvnw -Dtest=SalesRequestEditValidatorBlackBoxTest-Dsurefire.useFile=false test
+
+# Lệnh chạy hộp trắng C1
+cd /Users/duyhung/Desktop/CHUNG/HUST/PRJ_ITSS
+./mvnw -Dtest=SalesRequestEditValidatorWhiteBoxC1Test -Dsurefire.useFile=false test
+```
