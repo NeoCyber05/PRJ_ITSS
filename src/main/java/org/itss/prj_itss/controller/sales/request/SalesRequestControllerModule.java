@@ -4,8 +4,10 @@ import org.itss.prj_itss.model.request.RequestModule;
 import org.itss.prj_itss.controller.sales.request.list.SalesRequestListController;
 import org.itss.prj_itss.controller.sales.request.create.SalesRequestCreationController;
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditController;
+import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditServiceGateway;
 import org.itss.prj_itss.controller.sales.request.view.ViewOrderRequestController;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditMapper;
+import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditUseCase;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidator;
 
 public final class SalesRequestControllerModule {
@@ -25,10 +27,14 @@ public final class SalesRequestControllerModule {
             );
         this.salesRequestEditController =
             new SalesRequestEditController(
-                requestModule.salesRequestQueryService(),
-                requestModule.salesRequestCommandService(),
-                new SalesRequestEditMapper(),
-                new SalesRequestEditValidator()
+                new SalesRequestEditUseCase(
+                    new SalesRequestEditServiceGateway(
+                        requestModule.salesRequestQueryService(),
+                        requestModule.salesRequestCommandService()
+                    ),
+                    new SalesRequestEditMapper(),
+                    new SalesRequestEditValidator()
+                )
             );
         this.viewOrderRequestController =
             new ViewOrderRequestController(requestModule.salesRequestQueryService());
