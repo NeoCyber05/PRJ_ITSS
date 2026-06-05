@@ -1,4 +1,4 @@
-package org.itss.prj_itss.model.request.application;
+package org.itss.prj_itss.model.request.application.international.detail;
 
 import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailApplicationService;
 import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailQueryPort;
@@ -117,6 +117,151 @@ class InternationalOrderRequestDetailTest {
         assertEquals("N/A", result.statusText());
         assertEquals("N/A", result.earliestDeadline());
         assertEquals("", result.createdAt());
+    }
+
+    // ==========================================
+    // 3. Input Validation (Kiểm tra đầu vào)
+    // ==========================================
+    @Test
+    @DisplayName("BB_03: Mã request null → trả ViewModel rỗng (không load nhầm)")
+    void testLoad_NullRequestCode() {
+        // Không cần setup stubPort — load() phải dừng sớm mà không gọi queryPort
+        ReceivedRequestDetailViewModel result = service.load(null);
+
+        assertNotNull(result, "Phải trả về ViewModel rỗng, không được null");
+        assertEquals(0, result.requestId(), "requestId phải = 0 vì input không hợp lệ");
+        assertEquals("N/A", result.statusText());
+        assertTrue(result.requestItems().isEmpty());
+        assertTrue(result.allocatedOrders().isEmpty());
+    }
+
+    @Test
+    @DisplayName("BB_04: Mã request rỗng → trả ViewModel rỗng")
+    void testLoad_EmptyRequestCode() {
+        ReceivedRequestDetailViewModel result = service.load("");
+
+        assertNotNull(result);
+        assertEquals(0, result.requestId());
+        assertEquals("N/A", result.statusText());
+        assertTrue(result.requestItems().isEmpty());
+    }
+
+    @Test
+    @DisplayName("BB_05: Mã request không chứa số → trả ViewModel rỗng")
+    void testLoad_NoNumberInRequestCode() {
+        ReceivedRequestDetailViewModel result = service.load("ABC-XYZ");
+
+        assertNotNull(result);
+        assertEquals(0, result.requestId());
+        assertEquals("N/A", result.statusText());
+        assertTrue(result.requestItems().isEmpty());
+    }
+
+    // ==========================================
+    // 4. Status Mapping (Kiểm tra ánh xạ trạng thái)
+    // ==========================================
+    @Test
+    @DisplayName("BB_10: Status unknown hiển thị nguyên giá trị (graceful degradation)")
+    void testLoad_UnknownStatus() {
+        stubPort.summary = new ReceivedRequestDetailQueryPort.RequestSummary(
+            5, LocalDateTime.now(), "xyz_custom_status", null, null
+        );
+        stubPort.items = List.of();
+        stubPort.orders = List.of();
+
+        ReceivedRequestDetailViewModel result = service.load("YC-2026-005");
+
+        // Status unknown → hiển thị nguyên giá trị thay vì crash
+        assertEquals("xyz_custom_status", result.statusText());
+    }
+
+    @Test
+    @DisplayName("BB_11: Request status 'shipping' → 'Đang giao'")
+    void testLoad_ShippingStatus() {
+        stubPort.summary = new ReceivedRequestDetailQueryPort.RequestSummary(
+            6, LocalDateTime.now(), "shipping", null, null
+        );
+        stubPort.items = List.of();
+        stubPort.orders = List.of();
+
+        ReceivedRequestDetailViewModel result = service.load("YC-2026-006");
+
+        assertEquals("Đang giao", result.statusText());
+    }
+
+    @Test
+    @DisplayName("BB_07: Request có items nhưng không có orders (chưa phân bổ)")
+    void testLoad_ItemsButNoOrders() {
+        stubPort.summary = new ReceivedRequestDetailQueryPort.RequestSummary(
+            3, LocalDateTime.now(), "pending", "Note", LocalDate.now().plusDays(7)
+        );
+        stubPort.items = List.of(
+            new ReceivedRequestDetailQueryPort.RequestItemProjection(
+                "MBA13", "MacBook Air", BigDecimal.valueOf(10), "chiếc", LocalDate.now().plusDays(7)),
+            new ReceivedRequestDetailQueryPort.RequestItemProjection(
+                "IPH15", "iPhone 15", BigDecimal.valueOf(20), "chiếc", LocalDate.now().plusDays(14))
+        );
+        stubPort.orders = List.of();
+
+        ReceivedRequestDetailViewModel result = service.load("YC-2026-003");
+
+        assertEquals(2, result.requestItems().size());
+        assertTrue(result.allocatedOrders().isEmpty());
+    }
+
+    // ==========================================
+    // 5. Order Status & Cancellable (Trạng thái đơn hàng)
+    // ==========================================
+    @Test
+    @DisplayName("BB_12: Order status 'removed' → 'Đã loại bỏ' (chỉ Order mới có)")
+    void testFindOrderRow_RemovedStatus() {
+        stubPort.singleOrder = new ReceivedRequestDetailQueryPort.AllocatedOrderProjection(
+            103, null, "Hà Nội", "Đường biển", LocalDateTime.now(), "removed"
+        );
+
+        AllocatedOrderRow row = service.findOrderRow(103);
+
+        assertNotNull(row);
+        assertEquals("Đã loại bỏ", row.statusText());
+        assertFalse(row.cancellable(), "Đơn 'removed' không thể hủy");
+    }
+
+    @Test
+    @DisplayName("UC_09: Đơn hàng completed không có nút hủy")
+    void testFindOrderRow_CompletedNotCancellable() {
+        stubPort.singleOrder = new ReceivedRequestDetailQueryPort.AllocatedOrderProjection(
+            102, null, "Tokyo", "Đường hàng không", LocalDateTime.now(), "completed"
+        );
+
+        AllocatedOrderRow row = service.findOrderRow(102);
+
+        assertNotNull(row);
+        assertEquals("Đã hoàn thành", row.statusText());
+        assertFalse(row.cancellable(), "Đơn completed không thể hủy");
+    }
+
+    @Test
+    @DisplayName("Order pending → cancellable = true, statusText = 'Chờ xác nhận'")
+    void testFindOrderRow_PendingIsCancellable() {
+        stubPort.singleOrder = new ReceivedRequestDetailQueryPort.AllocatedOrderProjection(
+            104, null, "Singapore", "Đường biển", LocalDateTime.now(), "pending"
+        );
+
+        AllocatedOrderRow row = service.findOrderRow(104);
+
+        assertNotNull(row);
+        assertEquals("Chờ xác nhận", row.statusText(), "Order pending = 'Chờ xác nhận' (khác Request 'Chờ xử lý')");
+        assertTrue(row.cancellable(), "Chỉ đơn pending mới được hủy");
+    }
+
+    @Test
+    @DisplayName("findOrderRow trả null khi order không tồn tại")
+    void testFindOrderRow_NotFound() {
+        stubPort.singleOrder = null;
+
+        AllocatedOrderRow row = service.findOrderRow(999);
+
+        assertNull(row);
     }
 
     /**

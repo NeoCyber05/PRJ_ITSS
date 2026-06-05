@@ -16,6 +16,7 @@ import org.itss.prj_itss.view.shared.ui.StatusBadgeFactory;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public final class AllocatedOrderRowView {
 
@@ -39,12 +40,15 @@ public final class AllocatedOrderRowView {
     @FXML
     private Button cancelBtn;
     @FXML
+    private Button processBtn;
+    @FXML
     private Button openButton;
 
     public static HBox load(
         AllocatedOrderRow order,
         RequestDetailPopupController controller,
-        BiConsumer<AllocatedOrderRow, HBox> onOrderSelected
+        BiConsumer<AllocatedOrderRow, HBox> onOrderSelected,
+        Consumer<AllocatedOrderRow> onProcessOrder
     ) {
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
@@ -53,7 +57,7 @@ public final class AllocatedOrderRowView {
             ));
             HBox root = loader.load();
             AllocatedOrderRowView controllerInstance = loader.getController();
-            controllerInstance.init(order, controller, onOrderSelected);
+            controllerInstance.init(order, controller, onOrderSelected, onProcessOrder);
             return root;
         } catch (IOException exception) {
             throw new IllegalStateException("Cannot load allocated order row view", exception);
@@ -63,7 +67,8 @@ public final class AllocatedOrderRowView {
     private void init(
         AllocatedOrderRow order,
         RequestDetailPopupController controller,
-        BiConsumer<AllocatedOrderRow, HBox> onOrderSelected
+        BiConsumer<AllocatedOrderRow, HBox> onOrderSelected,
+        Consumer<AllocatedOrderRow> onProcessOrder
     ) {
         orderCodeCell.setText(order.orderCode());
         siteNameCell.setText(order.siteName());
@@ -93,9 +98,29 @@ public final class AllocatedOrderRowView {
                             statusBox.getChildren().setAll(StatusBadgeFactory.statusBadge(OrderingFormatters.STATUS_CANCELLED, false));
                             cancelBtn.setVisible(false);
                             cancelBtn.setManaged(false);
+                            
+                            processBtn.setVisible(true);
+                            processBtn.setManaged(true);
+                            processBtn.setOnAction(evt -> {
+                                evt.consume();
+                                if (onProcessOrder != null) {
+                                    onProcessOrder.accept(order);
+                                }
+                            });
                         }
                     }
                 });
+            });
+        }
+        
+        if (OrderingFormatters.STATUS_CANCELLED.equalsIgnoreCase(order.status())) {
+            processBtn.setVisible(true);
+            processBtn.setManaged(true);
+            processBtn.setOnAction(event -> {
+                event.consume();
+                if (onProcessOrder != null) {
+                    onProcessOrder.accept(order);
+                }
             });
         }
     }
