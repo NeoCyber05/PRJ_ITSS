@@ -9,7 +9,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
-import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
+import org.itss.prj_itss.controller.shared.MerchandiseOptionDTO;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -39,7 +39,7 @@ final class SalesRequestCreationItemRow extends HBox {
 
     SalesRequestCreationItemRow(
             int index,
-            Function<String, MerchandiseOption> merchandiseLookup,
+            Function<String, MerchandiseOptionDTO> merchandiseLookup,
             Function<String, List<String>> codeSuggester,
             Function<String, Integer> stockLookup,
             Consumer<SalesRequestCreationItemRow> deleteHandler
@@ -82,7 +82,7 @@ final class SalesRequestCreationItemRow extends HBox {
         updateIndex(index);
     }
 
-    private void configureCodeField(Function<String, MerchandiseOption> merchandiseLookup, Function<String, List<String>> codeSuggester, Function<String, Integer> stockLookup) {
+    private void configureCodeField(Function<String, MerchandiseOptionDTO> merchandiseLookup, Function<String, List<String>> codeSuggester, Function<String, Integer> stockLookup) {
         codeField.setPromptText("VD: MH-001");
         codeField.setPrefWidth(150);
         codeField.setMaxWidth(150);
@@ -116,7 +116,7 @@ final class SalesRequestCreationItemRow extends HBox {
                 return;
             }
 
-            MerchandiseOption merchandise = merchandiseLookup.apply(code);
+            MerchandiseOptionDTO merchandise = merchandiseLookup.apply(code);
             if (merchandise == null) {
                 codeField.setStyle(ERROR_STYLE);
                 unitField.setText("");
@@ -129,7 +129,7 @@ final class SalesRequestCreationItemRow extends HBox {
         });
     }
 
-    private void configureQuantityField(Function<String, MerchandiseOption> merchandiseLookup, Function<String, Integer> stockLookup) {
+    private void configureQuantityField(Function<String, MerchandiseOptionDTO> merchandiseLookup, Function<String, Integer> stockLookup) {
         quantityField.setPromptText("0");
         quantityField.setPrefWidth(100);
         quantityField.setMaxWidth(100);
@@ -139,13 +139,13 @@ final class SalesRequestCreationItemRow extends HBox {
         });
     }
 
-    private void validateQuantity(Function<String, MerchandiseOption> merchandiseLookup, Function<String, Integer> stockLookup) {
+    private void validateQuantity(Function<String, MerchandiseOptionDTO> merchandiseLookup, Function<String, Integer> stockLookup) {
         String code = codeField.getText() == null ? "" : codeField.getText().trim();
         if (code.isEmpty()) {
             quantityField.setStyle(INPUT_STYLE);
             return;
         }
-        MerchandiseOption merchandise = merchandiseLookup.apply(code);
+        MerchandiseOptionDTO merchandise = merchandiseLookup.apply(code);
         if (merchandise == null) {
             quantityField.setStyle(INPUT_STYLE);
             return;
