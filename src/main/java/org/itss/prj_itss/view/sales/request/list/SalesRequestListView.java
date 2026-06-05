@@ -259,6 +259,7 @@ public final class SalesRequestListView implements ViewLifecycle {
 
         // ── Xem ──────────────────────────────────────────────────────────────
         Button viewBtn = new Button("Xem");
+        viewBtn.setStyle("-fx-background-color: #F3F4F6; -fx-text-fill: #374151; -fx-background-radius: 6; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 6 14; -fx-cursor: hand; -fx-border-color: #D1D5DB; -fx-border-radius: 6; -fx-min-width: 65;");
         viewBtn.setOnAction(event ->
             ViewOrderRequestPopup.show(
                 requestTable.getScene().getWindow(),
@@ -271,7 +272,7 @@ public final class SalesRequestListView implements ViewLifecycle {
         // ── Sửa ──────────────────────────────────────────────────────────────
         if (isPending) {
             Button editBtn = new Button("Sửa");
-            editBtn.setStyle("-fx-background-color: #253D2C; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 6 14; -fx-cursor: hand;");
+            editBtn.setStyle("-fx-background-color: #253D2C; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 6 14; -fx-cursor: hand; -fx-min-width: 65;");
             editBtn.setOnAction(event -> {
                 editDialogLauncher.showEdit(
                     requestTable.getScene().getWindow(),
@@ -289,7 +290,7 @@ public final class SalesRequestListView implements ViewLifecycle {
 
         // ── Xóa ──────────────────────────────────────────────────────────────
         Button deleteBtn = new Button("Xóa");
-        deleteBtn.setStyle("-fx-background-color: #FEE2E2; -fx-text-fill: #B91C1C; -fx-background-radius: 6; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 6 14; -fx-cursor: hand;");
+        deleteBtn.setStyle("-fx-background-color: #FEE2E2; -fx-text-fill: #B91C1C; -fx-background-radius: 6; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 6 14; -fx-cursor: hand; -fx-min-width: 65;");
         deleteBtn.setOnAction(event -> {
             if (!isPending) {
                 Alert warn = new Alert(Alert.AlertType.WARNING);

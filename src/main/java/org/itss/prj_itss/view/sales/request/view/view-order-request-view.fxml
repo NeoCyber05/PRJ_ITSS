@@ -44,20 +44,13 @@
                 </VBox>
             </HBox>
 
-            <!-- Note -->
-            <VBox spacing="8">
-                <Label text="GHI CHÚ YÊU CẦU THÊM" styleClass="request-detail-summary-label"/>
-                <javafx.scene.control.TextArea fx:id="noteArea" prefRowCount="2"
-                    style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #374151; -fx-font-size: 13px;"/>
-            </VBox>
-
             <!-- Items table -->
             <VBox spacing="14">
                 <Label text="Danh sách mặt hàng" styleClass="request-detail-section-title"/>
                 <VBox styleClass="sr-edit-table-shell">
                     <HBox styleClass="sr-edit-table-header">
                         <Label text="MÃ HÀNG"   prefWidth="140" styleClass="sr-edit-th"/>
-                        <Label text="TÊN"       prefWidth="300" styleClass="sr-edit-th" HBox.hgrow="ALWAYS"/>
+                        <Label text="TÊN"       prefWidth="300" styleClass="sr-edit-th"/>
                         <Label text="SỐ LƯỢNG"  prefWidth="130" styleClass="sr-edit-th"/>
                         <Label text="ĐƠN VỊ"   prefWidth="100" styleClass="sr-edit-th"/>
                         <Label text="NGÀY NHẬN MONG MUỐN" prefWidth="200" styleClass="sr-edit-th"/>
