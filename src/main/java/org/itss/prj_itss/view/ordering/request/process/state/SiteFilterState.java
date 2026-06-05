@@ -7,7 +7,7 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 
-public final class SiteFilterModel {
+public final class SiteFilterState {
 
     private final List<ProcessingSiteView> visibleSites = new ArrayList<>();
     private final Set<Integer> selectedSiteIds = new LinkedHashSet<>();
