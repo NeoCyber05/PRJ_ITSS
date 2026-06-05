@@ -49,6 +49,17 @@ public final class SalesRequestCreationController {
     }
 
     public ActionResult createRequest(List<SalesRequestItemInput> items) {
+        if (items == null || items.isEmpty()) {
+            return new ActionResult(false, "Cần ít nhất một mặt hàng để tạo yêu cầu.");
+        }
+        for (SalesRequestItemInput item : items) {
+            if (item.quantity() == null || item.desiredDate() == null) {
+                return new ActionResult(false, "Vui lòng điền đầy đủ thông tin hợp lệ.");
+            }
+            if (item.desiredDate().isBefore(java.time.LocalDate.now())) {
+                return new ActionResult(false, "Ngày nhận không được nằm trong quá khứ.");
+            }
+        }
         try {
             List<SalesRequestItemSubmission> submissions = items.stream()
                 .map(i -> new SalesRequestItemSubmission(i.merchandiseId(), i.quantity(), i.desiredDate()))
