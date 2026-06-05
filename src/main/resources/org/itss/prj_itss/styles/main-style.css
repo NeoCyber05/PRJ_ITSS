@@ -2849,3 +2849,15 @@
     -fx-background-color: white;
 }
 
+/* Hủy thanh cuộn trên TableView */
+.no-vertical-scrollbar .scroll-bar:vertical,
+.no-vertical-scrollbar .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-pref-width: 0;
+    -fx-min-width: 0;
+    -fx-max-width: 0;
+    -fx-pref-height: 0;
+    -fx-min-height: 0;
+    -fx-max-height: 0;
+}
+

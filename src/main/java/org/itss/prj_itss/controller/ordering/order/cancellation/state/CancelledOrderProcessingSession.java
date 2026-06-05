@@ -1,6 +1,7 @@
 package org.itss.prj_itss.controller.ordering.order.cancellation.state;
 
 import org.itss.prj_itss.model.order.application.cancellation.CancelledOrderProcessingUseCase;
+import org.itss.prj_itss.model.order.application.cancellation.OrderCancellationSuggester;
 
 import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
 import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
@@ -174,7 +175,8 @@ public final class CancelledOrderProcessingSession {
             optionId,
             items,
             allSites,
-            excludedSiteIds
+            excludedSiteIds,
+            deadlineDays
         );
         new org.itss.prj_itss.model.request.domain.processing.allocation.ApplyPlan(items, allocations).apply(drafts);
     }

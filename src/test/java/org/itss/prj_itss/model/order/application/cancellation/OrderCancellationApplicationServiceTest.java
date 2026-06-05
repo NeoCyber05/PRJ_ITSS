@@ -1,9 +1,8 @@
-package org.itss.prj_itss.model.order.application;
+package org.itss.prj_itss.model.order.application.cancellation;
 
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
-import org.itss.prj_itss.model.order.application.OrderUseCase;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -21,8 +20,7 @@ class OrderCancellationApplicationServiceTest {
     @Test
     void cancelsPendingOrder() {
         FakeOrderRepository repository = new FakeOrderRepository(orderWithStatus(10, "pending"));
-        OrderCancellationApplicationService applicationService = new OrderCancellationApplicationService(
-                new OrderUseCase(repository));
+        OrderCancellationApplicationService applicationService = new OrderCancellationApplicationService(repository);
 
         OrderCancellationApplicationService.CancellationResult result = applicationService.cancel(10);
 
@@ -36,8 +34,7 @@ class OrderCancellationApplicationServiceTest {
     @Test
     void rejectsNonPendingOrderWithoutUpdatingStatus() {
         FakeOrderRepository repository = new FakeOrderRepository(orderWithStatus(11, "shipping"));
-        OrderCancellationApplicationService applicationService = new OrderCancellationApplicationService(
-                new OrderUseCase(repository));
+        OrderCancellationApplicationService applicationService = new OrderCancellationApplicationService(repository);
 
         OrderCancellationApplicationService.CancellationResult result = applicationService.cancel(11);
 
@@ -50,8 +47,7 @@ class OrderCancellationApplicationServiceTest {
     @Test
     void returnsNotFoundWhenOrderDoesNotExist() {
         FakeOrderRepository repository = new FakeOrderRepository();
-        OrderCancellationApplicationService applicationService = new OrderCancellationApplicationService(
-                new OrderUseCase(repository));
+        OrderCancellationApplicationService applicationService = new OrderCancellationApplicationService(repository);
 
         OrderCancellationApplicationService.CancellationResult result = applicationService.cancel(99);
 
@@ -64,8 +60,7 @@ class OrderCancellationApplicationServiceTest {
     @Test
     void alreadyCancelledOrderIsIdempotent() {
         FakeOrderRepository repository = new FakeOrderRepository(orderWithStatus(12, "cancelled"));
-        OrderCancellationApplicationService applicationService = new OrderCancellationApplicationService(
-                new OrderUseCase(repository));
+        OrderCancellationApplicationService applicationService = new OrderCancellationApplicationService(repository);
 
         OrderCancellationApplicationService.CancellationResult result = applicationService.cancel(12);
 

@@ -39,74 +39,127 @@
                         styleClass="cancelled-order-modal-close-button"/>
             </children>
         </HBox>
-
         <VBox spacing="14"
               styleClass="cancelled-order-modal-body">
-             <children>
-                 <HBox spacing="14" alignment="CENTER">
-                     <padding>
-                         <Insets top="10" right="0" bottom="10" left="0"/>
-                     </padding>
-                     <children>
-                         <!-- Option 1 Card -->
-                         <VBox spacing="12" styleClass="cancelled-order-suggestion-card, cancelled-order-plan-low-cost" prefWidth="240" minWidth="240">
-                             <padding>
-                                 <Insets top="14" right="14" bottom="14" left="14"/>
-                             </padding>
-                             <children>
-                                 <HBox alignment="CENTER_LEFT" spacing="6">
-                                     <children>
-                                         <Label text="Option 1" styleClass="cancelled-order-muted-text" style="-fx-font-size: 11px;"/>
-                                         <Region HBox.hgrow="ALWAYS"/>
-                                         <Label text="Khuyên dùng" styleClass="cancelled-order-pill, cancelled-order-pill-warning" style="-fx-font-size: 10px; -fx-padding: 2 6;"/>
-                                     </children>
-                                 </HBox>
-                                 <Label text="Chi phí vận chuyển thấp" styleClass="cancelled-order-section-title" style="-fx-font-size: 14px; -fx-font-weight: bold;" wrapText="true"/>
-                                 <Label text="Tuân thủ tuyệt đối ưu tiên đường tàu, chọn site có tồn kho lớn nhất trước. Chi phí vận chuyển tối ưu nhất." styleClass="cancelled-order-muted-text" style="-fx-font-size: 12px;" wrapText="true" minHeight="80" prefHeight="80"/>
-                                 <Button text="Áp dụng Option 1" onAction="#handleApplyOption1" styleClass="cancelled-order-primary-button" maxWidth="1.7976931348623157E308"/>
-                             </children>
-                         </VBox>
+            <children>
+                <!-- Row 1: Stock-centric sorting options -->
+                <HBox spacing="14" alignment="CENTER">
+                    <padding>
+                        <Insets top="5" right="0" bottom="5" left="0"/>
+                    </padding>
+                    <children>
+                        <!-- Option 1 Card -->
+                        <VBox spacing="12" styleClass="cancelled-order-suggestion-card, cancelled-order-plan-low-cost" prefWidth="240" minWidth="240">
+                            <padding>
+                                <Insets top="14" right="14" bottom="14" left="14"/>
+                            </padding>
+                            <children>
+                                <HBox alignment="CENTER_LEFT" spacing="6">
+                                    <children>
+                                        <Label text="Option 1" styleClass="cancelled-order-muted-text" style="-fx-font-size: 11px;"/>
+                                    </children>
+                                </HBox>
+                                <Label text="Ưu tiên Tồn kho - Vận chuyển Đường tàu" styleClass="cancelled-order-section-title" style="-fx-font-size: 14px; -fx-font-weight: bold;" wrapText="true" prefWidth="210" prefHeight="40" minHeight="40"/>
+                                <Label text="Sắp xếp site có tồn kho lớn nhất trước để gom đơn, ưu tiên sử dụng đường tàu để tiết kiệm chi phí." styleClass="cancelled-order-muted-text" style="-fx-font-size: 12px;" wrapText="true" minHeight="80" prefHeight="80"/>
+                                <Button text="Áp dụng Option 1" onAction="#handleApplyOption1" styleClass="cancelled-order-primary-button" maxWidth="1.7976931348623157E308"/>
+                            </children>
+                        </VBox>
 
-                         <!-- Option 2 Card -->
-                         <VBox spacing="12" styleClass="cancelled-order-suggestion-card, cancelled-order-plan-simple" prefWidth="240" minWidth="240">
-                             <padding>
-                                 <Insets top="14" right="14" bottom="14" left="14"/>
-                             </padding>
-                             <children>
-                                 <HBox alignment="CENTER_LEFT" spacing="6">
-                                     <children>
-                                         <Label text="Option 2" styleClass="cancelled-order-muted-text" style="-fx-font-size: 11px;"/>
-                                         <Region HBox.hgrow="ALWAYS"/>
-                                         <Label text="Ít điểm nhập" styleClass="cancelled-order-pill, cancelled-order-pill-warning" style="-fx-font-size: 10px; -fx-padding: 2 6;"/>
-                                     </children>
-                                 </HBox>
-                                 <Label text="Quản lý đơn giản" styleClass="cancelled-order-section-title" style="-fx-font-size: 14px; -fx-font-weight: bold;" wrapText="true"/>
-                                 <Label text="Số lượng điểm nhập hàng ít nhất bằng cách chọn site tồn kho lớn nhất, sử dụng hàng không để giao nhanh." styleClass="cancelled-order-muted-text" style="-fx-font-size: 12px;" wrapText="true" minHeight="80" prefHeight="80"/>
-                                 <Button text="Áp dụng Option 2" onAction="#handleApplyOption2" styleClass="cancelled-order-primary-button" maxWidth="1.7976931348623157E308"/>
-                             </children>
-                         </VBox>
+                        <!-- Option 2 Card -->
+                        <VBox spacing="12" styleClass="cancelled-order-suggestion-card, cancelled-order-plan-simple" prefWidth="240" minWidth="240">
+                            <padding>
+                                <Insets top="14" right="14" bottom="14" left="14"/>
+                            </padding>
+                            <children>
+                                <HBox alignment="CENTER_LEFT" spacing="6">
+                                    <children>
+                                        <Label text="Option 2" styleClass="cancelled-order-muted-text" style="-fx-font-size: 11px;"/>
+                                    </children>
+                                </HBox>
+                                <Label text="Ưu tiên Tồn kho - Vận chuyển Hàng không" styleClass="cancelled-order-section-title" style="-fx-font-size: 14px; -fx-font-weight: bold;" wrapText="true" prefWidth="210" prefHeight="40" minHeight="40"/>
+                                <Label text="Sắp xếp site có tồn kho lớn nhất trước để gom đơn, sử dụng đường hàng không để giao hàng nhanh." styleClass="cancelled-order-muted-text" style="-fx-font-size: 12px;" wrapText="true" minHeight="80" prefHeight="80"/>
+                                <Button text="Áp dụng Option 2" onAction="#handleApplyOption2" styleClass="cancelled-order-primary-button" maxWidth="1.7976931348623157E308"/>
+                            </children>
+                        </VBox>
 
-                         <!-- Option 3 Card -->
-                         <VBox spacing="12" styleClass="cancelled-order-suggestion-card, cancelled-order-plan-balanced" prefWidth="240" minWidth="240">
-                             <padding>
-                                 <Insets top="14" right="14" bottom="14" left="14"/>
-                             </padding>
-                             <children>
-                                 <HBox alignment="CENTER_LEFT" spacing="6">
-                                     <children>
-                                         <Label text="Option 3" styleClass="cancelled-order-muted-text" style="-fx-font-size: 11px;"/>
-                                         <Region HBox.hgrow="ALWAYS"/>
-                                         <Label text="Kết hợp" styleClass="cancelled-order-pill, cancelled-order-pill-warning" style="-fx-font-size: 10px; -fx-padding: 2 6;"/>
-                                     </children>
-                                 </HBox>
-                                 <Label text="Cân bằng" styleClass="cancelled-order-section-title" style="-fx-font-size: 14px; -fx-font-weight: bold;" wrapText="true"/>
-                                 <Label text="Lô hàng lớn (≥ 50% nhu cầu) dùng tàu, lô hàng nhỏ dùng máy bay — cân bằng chi phí và tốc độ." styleClass="cancelled-order-muted-text" style="-fx-font-size: 12px;" wrapText="true" minHeight="80" prefHeight="80"/>
-                                 <Button text="Áp dụng Option 3" onAction="#handleApplyOption3" styleClass="cancelled-order-primary-button" maxWidth="1.7976931348623157E308"/>
-                             </children>
-                         </VBox>
-                     </children>
-                 </HBox>
-             </children>
+                        <!-- Option 3 Card -->
+                        <VBox spacing="12" styleClass="cancelled-order-suggestion-card, cancelled-order-plan-balanced" prefWidth="240" minWidth="240">
+                            <padding>
+                                <Insets top="14" right="14" bottom="14" left="14"/>
+                            </padding>
+                            <children>
+                                <HBox alignment="CENTER_LEFT" spacing="6">
+                                    <children>
+                                        <Label text="Option 3" styleClass="cancelled-order-muted-text" style="-fx-font-size: 11px;"/>
+                                    </children>
+                                </HBox>
+                                <Label text="Ưu tiên Tồn kho - Vận chuyển Cân bằng" styleClass="cancelled-order-section-title" style="-fx-font-size: 14px; -fx-font-weight: bold;" wrapText="true" prefWidth="210" prefHeight="40" minHeight="40"/>
+                                <Label text="Sắp xếp site có tồn kho lớn nhất trước để gom đơn. Lô hàng lớn (≥ 50%) đi tàu, lô nhỏ đi máy bay." styleClass="cancelled-order-muted-text" style="-fx-font-size: 12px;" wrapText="true" minHeight="80" prefHeight="80"/>
+                                <Button text="Áp dụng Option 3" onAction="#handleApplyOption3" styleClass="cancelled-order-primary-button" maxWidth="1.7976931348623157E308"/>
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
+
+                <!-- Row 2: Ship-centric sorting options -->
+                <HBox spacing="14" alignment="CENTER">
+                    <padding>
+                        <Insets top="5" right="0" bottom="5" left="0"/>
+                    </padding>
+                    <children>
+                        <!-- Option 4 Card -->
+                        <VBox spacing="12" styleClass="cancelled-order-suggestion-card, cancelled-order-plan-low-cost" prefWidth="240" minWidth="240">
+                            <padding>
+                                <Insets top="14" right="14" bottom="14" left="14"/>
+                            </padding>
+                            <children>
+                                <HBox alignment="CENTER_LEFT" spacing="6">
+                                    <children>
+                                        <Label text="Option 4" styleClass="cancelled-order-muted-text" style="-fx-font-size: 11px;"/>
+                                    </children>
+                                </HBox>
+                                <Label text="Ưu tiên đi Tàu - Vận chuyển Đường tàu" styleClass="cancelled-order-section-title" style="-fx-font-size: 14px; -fx-font-weight: bold;" wrapText="true" prefWidth="210" prefHeight="40" minHeight="40"/>
+                                <Label text="Ưu tiên chọn các site có khả năng đi tàu trước, sử dụng phương thức đi tàu để tối ưu chi phí." styleClass="cancelled-order-muted-text" style="-fx-font-size: 12px;" wrapText="true" minHeight="80" prefHeight="80"/>
+                                <Button text="Áp dụng Option 4" onAction="#handleApplyOption4" styleClass="cancelled-order-primary-button" maxWidth="1.7976931348623157E308"/>
+                            </children>
+                        </VBox>
+
+                        <!-- Option 5 Card -->
+                        <VBox spacing="12" styleClass="cancelled-order-suggestion-card, cancelled-order-plan-simple" prefWidth="240" minWidth="240">
+                            <padding>
+                                <Insets top="14" right="14" bottom="14" left="14"/>
+                            </padding>
+                            <children>
+                                <HBox alignment="CENTER_LEFT" spacing="6">
+                                    <children>
+                                        <Label text="Option 5" styleClass="cancelled-order-muted-text" style="-fx-font-size: 11px;"/>
+                                    </children>
+                                </HBox>
+                                <Label text="Tối ưu số site tham gia" styleClass="cancelled-order-section-title" style="-fx-font-size: 14px; -fx-font-weight: bold;" wrapText="true" prefWidth="210" prefHeight="40" minHeight="40"/>
+                                <Label text="Sắp xếp chọn các site có tồn kho lớn nhất trước để giảm thiểu tối đa số lượng site cần phân bổ." styleClass="cancelled-order-muted-text" style="-fx-font-size: 12px;" wrapText="true" minHeight="80" prefHeight="80"/>
+                                <Button text="Áp dụng Option 5" onAction="#handleApplyOption5" styleClass="cancelled-order-primary-button" maxWidth="1.7976931348623157E308"/>
+                            </children>
+                        </VBox>
+
+                        <!-- Option 6 Card -->
+                        <VBox spacing="12" styleClass="cancelled-order-suggestion-card, cancelled-order-plan-balanced" prefWidth="240" minWidth="240">
+                            <padding>
+                                <Insets top="14" right="14" bottom="14" left="14"/>
+                            </padding>
+                            <children>
+                                <HBox alignment="CENTER_LEFT" spacing="6">
+                                    <children>
+                                        <Label text="Option 6" styleClass="cancelled-order-muted-text" style="-fx-font-size: 11px;"/>
+                                    </children>
+                                </HBox>
+                                <Label text="Phân bổ ngẫu nhiên" styleClass="cancelled-order-section-title" style="-fx-font-size: 14px; -fx-font-weight: bold;" wrapText="true" prefWidth="210" prefHeight="40" minHeight="40"/>
+                                <Label text="Phân bổ ngẫu nhiên giữa các site khả dụng, đáp ứng kịp ngày nhận mong muốn và tự động chọn phương thức vận chuyển khả thi." styleClass="cancelled-order-muted-text" style="-fx-font-size: 12px;" wrapText="true" minHeight="80" prefHeight="80"/>
+                                <Button text="Áp dụng Option 6" onAction="#handleApplyOption6" styleClass="cancelled-order-primary-button" maxWidth="1.7976931348623157E308"/>
+                            </children>
+                        </VBox>
+                    </children>
+                </HBox>
+            </children>
         </VBox>
 
         <HBox alignment="CENTER_RIGHT"

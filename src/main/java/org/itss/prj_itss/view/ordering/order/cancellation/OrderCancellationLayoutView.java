@@ -18,7 +18,6 @@ import org.itss.prj_itss.view.shared.ViewLifecycle;
 import org.itss.prj_itss.view.ordering.order.cancellation.allocation.OrderAllocationView;
 import org.itss.prj_itss.view.ordering.order.cancellation.preview.OrderPreviewView;
 import org.itss.prj_itss.view.ordering.order.cancellation.popup.ConfirmSubmitPopupView;
-import org.itss.prj_itss.view.ordering.order.cancellation.popup.CancelProcessingPopupView;
 import org.itss.prj_itss.view.ordering.order.cancellation.popup.DetailNotificationPopupView;
 import org.itss.prj_itss.view.ordering.order.cancellation.suggestion.OrderSuggestionPopupView;
 
@@ -46,8 +45,7 @@ public final class OrderCancellationLayoutView implements ViewLifecycle {
     @FXML
     private Button suggestButton;
 
-    @FXML
-    private Button cancelProcessingButton;
+
 
     @FXML
     private Label feedbackLabel;
@@ -66,6 +64,9 @@ public final class OrderCancellationLayoutView implements ViewLifecycle {
 
     @FXML
     private Button primaryActionButton;
+
+    @FXML
+    private Button backToOrdersButton;
 
     @FXML
     private StackPane modalOverlay;
@@ -103,18 +104,7 @@ public final class OrderCancellationLayoutView implements ViewLifecycle {
         }
     }
 
-    @FXML
-    private void handleCancelProcessingAction() {
-        try {
-            FXMLLoader loader = new FXMLLoader(App.class.getResource("/org/itss/prj_itss/view/ordering/order/cancellation/popup/cancel-processing-popup.fxml"));
-            Node node = loader.load();
-            CancelProcessingPopupView view = loader.getController();
-            view.init(this);
-            showPopup(node);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
+
 
     @FXML
     private void handleSuggestAction() {
@@ -126,6 +116,13 @@ public final class OrderCancellationLayoutView implements ViewLifecycle {
             showPopup(node);
         } catch (Exception e) {
             e.printStackTrace();
+        }
+    }
+
+    @FXML
+    private void handleBackToOrders() {
+        if (navigator != null) {
+            navigator.showView("orders");
         }
     }
 
@@ -162,10 +159,10 @@ public final class OrderCancellationLayoutView implements ViewLifecycle {
         subtitleLabel.setText("Đơn hàng: " + currentViewModel.cancelledOrderCode() + "  •  Mã yêu cầu: " + currentViewModel.requestCode());
         suggestBar.setManaged(true);
         suggestBar.setVisible(true);
-        cancelProcessingButton.setManaged(true);
-        cancelProcessingButton.setVisible(true);
         secondaryActionButton.setManaged(false);
         secondaryActionButton.setVisible(false);
+        backToOrdersButton.setManaged(true);
+        backToOrdersButton.setVisible(true);
         primaryActionButton.setText("Tạo các đơn hàng");
         primaryActionButton.setDisable(false);
 
@@ -180,11 +177,11 @@ public final class OrderCancellationLayoutView implements ViewLifecycle {
         subtitleLabel.setText("Đơn hàng: " + currentViewModel.cancelledOrderCode() + " - Gom nhóm theo Site");
         suggestBar.setManaged(false);
         suggestBar.setVisible(false);
-        cancelProcessingButton.setManaged(false);
-        cancelProcessingButton.setVisible(false);
         secondaryActionButton.setText("← Quay lại");
         secondaryActionButton.setManaged(true);
         secondaryActionButton.setVisible(true);
+        backToOrdersButton.setManaged(false);
+        backToOrdersButton.setVisible(false);
         primaryActionButton.setText("Gửi yêu cầu");
         primaryActionButton.setDisable(currentPreviewOrders.isEmpty());
 
