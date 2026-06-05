@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "clean-architecture": {
+      "source": "mindrally/skills",
+      "sourceType": "github",
+      "skillPath": "clean-architecture/SKILL.md",
+      "computedHash": "39cf5addffbea70a7f8d09c323eb3cc5637c0b746656f9111d657eb7a9efa559"
+    },
     "design-patterns": {
       "source": "ratacat/claude-skills",
       "sourceType": "github",
