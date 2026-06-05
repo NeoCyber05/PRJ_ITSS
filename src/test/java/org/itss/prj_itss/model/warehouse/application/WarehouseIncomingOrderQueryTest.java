@@ -31,18 +31,20 @@ class WarehouseIncomingOrderQueryTest {
         FakeSiteRepository siteRepo = new FakeSiteRepository();
         FakeMerchandiseRepository merchandiseRepo = new FakeMerchandiseRepository();
 
-        orderRepo.orders.add(new Order(1, 10, 5, LocalDateTime.of(2026, 6, 1, 10, 0), OrderStatus.SHIPPING.displayValue()));
-        orderRepo.orders.add(new Order(2, 11, 6, LocalDateTime.of(2026, 6, 2, 10, 0), OrderStatus.SHIPPING.displayValue()));
-        orderRepo.orders.add(new Order(3, 12, 5, LocalDateTime.of(2026, 6, 3, 10, 0), OrderStatus.PENDING_CONFIRMATION.displayValue()));
+        orderRepo.orders
+                .add(new Order(1, 10, 5, LocalDateTime.of(2026, 6, 1, 10, 0), OrderStatus.SHIPPING.displayValue()));
+        orderRepo.orders
+                .add(new Order(2, 11, 6, LocalDateTime.of(2026, 6, 2, 10, 0), OrderStatus.SHIPPING.displayValue()));
+        orderRepo.orders.add(new Order(3, 12, 5, LocalDateTime.of(2026, 6, 3, 10, 0),
+                OrderStatus.PENDING_CONFIRMATION.displayValue()));
 
         siteRepo.sites.put(5, new Site(5, "TOKYO", "Tokyo", "", 10, 2));
         siteRepo.sites.put(6, new Site(6, "OSAKA", "Osaka", "", 8, 3));
 
         WarehouseIncomingOrderQuery query = new WarehouseIncomingOrderQuery(
-            new OrderUseCase(orderRepo),
-            new SiteUseCase(siteRepo, siteRepo),
-            new MerchandiseUseCase(merchandiseRepo)
-        );
+                new OrderUseCase(orderRepo),
+                new SiteUseCase(siteRepo, siteRepo),
+                new MerchandiseUseCase(merchandiseRepo));
 
         List<IncomingOrderRow> rows = query.findIncomingRows();
 
@@ -66,10 +68,9 @@ class WarehouseIncomingOrderQueryTest {
         merchandiseRepo.merchandise.put(7, new Merchandise(7, "M-01", "Tea", "box"));
 
         WarehouseIncomingOrderQuery query = new WarehouseIncomingOrderQuery(
-            new OrderUseCase(orderRepo),
-            new SiteUseCase(siteRepo, siteRepo),
-            new MerchandiseUseCase(merchandiseRepo)
-        );
+                new OrderUseCase(orderRepo),
+                new SiteUseCase(siteRepo, siteRepo),
+                new MerchandiseUseCase(merchandiseRepo));
 
         IncomingOrderDetail detail = query.findIncomingDetail(1);
 
@@ -90,10 +91,9 @@ class WarehouseIncomingOrderQueryTest {
         FakeMerchandiseRepository merchandiseRepo = new FakeMerchandiseRepository();
 
         WarehouseIncomingOrderQuery query = new WarehouseIncomingOrderQuery(
-            new OrderUseCase(orderRepo),
-            new SiteUseCase(siteRepo, siteRepo),
-            new MerchandiseUseCase(merchandiseRepo)
-        );
+                new OrderUseCase(orderRepo),
+                new SiteUseCase(siteRepo, siteRepo),
+                new MerchandiseUseCase(merchandiseRepo));
 
         assertNull(query.findIncomingDetail(99));
     }
@@ -110,8 +110,8 @@ class WarehouseIncomingOrderQueryTest {
         @Override
         public List<Order> findByStatus(String status) {
             return orders.stream()
-                .filter(o -> status.equalsIgnoreCase(o.getStatus()))
-                .toList();
+                    .filter(o -> status.equalsIgnoreCase(o.getStatus()))
+                    .toList();
         }
 
         @Override

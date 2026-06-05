@@ -21,7 +21,8 @@ class OrderCancellationApplicationServiceTest {
     @Test
     void cancelsPendingOrder() {
         FakeOrderRepository repository = new FakeOrderRepository(orderWithStatus(10, "pending"));
-        OrderCancellationApplicationService applicationService = new OrderCancellationApplicationService(new OrderUseCase(repository));
+        OrderCancellationApplicationService applicationService = new OrderCancellationApplicationService(
+                new OrderUseCase(repository));
 
         OrderCancellationApplicationService.CancellationResult result = applicationService.cancel(10);
 
@@ -35,7 +36,8 @@ class OrderCancellationApplicationServiceTest {
     @Test
     void rejectsNonPendingOrderWithoutUpdatingStatus() {
         FakeOrderRepository repository = new FakeOrderRepository(orderWithStatus(11, "shipping"));
-        OrderCancellationApplicationService applicationService = new OrderCancellationApplicationService(new OrderUseCase(repository));
+        OrderCancellationApplicationService applicationService = new OrderCancellationApplicationService(
+                new OrderUseCase(repository));
 
         OrderCancellationApplicationService.CancellationResult result = applicationService.cancel(11);
 
@@ -48,7 +50,8 @@ class OrderCancellationApplicationServiceTest {
     @Test
     void returnsNotFoundWhenOrderDoesNotExist() {
         FakeOrderRepository repository = new FakeOrderRepository();
-        OrderCancellationApplicationService applicationService = new OrderCancellationApplicationService(new OrderUseCase(repository));
+        OrderCancellationApplicationService applicationService = new OrderCancellationApplicationService(
+                new OrderUseCase(repository));
 
         OrderCancellationApplicationService.CancellationResult result = applicationService.cancel(99);
 
@@ -61,7 +64,8 @@ class OrderCancellationApplicationServiceTest {
     @Test
     void alreadyCancelledOrderIsIdempotent() {
         FakeOrderRepository repository = new FakeOrderRepository(orderWithStatus(12, "cancelled"));
-        OrderCancellationApplicationService applicationService = new OrderCancellationApplicationService(new OrderUseCase(repository));
+        OrderCancellationApplicationService applicationService = new OrderCancellationApplicationService(
+                new OrderUseCase(repository));
 
         OrderCancellationApplicationService.CancellationResult result = applicationService.cancel(12);
 
@@ -93,8 +97,8 @@ class OrderCancellationApplicationServiceTest {
         @Override
         public List<Order> findByStatus(String status) {
             return orders.values().stream()
-                .filter(order -> status.equals(order.getStatus()))
-                .toList();
+                    .filter(order -> status.equals(order.getStatus()))
+                    .toList();
         }
 
         @Override
