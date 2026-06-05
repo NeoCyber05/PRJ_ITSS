@@ -34,8 +34,15 @@ public final class SalesRequestCreationView implements ViewLifecycle {
         this.controller = controller;
 
         if (itemsScroll != null && itemsContainer != null) {
-            itemsScroll.prefHeightProperty().bind(itemsContainer.heightProperty());
+            itemsScroll.setMinHeight(0);
+            itemsContainer.heightProperty().addListener((obs, oldVal, newVal) -> {
+                javafx.application.Platform.runLater(() -> {
+                    itemsScroll.setPrefHeight(newVal.doubleValue());
+                    itemsScroll.requestLayout();
+                });
+            });
             itemsScroll.setMaxHeight(400);
+            itemsScroll.setPrefHeight(itemsContainer.prefHeight(-1));
         }
 
         closeButton.setOnAction(event -> closePopup());
