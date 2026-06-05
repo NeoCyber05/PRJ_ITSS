@@ -13,7 +13,7 @@ import org.itss.prj_itss.model.site.application.port.InventoryRepository;
 
 import java.util.List;
 
-public final class SalesRequestQueryService {
+public class SalesRequestQueryService {
 
     private final SalesRequestQueryPort queryPort;
     private final MerchandiseUseCase MerchandiseUseCase;
