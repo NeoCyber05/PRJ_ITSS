@@ -21,6 +21,9 @@ public class CreateSalesRequestService implements CreateSalesRequestUseCase {
     public int createRequest(List<SalesRequestItemSubmission> items, String note) throws Exception {
         Request request = new Request(note);
         for (SalesRequestItemSubmission item : items) {
+            if (item.quantityOrdered().compareTo(java.math.BigDecimal.ZERO) <= 0) {
+                throw new IllegalArgumentException("Số lượng đặt hàng phải lớn hơn 0.");
+            }
             int stock = inventoryRepository.getTotalStock(item.merchandiseId());
             if (item.quantityOrdered().compareTo(new java.math.BigDecimal(stock)) > 0) {
                 throw new IllegalArgumentException("Số lượng đặt hàng vượt quá tồn kho hiện tại.");

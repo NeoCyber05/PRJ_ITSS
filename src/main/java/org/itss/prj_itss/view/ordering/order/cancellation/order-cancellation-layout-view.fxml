@@ -35,10 +35,6 @@
                                                styleClass="cancelled-order-subtitle"/>
                                     </children>
                                 </VBox>
-                                <Button fx:id="cancelProcessingButton"
-                                        text="Hủy xử lý"
-                                        onAction="#handleCancelProcessingAction"
-                                        styleClass="cancelled-order-danger-outline-button"/>
                             </children>
                         </HBox>
 
@@ -49,7 +45,7 @@
                             <children>
                                 <Label text="Gợi ý tự động:"
                                        styleClass="cancelled-order-suggest-title"/>
-                                <Label text="Chọn từ 3 chiến lược phân bổ: chi phí thấp, ít điểm nhập, hoặc cân bằng."
+                                <Label text="Chọn từ 6 chiến lược phân bổ"
                                        wrapText="true"
                                        styleClass="cancelled-order-suggest-copy"
                                        HBox.hgrow="ALWAYS"/>
@@ -86,6 +82,10 @@
                       spacing="16"
                       styleClass="cancelled-order-footer">
                     <children>
+                        <Button fx:id="backToOrdersButton"
+                                text="Danh sách đơn hàng"
+                                onAction="#handleBackToOrders"
+                                styleClass="cancelled-order-secondary-button"/>
                         <HBox fx:id="footerSummaryBox"
                               alignment="CENTER_LEFT"
                               spacing="10"

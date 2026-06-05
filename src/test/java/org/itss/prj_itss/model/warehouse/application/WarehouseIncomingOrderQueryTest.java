@@ -30,9 +30,12 @@ class WarehouseIncomingOrderQueryTest {
         FakeSiteRepository siteRepo = new FakeSiteRepository();
         FakeMerchandiseRepository merchandiseRepo = new FakeMerchandiseRepository();
 
-        orderRepo.orders.add(new Order(1, 10, 5, LocalDateTime.of(2026, 6, 1, 10, 0), OrderStatus.SHIPPING.displayValue()));
-        orderRepo.orders.add(new Order(2, 11, 6, LocalDateTime.of(2026, 6, 2, 10, 0), OrderStatus.SHIPPING.displayValue()));
-        orderRepo.orders.add(new Order(3, 12, 5, LocalDateTime.of(2026, 6, 3, 10, 0), OrderStatus.PENDING_CONFIRMATION.displayValue()));
+        orderRepo.orders
+                .add(new Order(1, 10, 5, LocalDateTime.of(2026, 6, 1, 10, 0), OrderStatus.SHIPPING.displayValue()));
+        orderRepo.orders
+                .add(new Order(2, 11, 6, LocalDateTime.of(2026, 6, 2, 10, 0), OrderStatus.SHIPPING.displayValue()));
+        orderRepo.orders.add(new Order(3, 12, 5, LocalDateTime.of(2026, 6, 3, 10, 0),
+                OrderStatus.PENDING_CONFIRMATION.displayValue()));
 
         siteRepo.sites.put(5, new Site(5, "TOKYO", "Tokyo", "", 10, 2));
         siteRepo.sites.put(6, new Site(6, "OSAKA", "Osaka", "", 8, 3));
@@ -111,8 +114,8 @@ class WarehouseIncomingOrderQueryTest {
         @Override
         public List<Order> findByStatus(String status) {
             return orders.stream()
-                .filter(o -> status.equalsIgnoreCase(o.getStatus()))
-                .toList();
+                    .filter(o -> status.equalsIgnoreCase(o.getStatus()))
+                    .toList();
         }
 
         @Override

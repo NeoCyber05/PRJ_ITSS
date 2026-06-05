@@ -1,9 +1,8 @@
-package org.itss.prj_itss.model.order.application;
+package org.itss.prj_itss.model.order.application.cancellation;
 
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
-import org.itss.prj_itss.model.order.application.cancellation.OrderCancellationApplicationService;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
@@ -93,8 +92,8 @@ class OrderCancellationApplicationServiceTest {
         @Override
         public List<Order> findByStatus(String status) {
             return orders.values().stream()
-                .filter(order -> status.equals(order.getStatus()))
-                .toList();
+                    .filter(order -> status.equals(order.getStatus()))
+                    .toList();
         }
 
         @Override
