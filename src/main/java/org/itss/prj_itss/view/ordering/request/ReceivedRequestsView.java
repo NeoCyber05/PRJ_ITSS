@@ -120,24 +120,27 @@ public final class ReceivedRequestsView implements ViewLifecycle {
                 HBox actions = new HBox(8);
                 actions.setAlignment(Pos.CENTER_LEFT);
 
-                Button detailButton = new Button("Chi tiết");
-                detailButton.setOnAction(event -> RequestDetailPopup.show(
-                    requestTable.getScene() == null ? null : requestTable.getScene().getWindow(),
-                    row.requestCode(),
-                    detailContext
-                ));
-                actions.getChildren().add(detailButton);
+                 Button detailButton = new Button("Chi tiết");
+                 detailButton.getStyleClass().add("forest-secondary-button");
+                 detailButton.setStyle("-fx-padding: 5 10; -fx-font-size: 12px;");
+                 detailButton.setOnAction(event -> RequestDetailPopup.show(
+                     requestTable.getScene() == null ? null : requestTable.getScene().getWindow(),
+                     row.requestCode(),
+                     detailContext
+                 ));
+                 actions.getChildren().add(detailButton);
 
-                if (OrderingFormatters.STATUS_PENDING.equals(OrderingFormatters.normalizeStatusKey(row.status()))) {
-                    Button processButton = new Button("Xử lý");
-                    processButton.getStyleClass().add("forest-dark-button");
-                    processButton.setOnAction(event -> {
-                        if (navigator != null) {
-                            navigator.showView("request-processing:" + row.requestId());
-                        }
-                    });
-                    actions.getChildren().add(processButton);
-                }
+                 if (OrderingFormatters.STATUS_PENDING.equals(OrderingFormatters.normalizeStatusKey(row.status()))) {
+                     Button processButton = new Button("Xử lý");
+                     processButton.getStyleClass().add("forest-dark-button");
+                     processButton.setStyle("-fx-padding: 5 10; -fx-font-size: 12px;");
+                     processButton.setOnAction(event -> {
+                         if (navigator != null) {
+                             navigator.showView("request-processing:" + row.requestId());
+                         }
+                     });
+                     actions.getChildren().add(processButton);
+                 }
 
                 setGraphic(actions);
                 setText(null);
@@ -176,7 +179,6 @@ public final class ReceivedRequestsView implements ViewLifecycle {
         this.navigator = navigator;
         this.controller = controller;
         this.detailContext = detailContext;
-        reload();
     }
 
     @Override

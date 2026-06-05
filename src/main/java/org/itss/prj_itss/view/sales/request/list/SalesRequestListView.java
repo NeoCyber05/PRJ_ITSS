@@ -130,7 +130,6 @@ public final class SalesRequestListView implements ViewLifecycle {
         this.createController = createController;
         this.editDialogLauncher = editDialogLauncher;
         this.viewController = viewController;
-        reload();
     }
 
     @Override

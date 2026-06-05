@@ -1,4 +1,4 @@
-package org.itss.prj_itss.model.order.application;
+package org.itss.prj_itss.model.order.application.cancellation;
 
 import org.itss.prj_itss.model.order.application.cancellation.OrderCancellationApplicationService;
 import org.itss.prj_itss.model.order.domain.Order;
@@ -93,8 +93,8 @@ class OrderCancellationApplicationServiceTest {
         @Override
         public List<Order> findByStatus(String status) {
             return orders.values().stream()
-                .filter(order -> status.equals(order.getStatus()))
-                .toList();
+                    .filter(order -> status.equals(order.getStatus()))
+                    .toList();
         }
 
         @Override

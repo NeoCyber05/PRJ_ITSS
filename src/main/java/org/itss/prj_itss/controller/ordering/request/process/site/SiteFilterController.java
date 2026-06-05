@@ -1,14 +1,14 @@
 package org.itss.prj_itss.controller.ordering.request.process.site;
 
 import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;
-import org.itss.prj_itss.view.ordering.request.process.state.SiteFilterModel;
+import org.itss.prj_itss.view.ordering.request.process.state.SiteFilterState;
 
 import java.util.List;
 import java.util.Set;
 
 public final class SiteFilterController {
 
-    private final SiteFilterModel model = new SiteFilterModel();
+    private final SiteFilterState model = new SiteFilterState();
     private String keyword = "";
 
     public void init(List<ProcessingSiteView> allSites) {

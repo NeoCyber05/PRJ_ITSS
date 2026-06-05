@@ -30,9 +30,12 @@ class WarehouseIncomingOrderQueryTest {
         FakeSiteRepository siteRepo = new FakeSiteRepository();
         FakeMerchandiseRepository merchandiseRepo = new FakeMerchandiseRepository();
 
-        orderRepo.orders.add(new Order(1, 10, 5, LocalDateTime.of(2026, 6, 1, 10, 0), OrderStatus.SHIPPING.displayValue()));
-        orderRepo.orders.add(new Order(2, 11, 6, LocalDateTime.of(2026, 6, 2, 10, 0), OrderStatus.SHIPPING.displayValue()));
-        orderRepo.orders.add(new Order(3, 12, 5, LocalDateTime.of(2026, 6, 3, 10, 0), OrderStatus.PENDING_CONFIRMATION.displayValue()));
+        orderRepo.orders
+                .add(new Order(1, 10, 5, LocalDateTime.of(2026, 6, 1, 10, 0), OrderStatus.SHIPPING.displayValue()));
+        orderRepo.orders
+                .add(new Order(2, 11, 6, LocalDateTime.of(2026, 6, 2, 10, 0), OrderStatus.SHIPPING.displayValue()));
+        orderRepo.orders.add(new Order(3, 12, 5, LocalDateTime.of(2026, 6, 3, 10, 0),
+                OrderStatus.PENDING_CONFIRMATION.displayValue()));
 
         siteRepo.sites.put(5, new Site(5, "TOKYO", "Tokyo", "", 10, 2));
         siteRepo.sites.put(6, new Site(6, "OSAKA", "Osaka", "", 8, 3));
@@ -50,6 +53,7 @@ class WarehouseIncomingOrderQueryTest {
         assertEquals(1, rows.get(1).orderId());
         assertEquals("DH-2026-002", rows.get(0).orderCode());
         assertEquals("Tokyo", rows.get(1).siteName());
+        assertEquals(0, orderRepo.findItemsByOrderIdCalls);
     }
 
     @Test
@@ -100,6 +104,7 @@ class WarehouseIncomingOrderQueryTest {
     static final class FakeOrderRepository implements OrderRepository {
         final List<Order> orders = new ArrayList<>();
         final Map<Integer, List<OrderMerchandise>> items = new LinkedHashMap<>();
+        int findItemsByOrderIdCalls;
 
         @Override
         public List<Order> findAll() {
@@ -109,8 +114,8 @@ class WarehouseIncomingOrderQueryTest {
         @Override
         public List<Order> findByStatus(String status) {
             return orders.stream()
-                .filter(o -> status.equalsIgnoreCase(o.getStatus()))
-                .toList();
+                    .filter(o -> status.equalsIgnoreCase(o.getStatus()))
+                    .toList();
         }
 
         @Override
@@ -120,7 +125,17 @@ class WarehouseIncomingOrderQueryTest {
 
         @Override
         public List<OrderMerchandise> findItemsByOrderId(int orderId) {
+            findItemsByOrderIdCalls++;
             return items.getOrDefault(orderId, List.of());
+        }
+
+        @Override
+        public java.util.Map<Integer, Integer> countItemsGroupedByOrderId() {
+            java.util.Map<Integer, Integer> counts = new LinkedHashMap<>();
+            for (java.util.Map.Entry<Integer, List<OrderMerchandise>> entry : items.entrySet()) {
+                counts.put(entry.getKey(), entry.getValue().size());
+            }
+            return counts;
         }
 
         @Override
@@ -190,6 +205,11 @@ class WarehouseIncomingOrderQueryTest {
         @Override
         public int countMerchandiseAtSite(int siteId) {
             return 0;
+        }
+
+        @Override
+        public Map<Integer, Integer> countMerchandiseGroupedBySiteId() {
+            return Map.of();
         }
     }
 

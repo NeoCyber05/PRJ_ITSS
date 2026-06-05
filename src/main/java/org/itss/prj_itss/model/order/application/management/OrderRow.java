@@ -12,6 +12,7 @@ public record OrderRow(
     int siteId,
     String orderCode,
     String requestCode,
+    String siteCode,
     String siteName,
     String itemsSummary,
     String createdAt,
@@ -29,6 +30,7 @@ public record OrderRow(
         return normalized.isBlank()
             || contains(orderCode, normalized)
             || contains(requestCode, normalized)
+            || contains(siteCode, normalized)
             || contains(siteName, normalized)
             || contains(itemsSummary, normalized);
     }

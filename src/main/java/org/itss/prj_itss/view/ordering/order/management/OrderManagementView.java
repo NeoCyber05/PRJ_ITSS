@@ -1,5 +1,6 @@
 package org.itss.prj_itss.view.ordering.order.management;
 
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
@@ -39,9 +40,6 @@ public final class OrderManagementView implements ViewLifecycle {
     private TableColumn<OrderRow, String> siteColumn;
 
     @FXML
-    private TableColumn<OrderRow, String> itemsColumn;
-
-    @FXML
     private TableColumn<OrderRow, String> createdAtColumn;
 
     @FXML
@@ -60,12 +58,29 @@ public final class OrderManagementView implements ViewLifecycle {
     private Label paginationInfoLabel;
 
     @FXML
+    private Button prevPageButton;
+
+    @FXML
+    private Button nextPageButton;
+
+    private final ObservableList<OrderRow> pagedRows = FXCollections.observableArrayList();
+    private final int itemsPerPage = 10;
+    private int currentPage = 0;
+
+    @FXML
     private void initialize() {
         TableViewSupport.useConstrainedResize(orderTable);
+        orderTable.getStyleClass().add("no-vertical-scrollbar");
+        orderTable.setFixedCellSize(46);
+        orderTable.prefHeightProperty().bind(
+            Bindings.max(1, Bindings.size(pagedRows)).multiply(orderTable.getFixedCellSize()).add(38)
+        );
+        orderTable.minHeightProperty().bind(orderTable.prefHeightProperty());
+        orderTable.maxHeightProperty().bind(orderTable.prefHeightProperty());
+
         orderCodeColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().orderCode()));
         requestCodeColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().requestCode()));
-        siteColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().siteName()));
-        itemsColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().itemsSummary()));
+        siteColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().siteCode()));
         createdAtColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().createdAt()));
         statusColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().status()));
         statusColumn.setCellFactory(column -> new TableCell<>() {
@@ -94,6 +109,8 @@ public final class OrderManagementView implements ViewLifecycle {
                 }
 
                 Button detailButton = new Button("Chi tiết");
+                detailButton.getStyleClass().add("forest-secondary-button");
+                detailButton.setStyle("-fx-padding: 5 10; -fx-font-size: 12px;");
                 detailButton.setOnAction(event -> {
                     if (navigator != null) {
                         navigator.showView("order-detail:" + row.order().getId());
@@ -106,6 +123,8 @@ public final class OrderManagementView implements ViewLifecycle {
 
                 if (OrderingFormatters.STATUS_CANCELLED.equalsIgnoreCase(OrderingFormatters.normalizeStatusKey(row.status()))) {
                     Button processButton = new Button("Xử lý");
+                    processButton.getStyleClass().add("forest-dark-button");
+                    processButton.setStyle("-fx-padding: 5 10; -fx-font-size: 12px;");
                     processButton.setOnAction(event -> {
                         if (navigator != null) {
                             navigator.showView("ordering-order-handle-cancellation:" + row.order().getId());
@@ -119,7 +138,11 @@ public final class OrderManagementView implements ViewLifecycle {
             }
         });
 
-        orderTable.setItems(filteredRows);
+        orderTable.setItems(pagedRows);
+
+        filteredRows.addListener((javafx.collections.ListChangeListener.Change<? extends OrderRow> c) -> {
+            updatePage();
+        });
 
         statusFilter.getItems().addAll(
             "Mọi trạng thái",
@@ -138,7 +161,6 @@ public final class OrderManagementView implements ViewLifecycle {
     public void init(Navigator navigator, OrderManagementController controller) {
         this.navigator = navigator;
         this.controller = controller;
-        reload();
     }
 
     @Override
@@ -168,9 +190,47 @@ public final class OrderManagementView implements ViewLifecycle {
             return matchesKeyword && matchesStatus;
         });
 
-        int size = filteredRows.size();
-        paginationInfoLabel.setText(size == 0
-            ? "Không có đơn hàng phù hợp"
-            : "Hiển thị 1 - " + size + " của " + size + " đơn hàng");
+        currentPage = 0;
+        updatePage();
+    }
+
+    private void updatePage() {
+        int totalItems = filteredRows.size();
+        int totalPages = (int) Math.ceil((double) totalItems / itemsPerPage);
+        if (totalPages == 0) totalPages = 1;
+        if (currentPage >= totalPages) currentPage = totalPages - 1;
+        if (currentPage < 0) currentPage = 0;
+
+        int start = currentPage * itemsPerPage;
+        int end = Math.min(start + itemsPerPage, totalItems);
+
+        pagedRows.setAll(filteredRows.subList(start, end));
+
+        if (prevPageButton != null) prevPageButton.setDisable(currentPage == 0);
+        if (nextPageButton != null) nextPageButton.setDisable(currentPage >= totalPages - 1);
+
+        if (paginationInfoLabel != null) {
+            paginationInfoLabel.setText(totalItems == 0
+                ? "Không có đơn hàng phù hợp"
+                : "Hiển thị " + (start + 1) + " - " + end + " của " + totalItems + " đơn hàng");
+        }
+    }
+
+    @FXML
+    private void handlePrevPage() {
+        if (currentPage > 0) {
+            currentPage--;
+            updatePage();
+        }
+    }
+
+    @FXML
+    private void handleNextPage() {
+        int totalItems = filteredRows.size();
+        int totalPages = (int) Math.ceil((double) totalItems / itemsPerPage);
+        if (currentPage < totalPages - 1) {
+            currentPage++;
+            updatePage();
+        }
     }
 }

@@ -31,11 +31,15 @@ public final class WarehouseIncomingOrderQuery {
 
     public List<IncomingOrderRow> findIncomingRows() {
         List<Order> orders = orderRepository.findByStatus(OrderStatus.SHIPPING.displayValue());
+        java.util.Map<Integer, Site> siteMap = siteUseCase.findAll().stream()
+            .collect(java.util.stream.Collectors.toMap(Site::getId, java.util.function.Function.identity(), (a, b) -> a));
+        java.util.Map<Integer, Integer> itemCounts = orderRepository.countItemsGroupedByOrderId();
+
         return orders.stream()
             .sorted(Comparator
                 .comparing(Order::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder()))
                 .thenComparing(Comparator.comparingInt(Order::getId).reversed()))
-            .map(this::toRow)
+            .map(order -> toRow(order, siteMap, itemCounts))
             .toList();
     }
 
@@ -49,6 +53,24 @@ public final class WarehouseIncomingOrderQuery {
             .map(this::toItemRow)
             .toList();
         return new IncomingOrderDetail(summary, items);
+    }
+
+    private IncomingOrderRow toRow(Order order, java.util.Map<Integer, Site> siteMap, java.util.Map<Integer, Integer> itemCounts) {
+        Site site = siteMap.get(order.getSiteId());
+        int itemCount = itemCounts.getOrDefault(order.getId(), 0);
+        return new IncomingOrderRow(
+            order.getId(),
+            order.getRequestId(),
+            order.getSiteId(),
+            OrderingFormatters.formatOrderCode(order.getId()),
+            OrderingFormatters.formatRequestCode(order.getRequestId()),
+            site == null ? "N/A" : safeText(site.getSiteCode()),
+            site == null ? "Site #" + order.getSiteId() : safeText(site.getName()),
+            OrderingFormatters.formatDateOrEmpty(order.getCreatedAt()),
+            order.getStatus(),
+            OrderingFormatters.orderStatusText(order.getStatus()),
+            itemCount
+        );
     }
 
     private IncomingOrderRow toRow(Order order) {

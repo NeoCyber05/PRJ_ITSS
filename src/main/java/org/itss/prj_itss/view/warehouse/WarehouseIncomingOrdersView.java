@@ -96,7 +96,6 @@ public final class WarehouseIncomingOrdersView implements ViewLifecycle {
     public void init(Navigator navigator, WarehouseIncomingOrderController controller) {
         this.navigator = navigator;
         this.controller = controller;
-        reload();
     }
 
     @Override

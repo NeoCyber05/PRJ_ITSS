@@ -106,6 +106,7 @@ public final class OrderManagementApplicationService {
             order.getSiteId(),
             OrderingFormatters.formatOrderCode(order.getId()),
             OrderingFormatters.formatRequestCode(order.getRequestId()),
+            site == null ? "Site #" + order.getSiteId() : site.getSiteCode(),
             site == null ? "Site #" + order.getSiteId() : site.getName(),
             itemSummary,
             OrderingFormatters.formatDateOrEmpty(order.getCreatedAt()),

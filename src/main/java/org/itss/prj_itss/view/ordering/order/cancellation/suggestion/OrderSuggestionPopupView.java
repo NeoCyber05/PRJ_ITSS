@@ -33,6 +33,21 @@ public final class OrderSuggestionPopupView {
         applyOption(3);
     }
 
+    @FXML
+    private void handleApplyOption4() {
+        applyOption(4);
+    }
+
+    @FXML
+    private void handleApplyOption5() {
+        applyOption(5);
+    }
+
+    @FXML
+    private void handleApplyOption6() {
+        applyOption(6);
+    }
+
     private void applyOption(int optionId) {
         if (layoutView == null) return;
         layoutView.closePopup();
