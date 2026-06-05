@@ -618,6 +618,13 @@
     -fx-font-size: 13px;
 }
 
+.table-view.no-horizontal-scroll-table .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-padding: 0;
+}
+
 .btn-primary {
     -fx-background-color: linear-gradient(to right, #0F766E, #14B8A6);
     -fx-text-fill: white;
@@ -1948,7 +1955,7 @@
 }
 
 .confirm-content {
-    -fx-padding: 0 0 16 0;
+    -fx-padding: 0;
 }
 
 .confirm-content-scroll {
@@ -1963,6 +1970,18 @@
     -fx-border-color: #E5ECF4;
     -fx-border-width: 1;
     -fx-padding: 16 18;
+}
+
+.confirm-summary-card {
+    -fx-padding: 10 14;
+}
+
+.confirm-items-card {
+    -fx-padding: 10 14;
+}
+
+.confirm-note-card {
+    -fx-padding: 10 14;
 }
 
 .confirm-section-title {
@@ -1992,7 +2011,7 @@
     -fx-background-color: white;
     -fx-border-color: #E5ECF4 transparent transparent transparent;
     -fx-border-width: 1 0 0 0;
-    -fx-padding: 16 0 0 0;
+    -fx-padding: 10 0 0 0;
 }
 
 .text-field.inspection-input,

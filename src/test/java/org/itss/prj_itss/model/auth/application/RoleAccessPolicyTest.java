@@ -36,9 +36,10 @@ class RoleAccessPolicyTest {
 
     @Test
     void warehouseRoleOnlyGetsWarehouseArrivalView() {
-        assertEquals("warehouse-inbound-orders", RoleAccessPolicy.defaultViewId(RoleType.WAREHOUSE));
+        assertEquals("warehouse-order-confirm-arrival", RoleAccessPolicy.defaultViewId(RoleType.WAREHOUSE));
         assertTrue(RoleAccessPolicy.canAccess(RoleType.WAREHOUSE, "warehouse-inbound-orders"));
         assertTrue(RoleAccessPolicy.canAccess(RoleType.WAREHOUSE, "warehouse-order-confirm-arrival"));
+        assertTrue(RoleAccessPolicy.canAccess(RoleType.WAREHOUSE, "warehouse-order-confirm-arrival:7"));
         assertFalse(RoleAccessPolicy.canAccess(RoleType.WAREHOUSE, "home"));
     }
 

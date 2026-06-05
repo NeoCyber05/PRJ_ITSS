@@ -41,6 +41,10 @@ public final class WarehouseIncomingOrdersView implements ViewLifecycle {
     @FXML
     private void initialize() {
         orderTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        actionColumn.setMinWidth(220);
+        actionColumn.setPrefWidth(220);
+        actionColumn.setMaxWidth(220);
+        actionColumn.setResizable(false);
 
         orderCodeColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().orderCode()));
         requestCodeColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().requestCode()));
@@ -70,6 +74,8 @@ public final class WarehouseIncomingOrdersView implements ViewLifecycle {
         });
 
         actionColumn.setCellValueFactory(data -> new ReadOnlyObjectWrapper<>(data.getValue()));
+        actionColumn.setSortable(false);
+        actionColumn.setReorderable(false);
         actionColumn.setCellFactory(column -> new TableCell<>() {
             @Override
             protected void updateItem(IncomingOrderRow row, boolean empty) {
@@ -126,16 +132,26 @@ public final class WarehouseIncomingOrdersView implements ViewLifecycle {
 
     private HBox buildActionButtons(IncomingOrderRow row) {
         HBox actions = new HBox(8);
-        actions.setAlignment(Pos.CENTER_LEFT);
+        actions.setAlignment(Pos.CENTER);
+        actions.setMinWidth(180);
+        actions.setPrefWidth(180);
 
         Button detailBtn = new Button("Chi tiết");
+        detailBtn.setMinWidth(78);
+        detailBtn.setPrefWidth(78);
+        detailBtn.setMaxWidth(78);
+        detailBtn.setTextOverrun(OverrunStyle.CLIP);
         detailBtn.setStyle("-fx-background-color: #EFF6FF; -fx-text-fill: #1D4ED8; -fx-background-radius: 6; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 6 14; -fx-cursor: hand;");
         detailBtn.setOnAction(e -> showDetailDialog(row));
         actions.getChildren().add(detailBtn);
 
         Button confirmBtn = new Button("Xác nhận");
+        confirmBtn.setMinWidth(94);
+        confirmBtn.setPrefWidth(94);
+        confirmBtn.setMaxWidth(94);
+        confirmBtn.setTextOverrun(OverrunStyle.CLIP);
         confirmBtn.setStyle("-fx-background-color: #253D2C; -fx-text-fill: white; -fx-background-radius: 6; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 6 14; -fx-cursor: hand;");
-        confirmBtn.setOnAction(e -> navigator.showView("warehouse-order-confirm-arrival"));
+        confirmBtn.setOnAction(e -> navigator.showView("warehouse-order-confirm-arrival:" + row.orderId()));
         actions.getChildren().add(confirmBtn);
 
         return actions;

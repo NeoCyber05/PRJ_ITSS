@@ -3,7 +3,6 @@ package org.itss.prj_itss.model.warehouse.application;
 import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
 import org.itss.prj_itss.model.merchandise.application.port.MerchandiseRepository;
 import org.itss.prj_itss.model.merchandise.domain.Merchandise;
-import org.itss.prj_itss.model.order.application.OrderUseCase;
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
@@ -39,7 +38,7 @@ class WarehouseIncomingOrderQueryTest {
         siteRepo.sites.put(6, new Site(6, "OSAKA", "Osaka", "", 8, 3));
 
         WarehouseIncomingOrderQuery query = new WarehouseIncomingOrderQuery(
-            new OrderUseCase(orderRepo),
+            orderRepo,
             new SiteUseCase(siteRepo, siteRepo),
             new MerchandiseUseCase(merchandiseRepo)
         );
@@ -66,7 +65,7 @@ class WarehouseIncomingOrderQueryTest {
         merchandiseRepo.merchandise.put(7, new Merchandise(7, "M-01", "Tea", "box"));
 
         WarehouseIncomingOrderQuery query = new WarehouseIncomingOrderQuery(
-            new OrderUseCase(orderRepo),
+            orderRepo,
             new SiteUseCase(siteRepo, siteRepo),
             new MerchandiseUseCase(merchandiseRepo)
         );
@@ -90,7 +89,7 @@ class WarehouseIncomingOrderQueryTest {
         FakeMerchandiseRepository merchandiseRepo = new FakeMerchandiseRepository();
 
         WarehouseIncomingOrderQuery query = new WarehouseIncomingOrderQuery(
-            new OrderUseCase(orderRepo),
+            orderRepo,
             new SiteUseCase(siteRepo, siteRepo),
             new MerchandiseUseCase(merchandiseRepo)
         );

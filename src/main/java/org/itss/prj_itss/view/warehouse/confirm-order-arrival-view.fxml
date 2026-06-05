@@ -52,7 +52,7 @@
                                 <TableColumn fx:id="siteNameColumn" text="Tên site" minWidth="180" prefWidth="180"/>
                                 <TableColumn fx:id="createdAtColumn" text="Ngày tạo" minWidth="110" prefWidth="110"/>
                                 <TableColumn fx:id="statusColumn" text="Trạng thái" minWidth="130" prefWidth="130"/>
-                                <TableColumn fx:id="actionColumn" text="Hành động" minWidth="120" prefWidth="120"/>
+                                <TableColumn fx:id="actionColumn" text="Hành động" minWidth="220" prefWidth="220" maxWidth="220" resizable="false"/>
                             </columns>
                         </TableView>
                         <Label fx:id="orderListInfoLabel"
@@ -65,75 +65,79 @@
                         <Insets top="22" right="32" bottom="26" left="32"/>
                     </padding>
                     <center>
-                        <ScrollPane fitToWidth="true" hbarPolicy="NEVER" styleClass="transparent-scroll-pane">
-                            <content>
-                                <VBox spacing="16" styleClass="confirm-content">
+                        <VBox spacing="10" styleClass="confirm-content">
+                            <children>
+                                <HBox spacing="18" alignment="CENTER_LEFT">
                                     <children>
                                         <Label text="Xác nhận đơn hàng giao tới"
                                                style="-fx-font-size: 18px; -fx-font-weight: bold; -fx-text-fill: #1F2937;"/>
                                         <Label text="Danh sách đơn hàng giao tới &gt; Xác nhận đơn hàng"
                                                styleClass="confirm-breadcrumb"/>
+                                    </children>
+                                </HBox>
 
-                                        <VBox spacing="14" styleClass="confirm-info-card">
+                                <VBox spacing="8" styleClass="confirm-info-card confirm-summary-card">
+                                    <children>
+                                        <Label text="Thông tin đơn hàng" styleClass="confirm-section-title"/>
+                                        <GridPane hgap="18" vgap="8" styleClass="confirm-summary-grid">
                                             <children>
-                                                <Label text="Thông tin đơn hàng" styleClass="confirm-section-title"/>
-                                                <GridPane hgap="18" vgap="14" styleClass="confirm-summary-grid">
-                                                    <children>
-                                                        <Label text="Mã đơn hàng" GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="confirm-summary-label"/>
-                                                        <Label fx:id="orderCodeValueLabel" GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="confirm-summary-value"/>
-                                                        <Label text="Mã yêu cầu" GridPane.columnIndex="2" GridPane.rowIndex="0" styleClass="confirm-summary-label"/>
-                                                        <Label fx:id="requestCodeValueLabel" GridPane.columnIndex="3" GridPane.rowIndex="0" styleClass="confirm-summary-value"/>
+                                                <Label text="Mã đơn hàng" GridPane.columnIndex="0" GridPane.rowIndex="0" styleClass="confirm-summary-label"/>
+                                                <Label fx:id="orderCodeValueLabel" GridPane.columnIndex="1" GridPane.rowIndex="0" styleClass="confirm-summary-value"/>
+                                                <Label text="Mã yêu cầu" GridPane.columnIndex="2" GridPane.rowIndex="0" styleClass="confirm-summary-label"/>
+                                                <Label fx:id="requestCodeValueLabel" GridPane.columnIndex="3" GridPane.rowIndex="0" styleClass="confirm-summary-value"/>
+                                                <Label text="Mã site" GridPane.columnIndex="4" GridPane.rowIndex="0" styleClass="confirm-summary-label"/>
+                                                <Label fx:id="siteCodeValueLabel" GridPane.columnIndex="5" GridPane.rowIndex="0" styleClass="confirm-summary-value"/>
 
-                                                        <Label text="Mã site" GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="confirm-summary-label"/>
-                                                        <Label fx:id="siteCodeValueLabel" GridPane.columnIndex="1" GridPane.rowIndex="1" styleClass="confirm-summary-value"/>
-                                                        <Label text="Tên site" GridPane.columnIndex="2" GridPane.rowIndex="1" styleClass="confirm-summary-label"/>
-                                                        <Label fx:id="siteNameValueLabel" GridPane.columnIndex="3" GridPane.rowIndex="1" styleClass="confirm-summary-value"/>
-
-                                                        <Label text="Ngày tạo" GridPane.columnIndex="0" GridPane.rowIndex="2" styleClass="confirm-summary-label"/>
-                                                        <Label fx:id="createdAtValueLabel" GridPane.columnIndex="1" GridPane.rowIndex="2" styleClass="confirm-summary-value"/>
-                                                        <Label text="Trạng thái" GridPane.columnIndex="2" GridPane.rowIndex="2" styleClass="confirm-summary-label"/>
-                                                        <Label fx:id="statusValueLabel" GridPane.columnIndex="3" GridPane.rowIndex="2" styleClass="confirm-summary-value"/>
-                                                    </children>
-                                                </GridPane>
+                                                <Label text="Tên site" GridPane.columnIndex="0" GridPane.rowIndex="1" styleClass="confirm-summary-label"/>
+                                                <Label fx:id="siteNameValueLabel" GridPane.columnIndex="1" GridPane.rowIndex="1" GridPane.columnSpan="3" styleClass="confirm-summary-value"/>
+                                                <Label text="Ngày tạo" GridPane.columnIndex="4" GridPane.rowIndex="1" styleClass="confirm-summary-label"/>
+                                                <Label fx:id="createdAtValueLabel" GridPane.columnIndex="5" GridPane.rowIndex="1" styleClass="confirm-summary-value"/>
+                                                <Label text="Trạng thái" GridPane.columnIndex="6" GridPane.rowIndex="1" styleClass="confirm-summary-label"/>
+                                                <Label fx:id="statusValueLabel" GridPane.columnIndex="7" GridPane.rowIndex="1" styleClass="confirm-summary-value"/>
                                             </children>
-                                        </VBox>
+                                        </GridPane>
+                                    </children>
+                                </VBox>
 
-                                        <VBox spacing="12" styleClass="confirm-info-card">
-                                            <children>
-                                                <Label text="Bảng kiểm nhận hàng" styleClass="confirm-section-title"/>
-                                                <TableView fx:id="itemTable" VBox.vgrow="ALWAYS" prefHeight="360" minHeight="320" maxWidth="1120">
-                                                    <columns>
-                                                        <TableColumn fx:id="itemIndexColumn" text="STT" minWidth="50" prefWidth="55" maxWidth="65"/>
-                                                        <TableColumn fx:id="itemCodeColumn" text="Mã hàng" minWidth="90" prefWidth="95" maxWidth="105"/>
-                                                        <TableColumn fx:id="itemNameColumn" text="Tên mặt hàng" minWidth="260" prefWidth="280"/>
-                                                        <TableColumn fx:id="itemOrderedQuantityColumn" text="SL đặt" minWidth="70" prefWidth="75" maxWidth="82"/>
-                                                        <TableColumn fx:id="itemUnitColumn" text="Đơn vị" minWidth="70" prefWidth="75" maxWidth="82"/>
-                                                        <TableColumn fx:id="itemDeliveryColumn" text="Vận chuyển" minWidth="105" prefWidth="115" maxWidth="130"/>
-                                                        <TableColumn fx:id="itemReceivedQuantityColumn" text="SL thực nhận" minWidth="125" prefWidth="135" maxWidth="145"/>
-                                                        <TableColumn fx:id="itemInspectionResultColumn" text="Kết quả" minWidth="120" prefWidth="130" maxWidth="145"/>
-                                                    </columns>
-                                                </TableView>
-                                            </children>
-                                        </VBox>
+                                <VBox spacing="8" VBox.vgrow="ALWAYS" styleClass="confirm-info-card confirm-items-card">
+                                    <children>
+                                        <Label text="Bảng kiểm nhận hàng" styleClass="confirm-section-title"/>
+                                        <TableView fx:id="itemTable" VBox.vgrow="ALWAYS" minHeight="180" prefHeight="260">
+                                            <columns>
+                                                <TableColumn fx:id="itemIndexColumn" text="STT" minWidth="50" prefWidth="55" maxWidth="65"/>
+                                                <TableColumn fx:id="itemCodeColumn" text="Mã hàng" minWidth="90" prefWidth="95" maxWidth="105"/>
+                                                <TableColumn fx:id="itemNameColumn" text="Tên mặt hàng" minWidth="220" prefWidth="260"/>
+                                                <TableColumn fx:id="itemOrderedQuantityColumn" text="SL đặt" minWidth="70" prefWidth="75" maxWidth="82"/>
+                                                <TableColumn fx:id="itemUnitColumn" text="Đơn vị" minWidth="70" prefWidth="75" maxWidth="82"/>
+                                                <TableColumn fx:id="itemDeliveryColumn" text="Vận chuyển" minWidth="105" prefWidth="115" maxWidth="130"/>
+                                                <TableColumn fx:id="itemReceivedQuantityColumn" text="SL thực nhận" minWidth="125" prefWidth="135" maxWidth="145"/>
+                                                <TableColumn fx:id="itemInspectionResultColumn" text="Kết quả" minWidth="120" prefWidth="130" maxWidth="145"/>
+                                            </columns>
+                                        </TableView>
+                                    </children>
+                                </VBox>
 
-                                        <VBox spacing="8" styleClass="confirm-info-card">
+                                <VBox spacing="6" styleClass="confirm-info-card confirm-note-card">
+                                    <children>
+                                        <HBox spacing="12" alignment="CENTER_LEFT">
                                             <children>
                                                 <Label text="Kết luận xác nhận" styleClass="confirm-section-title"/>
                                                 <Label text="Ghi chú tổng thể"
                                                        style="-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #334155;"/>
-                                                <TextArea fx:id="overallNoteArea"
-                                                          promptText="Nhập ghi chú tổng thể hoặc ghi chú chênh lệch nếu có..."
-                                                          prefRowCount="4"
-                                                          wrapText="true"/>
-                                                <Label fx:id="messageLabel"
-                                                       wrapText="true"
-                                                       style="-fx-font-size: 13px; -fx-font-weight: bold;"/>
                                             </children>
-                                        </VBox>
+                                        </HBox>
+                                        <TextArea fx:id="overallNoteArea"
+                                                  promptText="Nhập ghi chú tổng thể hoặc ghi chú chênh lệch nếu có..."
+                                                  prefRowCount="2"
+                                                  maxHeight="74"
+                                                  wrapText="true"/>
+                                        <Label fx:id="messageLabel"
+                                               wrapText="true"
+                                               style="-fx-font-size: 13px; -fx-font-weight: bold;"/>
                                     </children>
                                 </VBox>
-                            </content>
-                        </ScrollPane>
+                            </children>
+                        </VBox>
                     </center>
                     <bottom>
                         <HBox alignment="CENTER_RIGHT" spacing="12" styleClass="confirm-action-bar">

@@ -10,10 +10,12 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
+import javafx.geometry.Pos;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.ContentDisplay;
 import javafx.scene.control.Label;
+import javafx.scene.control.OverrunStyle;
 import javafx.scene.control.TableCell;
 import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableView;
@@ -21,12 +23,16 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.control.TextFormatter;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
 import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.site.domain.Site;
+import org.itss.prj_itss.model.warehouse.application.IncomingOrderDetail;
+import org.itss.prj_itss.model.warehouse.application.IncomingOrderItemRow;
+import org.itss.prj_itss.model.warehouse.application.IncomingOrderRow;
 import org.itss.prj_itss.model.warehouse.domain.InspectionResult;
 import org.itss.prj_itss.model.warehouse.application.WarehouseReceivingUseCase.ConfirmationResult;
 import org.itss.prj_itss.controller.warehouse.ConfirmOrderArrivalController;
@@ -156,9 +162,26 @@ public final class ConfirmOrderArrivalView implements ViewLifecycle {
         loadInboundOrders();
     }
 
+    public void showOrderById(int orderId) {
+        loadInboundOrders();
+        for (OrderRow row : orderRows) {
+            if (row.order().getId() == orderId) {
+                showConfirmPane(row.order());
+                return;
+            }
+        }
+        showListPane();
+        showListError("Không tìm thấy đơn hàng đang giao cần xác nhận.");
+    }
+
     private void configureOrderTable() {
         orderTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        orderTable.getStyleClass().add("no-horizontal-scroll-table");
         orderTable.setItems(orderRows);
+        actionColumn.setMinWidth(220);
+        actionColumn.setPrefWidth(220);
+        actionColumn.setMaxWidth(220);
+        actionColumn.setResizable(false);
 
         orderCodeColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().orderCode()));
         requestCodeColumn.setCellValueFactory(data -> new SimpleStringProperty(data.getValue().requestCode()));
@@ -179,18 +202,43 @@ public final class ConfirmOrderArrivalView implements ViewLifecycle {
                     return;
                 }
 
-                Button confirmActionButton = new Button("Xác nhận");
-                confirmActionButton.getStyleClass().add("forest-dark-button");
-                confirmActionButton.setOnAction(event -> showConfirmPane(row.order()));
-                setGraphic(confirmActionButton);
+                setGraphic(buildOrderActionButtons(row));
                 setText(null);
             }
         });
     }
 
+    private HBox buildOrderActionButtons(OrderRow row) {
+        HBox actions = new HBox(8);
+        actions.setAlignment(Pos.CENTER);
+        actions.setMinWidth(180);
+        actions.setPrefWidth(180);
+
+        Button detailButton = new Button("Chi tiết");
+        detailButton.setMinWidth(78);
+        detailButton.setPrefWidth(78);
+        detailButton.setMaxWidth(78);
+        detailButton.setTextOverrun(OverrunStyle.CLIP);
+        detailButton.setStyle("-fx-background-color: #EFF6FF; -fx-text-fill: #1D4ED8; -fx-background-radius: 6; -fx-font-size: 12px; -fx-font-weight: bold; -fx-padding: 6 14; -fx-cursor: hand;");
+        detailButton.setOnAction(event -> showDetailDialog(row));
+        actions.getChildren().add(detailButton);
+
+        Button confirmActionButton = new Button("Xác nhận");
+        confirmActionButton.setMinWidth(94);
+        confirmActionButton.setPrefWidth(94);
+        confirmActionButton.setMaxWidth(94);
+        confirmActionButton.setTextOverrun(OverrunStyle.CLIP);
+        confirmActionButton.getStyleClass().add("forest-dark-button");
+        confirmActionButton.setOnAction(event -> showConfirmPane(row.order()));
+        actions.getChildren().add(confirmActionButton);
+
+        return actions;
+    }
+
     private void configureItemTable() {
         itemTable.setEditable(false);
         itemTable.setColumnResizePolicy(TableView.CONSTRAINED_RESIZE_POLICY);
+        itemTable.getStyleClass().add("no-horizontal-scroll-table");
         itemTable.setItems(itemRows);
         itemTable.setFixedCellSize(64);
 
@@ -393,6 +441,7 @@ public final class ConfirmOrderArrivalView implements ViewLifecycle {
     @FXML
     private void handleCancel() {
         clearListMessage();
+        loadInboundOrders();
         showListPane();
     }
 
@@ -467,6 +516,47 @@ public final class ConfirmOrderArrivalView implements ViewLifecycle {
         return rows;
     }
 
+    private void showDetailDialog(OrderRow row) {
+        IncomingOrderDetail detail = new IncomingOrderDetail(toIncomingOrderRow(row), buildIncomingOrderItemRows(row.order()));
+        IncomingOrderDetailDialog.show(orderTable.getScene().getWindow(), detail);
+    }
+
+    private IncomingOrderRow toIncomingOrderRow(OrderRow row) {
+        Order order = row.order();
+        return new IncomingOrderRow(
+            order.getId(),
+            order.getRequestId(),
+            order.getSiteId(),
+            row.orderCode(),
+            row.requestCode(),
+            row.siteCode(),
+            row.siteName(),
+            row.createdAt(),
+            order.getStatus(),
+            row.status(),
+            controller == null ? 0 : controller.findItemsByOrderId(order.getId()).size()
+        );
+    }
+
+    private List<IncomingOrderItemRow> buildIncomingOrderItemRows(Order order) {
+        if (controller == null) {
+            return List.of();
+        }
+        return controller.findItemsByOrderId(order.getId()).stream()
+            .map(item -> {
+                Merchandise merchandise = controller.findMerchandiseById(item.getMerchandiseId());
+                return new IncomingOrderItemRow(
+                    item.getMerchandiseId(),
+                    merchandise == null ? "N/A" : safeText(merchandise.getCode()),
+                    merchandise == null ? "N/A" : safeText(merchandise.getName()),
+                    merchandise == null ? "N/A" : safeText(merchandise.getUnit()),
+                    OrderingFormatters.formatQuantity(item.getQuantity()),
+                    OrderingFormatters.deliveryMethodText(item.getDeliveryMethod())
+                );
+            })
+            .toList();
+    }
+
     private OrderRow toOrderRow(Order order) {
         if (controller == null) {
             return new OrderRow(order, formatOrderCode(order.getId()), String.format("YC-2026-%03d", order.getRequestId()), "N/A", "N/A", "", "");
@@ -510,6 +600,13 @@ public final class ConfirmOrderArrivalView implements ViewLifecycle {
         listMessageLabel.setManaged(true);
         listMessageLabel.setVisible(true);
         listMessageLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #15803D;");
+    }
+
+    private void showListError(String message) {
+        listMessageLabel.setText(message);
+        listMessageLabel.setManaged(true);
+        listMessageLabel.setVisible(true);
+        listMessageLabel.setStyle("-fx-font-size: 13px; -fx-font-weight: bold; -fx-text-fill: #B91C1C;");
     }
 
     private void clearListMessage() {
