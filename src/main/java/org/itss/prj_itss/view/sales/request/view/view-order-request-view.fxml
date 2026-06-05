@@ -44,13 +44,6 @@
                 </VBox>
             </HBox>
 
-            <!-- Note -->
-            <VBox spacing="8">
-                <Label text="GHI CHÚ YÊU CẦU THÊM" styleClass="request-detail-summary-label"/>
-                <javafx.scene.control.TextArea fx:id="noteArea" prefRowCount="2"
-                    style="-fx-background-color: transparent; -fx-border-color: transparent; -fx-text-fill: #374151; -fx-font-size: 13px;"/>
-            </VBox>
-
             <!-- Items table -->
             <VBox spacing="14">
                 <Label text="Danh sách mặt hàng" styleClass="request-detail-section-title"/>
