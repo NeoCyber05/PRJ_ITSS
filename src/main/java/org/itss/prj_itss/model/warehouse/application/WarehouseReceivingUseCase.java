@@ -115,7 +115,7 @@ public final class WarehouseReceivingUseCase {
             if (itemHasDiscrepancy) {
                 hasDiscrepancy = true;
                 if (normalizeText(input.itemNote()).isBlank() && normalizedOverallNote.isBlank()) {
-                    return ConfirmationResult.failure("Vui lòng nhập ghi chú tổng thể hoặc ghi chú chênh lệch.");
+                    return ConfirmationResult.failure("Có chênh lệch, hãy viết ghi chú chênh lệch.");
                 }
             }
         }
@@ -156,15 +156,13 @@ public final class WarehouseReceivingUseCase {
                         throw new TransactionException("Không thể lưu chi tiết kiểm nhận trong DB kho.");
                     }
                 }
+
+                if (!orderRepository.updateStatus(orderId, OrderStatus.DELIVERED.displayValue())) {
+                    throw new TransactionException("Không thể cập nhật trạng thái đơn hàng ở DB chính.");
+                }
             });
         } catch (TransactionException exception) {
             return ConfirmationResult.failure(exception.getMessage());
-        }
-
-        if (!orderRepository.updateStatus(orderId, OrderStatus.DELIVERED.displayValue())) {
-            return ConfirmationResult.failure(
-                "Đã lưu kết quả kiểm nhận vào DB kho nhưng không thể cập nhật trạng thái đơn hàng ở DB chính."
-            );
         }
 
         return ConfirmationResult.success(normalizeText(finalDiscrepancyNote));

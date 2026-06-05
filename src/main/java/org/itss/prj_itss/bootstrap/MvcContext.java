@@ -56,6 +56,7 @@ public final class MvcContext {
     private static final String REQUEST_PROCESSING_PREFIX = "request-processing:";
     private static final String SALES_REQUEST_UPDATE_PREFIX = "sales-request-update:";
     private static final String SALES_REQUEST_DETAIL_PREFIX = "sales-request-detail:";
+    private static final String WAREHOUSE_CONFIRM_ARRIVAL_PREFIX = "warehouse-order-confirm-arrival:";
 
     private final TransactionManager transactionManager = new TransactionManager();
     private final ConnectionProvider connectionProvider = new DatabaseConnectionProvider(transactionManager);
@@ -206,12 +207,13 @@ public final class MvcContext {
             (viewId, viewInstance, navigator) ->
                 ((WarehouseIncomingOrdersView) viewInstance).init(navigator, warehouseControllers.warehouseIncomingOrderController())
         ),
-        RouteRegistry.fxml(
-            "warehouse-order-confirm-arrival",
-            "/org/itss/prj_itss/view/warehouse/confirm-order-arrival-view.fxml",
-            (viewId, viewInstance, navigator) ->
-                ((ConfirmOrderArrivalView) viewInstance)
-                    .setController(warehouseControllers.confirmOrderArrivalController())
+        RouteRegistry.dynamic(
+            viewId -> "warehouse-order-confirm-arrival".equals(viewId)
+                || viewId.startsWith(WAREHOUSE_CONFIRM_ARRIVAL_PREFIX),
+            viewId -> viewId,
+            viewId -> "warehouse-order-confirm-arrival",
+            false,
+            this::loadWarehouseConfirmArrivalView
         ),
         RouteRegistry.fxml(
             "account-management",
@@ -333,6 +335,24 @@ public final class MvcContext {
                     routeNavigator::showView
                 );
                 requestProcessingView.setRequestId(requestId);
+            }
+        );
+    }
+
+    private LoadedView loadWarehouseConfirmArrivalView(String viewId, Navigator navigator) throws Exception {
+        int orderId = viewId.startsWith(WAREHOUSE_CONFIRM_ARRIVAL_PREFIX)
+            ? parsePositiveInt(viewId.substring(WAREHOUSE_CONFIRM_ARRIVAL_PREFIX.length()), 0)
+            : 0;
+        return RouteRegistry.loadFxml(
+            "/org/itss/prj_itss/view/warehouse/confirm-order-arrival-view.fxml",
+            viewId,
+            navigator,
+            (requestedViewId, viewInstance, routeNavigator) -> {
+                ConfirmOrderArrivalView view = (ConfirmOrderArrivalView) viewInstance;
+                view.setController(warehouseControllers.confirmOrderArrivalController());
+                if (orderId > 0) {
+                    view.showOrderById(orderId);
+                }
             }
         );
     }
