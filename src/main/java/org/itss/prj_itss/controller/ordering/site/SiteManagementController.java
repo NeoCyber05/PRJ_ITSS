@@ -37,6 +37,10 @@ public final class SiteManagementController {
         return siteManagementApplicationService.filterRows(rows, keyword);
     }
 
+    public SiteManagementResult createSiteWithAccount(SiteDraft siteDraft, SiteAccountDraft accountDraft) {
+        return siteManagementApplicationService.createSiteWithAccount(siteDraft, accountDraft);
+    }
+
     public SiteManagementResult createSite(SiteDraft draft) {
         return siteManagementApplicationService.createSite(draft);
     }

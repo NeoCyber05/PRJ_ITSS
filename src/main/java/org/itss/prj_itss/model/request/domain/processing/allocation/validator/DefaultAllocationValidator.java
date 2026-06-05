@@ -23,10 +23,10 @@ public final class DefaultAllocationValidator implements AllocationValidator {
         for (ItemRequirement item : items) {
             int allocated = plan.allocatedQuantity(item.merchandiseId);
             if (allocated < item.required) {
-                errors.add("- " + item.code + " chi phan bo " + allocated + "/" + item.required);
+                errors.add("- " + item.code + " chỉ phân bổ " + allocated + "/" + item.required);
             }
             if (allocated > item.required) {
-                errors.add("- " + item.code + " phan bo vuot " + allocated + "/" + item.required);
+                errors.add("- " + item.code + " phân bổ vượt " + allocated + "/" + item.required);
             }
         }
         return errors;
@@ -37,34 +37,38 @@ public final class DefaultAllocationValidator implements AllocationValidator {
         List<ItemRequirement> items,
         List<SiteStockOption> allSites,
         Map<Integer, Map<Integer, Allocation>> allocations,
-        Map<Integer, LocalDate> desiredDeliveryDates,
-        int deadlineDays
+        Map<Integer, LocalDate> desiredDeliveryDates
     ) {
         AllocationPlan plan = AllocationPlan.using(allocations);
         for (ItemRequirement item : items) {
             int allocated = plan.allocatedQuantity(item.merchandiseId);
             if (allocated < item.required) {
-                return "Chua du so luong hang can";
+                return "Chưa đủ số lượng hàng cần";
             }
             if (allocated > item.required) {
-                return "So luong phan bo vuot yeu cau";
+                return "Số lượng phân bổ vượt yêu cầu";
             }
         }
 
         for (ItemRequirement item : items) {
-            LocalDate desiredDate = desiredDeliveryDates.get(item.merchandiseId);
-            int itemDeadlineDays = desiredDate == null
-                ? deadlineDays
-                : Math.max(1, (int) ChronoUnit.DAYS.between(LocalDate.now(), desiredDate));
-
             Map<Integer, Allocation> itemAllocations = allocations.getOrDefault(item.merchandiseId, Map.of());
+            if (itemAllocations.isEmpty()) {
+                continue;
+            }
+
+            LocalDate desiredDate = desiredDeliveryDates.get(item.merchandiseId);
+            if (desiredDate == null) {
+                continue;
+            }
+
+            int itemDeadlineDays = (int) ChronoUnit.DAYS.between(LocalDate.now(), desiredDate);
             for (Allocation allocation : itemAllocations.values()) {
                 SiteStockOption site = allSites.stream()
                     .filter(candidate -> candidate.id == allocation.siteId)
                     .findFirst()
                     .orElse(null);
                 if (site == null) {
-                    return "Khong dap ung ngay nhan mong muon";
+                    return "Không đáp ứng ngày nhận mong muốn";
                 }
 
                 int deliveryDays = DeliveryOptions.deliveryDays(
@@ -72,7 +76,7 @@ public final class DefaultAllocationValidator implements AllocationValidator {
                     DeliveryOptions.resolve(site, allocation.transport, itemDeadlineDays)
                 );
                 if (deliveryDays >= 999 || deliveryDays > itemDeadlineDays) {
-                    return "Khong dap ung ngay nhan mong muon";
+                    return "Không đáp ứng ngày nhận mong muốn";
                 }
             }
         }

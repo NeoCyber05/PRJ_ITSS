@@ -77,7 +77,7 @@ public final class RequestProcessingPreviewDialogView {
 
         dialog.close();
         onOrdersRequested.run();
-        showToast("Đã tạo đơn hàng thành công.");
+        showToast("Xử lý yêu cầu thành công");
     }
 
     private void showCreationError() {

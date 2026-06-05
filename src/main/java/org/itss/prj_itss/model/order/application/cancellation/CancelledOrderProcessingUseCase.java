@@ -53,15 +53,13 @@ public final class CancelledOrderProcessingUseCase {
         List<ItemRequirement> items,
         List<SiteStockOption> allSites,
         Map<Integer, Map<Integer, Allocation>> allocations,
-        Map<Integer, LocalDate> desiredDeliveryDates,
-        int deadlineDays
+        Map<Integer, LocalDate> desiredDeliveryDates
     ) {
         return allocationValidator.validateSubmission(
             items,
             allSites,
             allocations,
-            desiredDeliveryDates,
-            deadlineDays
+            desiredDeliveryDates
         );
     }
 

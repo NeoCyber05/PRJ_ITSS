@@ -64,8 +64,6 @@
                                            styleClass="search-field"
                                            HBox.hgrow="ALWAYS"/>
                                 <Button fx:id="addSiteButton" text="+ Thêm Site mới" styleClass="btn-primary"/>
-                                <Button fx:id="editSiteButton" text="Sửa Site"/>
-                                <Button fx:id="createSiteAccountButton" text="Tạo tài khoản Site"/>
                             </children>
                         </HBox>
 

@@ -13,7 +13,11 @@ import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOptio
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
+import javafx.geometry.Side;
+import javafx.scene.control.ContextMenu;
+import javafx.scene.control.MenuItem;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
@@ -36,6 +40,8 @@ final class SalesRequestCreationItemRow extends HBox {
     SalesRequestCreationItemRow(
             int index,
             Function<String, MerchandiseOption> merchandiseLookup,
+            Function<String, List<String>> codeSuggester,
+            Function<String, Integer> stockLookup,
             Consumer<SalesRequestCreationItemRow> deleteHandler
     ) {
         super(12);
@@ -43,8 +49,8 @@ final class SalesRequestCreationItemRow extends HBox {
         setStyle(ROW_STYLE);
 
         configureIndexLabel(index);
-        configureCodeField(merchandiseLookup);
-        configureQuantityField();
+        configureCodeField(merchandiseLookup, codeSuggester, stockLookup);
+        configureQuantityField(merchandiseLookup, stockLookup);
         configureUnitField();
         configureDesiredDatePicker();
         configureDeleteButton(deleteHandler);
@@ -69,18 +75,41 @@ final class SalesRequestCreationItemRow extends HBox {
     }
 
     private void configureIndexLabel(int index) {
-        indexLabel.setMinWidth(30);
+        indexLabel.setPrefWidth(30);
+        indexLabel.setMaxWidth(30);
         indexLabel.setAlignment(Pos.CENTER);
         indexLabel.setStyle("-fx-font-weight: bold; -fx-text-fill: #475569;");
         updateIndex(index);
     }
 
-    private void configureCodeField(Function<String, MerchandiseOption> merchandiseLookup) {
+    private void configureCodeField(Function<String, MerchandiseOption> merchandiseLookup, Function<String, List<String>> codeSuggester, Function<String, Integer> stockLookup) {
         codeField.setPromptText("VD: MH-001");
-        codeField.setMinWidth(150);
+        codeField.setPrefWidth(150);
+        codeField.setMaxWidth(150);
         codeField.setStyle(INPUT_STYLE);
+        
+        ContextMenu suggestionPopup = new ContextMenu();
         codeField.textProperty().addListener((observable, oldValue, newValue) -> {
+            suggestionPopup.getItems().clear();
             String code = newValue == null ? "" : newValue.trim();
+            if (!code.isEmpty()) {
+                codeSuggester.apply(code).forEach(c -> {
+                        MenuItem item = new MenuItem(c);
+                        item.setOnAction(e -> {
+                            codeField.setText(c);
+                            codeField.positionCaret(c.length());
+                        });
+                        suggestionPopup.getItems().add(item);
+                    });
+                if (!suggestionPopup.getItems().isEmpty() && codeField.isFocused()) {
+                    suggestionPopup.show(codeField, Side.BOTTOM, 0, 0);
+                } else {
+                    suggestionPopup.hide();
+                }
+            } else {
+                suggestionPopup.hide();
+            }
+
             if (code.isEmpty()) {
                 codeField.setStyle(INPUT_STYLE);
                 unitField.setText("");
@@ -96,26 +125,67 @@ final class SalesRequestCreationItemRow extends HBox {
 
             codeField.setStyle(INPUT_STYLE);
             unitField.setText(merchandise.unit());
+            validateQuantity(merchandiseLookup, stockLookup);
         });
     }
 
-    private void configureQuantityField() {
+    private void configureQuantityField(Function<String, MerchandiseOption> merchandiseLookup, Function<String, Integer> stockLookup) {
         quantityField.setPromptText("0");
-        quantityField.setMinWidth(100);
+        quantityField.setPrefWidth(100);
+        quantityField.setMaxWidth(100);
         quantityField.setStyle(INPUT_STYLE);
+        quantityField.textProperty().addListener((observable, oldValue, newValue) -> {
+            validateQuantity(merchandiseLookup, stockLookup);
+        });
+    }
+
+    private void validateQuantity(Function<String, MerchandiseOption> merchandiseLookup, Function<String, Integer> stockLookup) {
+        String code = codeField.getText() == null ? "" : codeField.getText().trim();
+        if (code.isEmpty()) {
+            quantityField.setStyle(INPUT_STYLE);
+            return;
+        }
+        MerchandiseOption merchandise = merchandiseLookup.apply(code);
+        if (merchandise == null) {
+            quantityField.setStyle(INPUT_STYLE);
+            return;
+        }
+        Optional<BigDecimal> qtyOpt = parseQuantity(quantityField.getText());
+        if (qtyOpt.isPresent()) {
+            BigDecimal qty = qtyOpt.get();
+            Integer stock = stockLookup.apply(code);
+            if (stock != null && qty.compareTo(new BigDecimal(stock)) > 0) {
+                quantityField.setStyle(ERROR_STYLE);
+            } else {
+                quantityField.setStyle(INPUT_STYLE);
+            }
+        } else {
+            quantityField.setStyle(INPUT_STYLE);
+        }
     }
 
     private void configureUnitField() {
         unitField.setPromptText("VD: Thùng");
-        unitField.setMinWidth(120);
+        unitField.setPrefWidth(120);
+        unitField.setMaxWidth(120);
         unitField.setStyle(INPUT_STYLE);
         unitField.setEditable(false);
     }
 
     private void configureDesiredDatePicker() {
         desiredDatePicker.setPromptText("dd/mm/yyyy");
-        desiredDatePicker.setMinWidth(180);
+        desiredDatePicker.setPrefWidth(180);
+        desiredDatePicker.setMaxWidth(180);
         desiredDatePicker.setStyle("-fx-background-color: white; -fx-border-color: #CBD5E1; -fx-border-radius: 4;");
+        
+        desiredDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
+            if (newValue != null && newValue.isBefore(LocalDate.now())) {
+                desiredDatePicker.setStyle(ERROR_STYLE);
+            } else {
+                desiredDatePicker.setStyle("-fx-background-color: white; -fx-border-color: #CBD5E1; -fx-border-radius: 4; -fx-padding: 6 10;");
+            }
+        });
+
         desiredDatePicker.setDayCellFactory(picker -> new DateCell() {
             @Override
             public void updateItem(LocalDate date, boolean empty) {

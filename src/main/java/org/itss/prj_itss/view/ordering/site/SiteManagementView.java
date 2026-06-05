@@ -33,8 +33,6 @@ public final class SiteManagementView implements ViewLifecycle {
     @FXML private Label siteCountLabel;
     @FXML private TextField searchField;
     @FXML private Button addSiteButton;
-    @FXML private Button editSiteButton;
-    @FXML private Button createSiteAccountButton;
     @FXML private TableView<SiteRow> siteTable;
     @FXML private TableColumn<SiteRow, String> siteCodeColumn;
     @FXML private TableColumn<SiteRow, String> siteNameColumn;
@@ -42,6 +40,8 @@ public final class SiteManagementView implements ViewLifecycle {
     @FXML private TableColumn<SiteRow, String> shipDaysColumn;
     @FXML private TableColumn<SiteRow, String> airDaysColumn;
     @FXML private TableColumn<SiteRow, String> itemCountColumn;
+
+    private static record SiteAndAccountDraft(SiteDraft siteDraft, SiteAccountDraft accountDraft) {}
 
     @FXML
     private void initialize() {
@@ -55,8 +55,6 @@ public final class SiteManagementView implements ViewLifecycle {
         siteTable.setItems(displayedRows);
         searchField.textProperty().addListener((obs, old, val) -> applyFilter());
         addSiteButton.setOnAction(e -> handleAddSite());
-        editSiteButton.setOnAction(e -> handleEditSite());
-        createSiteAccountButton.setOnAction(e -> handleCreateSiteAccount());
     }
 
     public void init(Navigator navigator, SiteManagementController controller) {
@@ -91,49 +89,17 @@ public final class SiteManagementView implements ViewLifecycle {
 
     private void handleAddSite() {
         if (controller == null) return;
-        Optional<SiteDraft> draft = buildSiteDialog("Thêm Site mới", null);
+        Optional<SiteAndAccountDraft> draft = buildSiteDialog("Thêm Site mới");
         draft.ifPresent(d -> {
-            SiteManagementResult result = controller.createSite(d);
+            SiteManagementResult result = controller.createSiteWithAccount(d.siteDraft(), d.accountDraft());
             showAlert(result.success() ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR,
                 result.success() ? "Thành công" : "Lỗi", result.message());
             if (result.success()) reload();
         });
     }
 
-    private void handleEditSite() {
-        if (controller == null) return;
-        SiteRow selected = siteTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showAlert(Alert.AlertType.WARNING, "Chưa chọn", "Vui lòng chọn site cần sửa.");
-            return;
-        }
-        Optional<SiteDraft> draft = buildSiteDialog("Sửa Site", selected);
-        draft.ifPresent(d -> {
-            SiteManagementResult result = controller.updateSite(selected.siteId(), d);
-            showAlert(result.success() ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR,
-                result.success() ? "Thành công" : "Lỗi", result.message());
-            if (result.success()) reload();
-        });
-    }
-
-    private void handleCreateSiteAccount() {
-        if (controller == null) return;
-        SiteRow selected = siteTable.getSelectionModel().getSelectedItem();
-        if (selected == null) {
-            showAlert(Alert.AlertType.WARNING, "Chưa chọn", "Vui lòng chọn site cần tạo tài khoản.");
-            return;
-        }
-        Optional<SiteAccountDraft> draft = buildSiteAccountDialog(selected.siteName());
-        draft.ifPresent(d -> {
-            SiteManagementResult result = controller.provisionSiteAccount(selected.siteId(), d);
-            showAlert(result.success() ? Alert.AlertType.INFORMATION : Alert.AlertType.ERROR,
-                result.success() ? "Thành công" : "Lỗi", result.message());
-            if (result.success()) reload();
-        });
-    }
-
-    private Optional<SiteDraft> buildSiteDialog(String title, SiteRow prefill) {
-        Dialog<SiteDraft> dialog = new Dialog<>();
+    private Optional<SiteAndAccountDraft> buildSiteDialog(String title) {
+        Dialog<SiteAndAccountDraft> dialog = new Dialog<>();
         dialog.setTitle(title);
         dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
 
@@ -152,31 +118,36 @@ public final class SiteManagementView implements ViewLifecycle {
         TextField airDaysField = new TextField();
         airDaysField.setPromptText("Số ngày vận chuyển hàng không");
 
-        if (prefill != null) {
-            siteCodeField.setText(prefill.siteCode());
-            nameField.setText(prefill.siteName());
-            descField.setText(prefill.description() != null && !prefill.description().equals("-") ? prefill.description() : "");
-            if (prefill.site() != null) {
-                Integer ship = prefill.site().getShipDeliveryDays();
-                Integer air = prefill.site().getAirDeliveryDays();
-                if (ship != null) shipDaysField.setText(String.valueOf(ship));
-                if (air != null) airDaysField.setText(String.valueOf(air));
-            }
-        }
+        TextField usernameField = new TextField();
+        usernameField.setPromptText("Tên đăng nhập");
+        PasswordField passwordField = new PasswordField();
+        passwordField.setPromptText("Mật khẩu");
+        TextField fullNameField = new TextField();
+        fullNameField.setPromptText("Họ và tên");
 
-        grid.add(new Label("Mã site:"), 0, 0); grid.add(siteCodeField, 1, 0);
-        grid.add(new Label("Tên site:"), 0, 1); grid.add(nameField, 1, 1);
-        grid.add(new Label("Mô tả:"), 0, 2); grid.add(descField, 1, 2);
-        grid.add(new Label("Ngày vận chuyển biển:"), 0, 3); grid.add(shipDaysField, 1, 3);
-        grid.add(new Label("Ngày vận chuyển hàng không:"), 0, 4); grid.add(airDaysField, 1, 4);
+        grid.add(new Label("THÔNG TIN SITE:"), 0, 0, 2, 1);
+        grid.add(new Label("Mã site:"), 0, 1); grid.add(siteCodeField, 1, 1);
+        grid.add(new Label("Tên site:"), 0, 2); grid.add(nameField, 1, 2);
+        grid.add(new Label("Mô tả:"), 0, 3); grid.add(descField, 1, 3);
+        grid.add(new Label("Ngày vận chuyển biển:"), 0, 4); grid.add(shipDaysField, 1, 4);
+        grid.add(new Label("Ngày vận chuyển hàng không:"), 0, 5); grid.add(airDaysField, 1, 5);
+
+        grid.add(new Label("TÀI KHOẢN SITE:"), 0, 6, 2, 1);
+        grid.add(new Label("Tên đăng nhập:"), 0, 7); grid.add(usernameField, 1, 7);
+        grid.add(new Label("Mật khẩu:"), 0, 8); grid.add(passwordField, 1, 8);
+        grid.add(new Label("Họ và tên:"), 0, 9); grid.add(fullNameField, 1, 9);
 
         dialog.getDialogPane().setContent(grid);
 
         Button okBtn = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
         if (okBtn != null) {
             okBtn.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
-                if (siteCodeField.getText().trim().isBlank() || nameField.getText().trim().isBlank()) {
-                    showAlert(Alert.AlertType.WARNING, "Thiếu thông tin", "Mã site và tên site không được để trống.");
+                if (siteCodeField.getText().trim().isBlank() 
+                        || nameField.getText().trim().isBlank()
+                        || usernameField.getText().trim().isBlank()
+                        || passwordField.getText().isEmpty()
+                        || fullNameField.getText().trim().isBlank()) {
+                    showAlert(Alert.AlertType.WARNING, "Thiếu thông tin", "Vui lòng điền đầy đủ Mã site, Tên site và thông tin Tài khoản (Tên đăng nhập, Mật khẩu, Họ và tên).");
                     event.consume();
                 }
             });
@@ -189,53 +160,14 @@ public final class SiteManagementView implements ViewLifecycle {
             String desc = descField.getText().trim();
             Integer shipDays = parseOptionalInt(shipDaysField.getText());
             Integer airDays = parseOptionalInt(airDaysField.getText());
-            return new SiteDraft(siteCode, name, desc.isEmpty() ? null : desc, shipDays, airDays);
-        });
 
-        return dialog.showAndWait();
-    }
-
-    private Optional<SiteAccountDraft> buildSiteAccountDialog(String siteName) {
-        Dialog<SiteAccountDraft> dialog = new Dialog<>();
-        dialog.setTitle("Tạo tài khoản Site: " + siteName);
-        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK, ButtonType.CANCEL);
-
-        GridPane grid = new GridPane();
-        grid.setHgap(10); grid.setVgap(10);
-        grid.setPadding(new Insets(20));
-
-        TextField usernameField = new TextField();
-        usernameField.setPromptText("Tên đăng nhập");
-        PasswordField passwordField = new PasswordField();
-        passwordField.setPromptText("Mật khẩu");
-        TextField fullNameField = new TextField();
-        fullNameField.setPromptText("Họ và tên");
-
-        grid.add(new Label("Tên đăng nhập:"), 0, 0); grid.add(usernameField, 1, 0);
-        grid.add(new Label("Mật khẩu:"), 0, 1); grid.add(passwordField, 1, 1);
-        grid.add(new Label("Họ và tên:"), 0, 2); grid.add(fullNameField, 1, 2);
-
-        dialog.getDialogPane().setContent(grid);
-
-        Button okBtn = (Button) dialog.getDialogPane().lookupButton(ButtonType.OK);
-        if (okBtn != null) {
-            okBtn.addEventFilter(javafx.event.ActionEvent.ACTION, event -> {
-                if (usernameField.getText().trim().isBlank()
-                        || passwordField.getText().isBlank()
-                        || fullNameField.getText().trim().isBlank()) {
-                    showAlert(Alert.AlertType.WARNING, "Thiếu thông tin", "Vui lòng điền đầy đủ thông tin.");
-                    event.consume();
-                }
-            });
-        }
-
-        dialog.setResultConverter(btn -> {
-            if (btn != ButtonType.OK) return null;
-            return new SiteAccountDraft(
+            SiteDraft siteDraft = new SiteDraft(siteCode, name, desc.isEmpty() ? null : desc, shipDays, airDays);
+            SiteAccountDraft accountDraft = new SiteAccountDraft(
                 usernameField.getText().trim(),
                 passwordField.getText(),
                 fullNameField.getText().trim()
             );
+            return new SiteAndAccountDraft(siteDraft, accountDraft);
         });
 
         return dialog.showAndWait();

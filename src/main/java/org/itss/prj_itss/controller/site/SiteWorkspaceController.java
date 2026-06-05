@@ -66,6 +66,14 @@ public final class SiteWorkspaceController {
         return service.confirmSupply(siteId, orderId);
     }
 
+    public SiteWorkspaceResult rejectOrder(int orderId) {
+        Integer siteId = currentSiteId();
+        if (siteId == null) {
+            return SiteWorkspaceResult.failure("Tài khoản Site chưa được liên kết với site.");
+        }
+        return service.rejectOrder(siteId, orderId);
+    }
+
     public List<SiteOrderItemRow> loadOrderItems(int orderId) {
         Integer siteId = currentSiteId();
         if (siteId == null) {

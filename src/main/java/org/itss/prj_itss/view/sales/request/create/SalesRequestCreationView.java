@@ -24,6 +24,7 @@ public final class SalesRequestCreationView implements ViewLifecycle {
 
     @FXML private Button closeButton;
     @FXML private Button cancelButton;
+    @FXML private javafx.scene.control.ScrollPane itemsScroll;
     @FXML private VBox itemsContainer;
     @FXML private Button addItemButton;
     @FXML private Button submitButton;
@@ -32,11 +33,15 @@ public final class SalesRequestCreationView implements ViewLifecycle {
         this.dialog = dialog;
         this.controller = controller;
 
+        if (itemsScroll != null && itemsContainer != null) {
+            itemsScroll.prefHeightProperty().bind(itemsContainer.heightProperty());
+            itemsScroll.setMaxHeight(400);
+        }
+
         closeButton.setOnAction(event -> closePopup());
         cancelButton.setOnAction(event -> closePopup());
         addItemButton.setOnAction(event -> addNewRow());
         submitButton.setOnAction(event -> submitRequest());
-
         itemRows.clear();
         itemsContainer.getChildren().clear();
         addNewRow();
@@ -100,6 +105,8 @@ public final class SalesRequestCreationView implements ViewLifecycle {
         SalesRequestCreationItemRow row = new SalesRequestCreationItemRow(
             itemRows.size() + 1,
             this::findMerchandiseByCode,
+            controller != null ? controller::suggestMerchandiseCodes : (kw) -> List.of(),
+            controller != null ? controller::getAvailableStock : (kw) -> 0,
             this::removeRow
         );
         itemRows.add(row);

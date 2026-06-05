@@ -23,7 +23,7 @@ public final class SalesRequestControllerModule {
         this.salesRequestCreationController =
             new SalesRequestCreationController(
                 requestModule.salesRequestQueryService(),
-                requestModule.salesRequestCommandService()
+                requestModule.createSalesRequestUseCase()
             );
         this.salesRequestEditController =
             new SalesRequestEditController(
