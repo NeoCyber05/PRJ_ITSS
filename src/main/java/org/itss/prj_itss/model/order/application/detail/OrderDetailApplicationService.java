@@ -1,41 +1,42 @@
-package org.itss.prj_itss.model.order.application;
+package org.itss.prj_itss.model.order.application.detail;
 
 import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
 import org.itss.prj_itss.model.merchandise.domain.Merchandise;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
-import org.itss.prj_itss.model.shared.formatting.DeliveryStatusFormatter;
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
+import org.itss.prj_itss.model.order.application.port.OrderRepository;
 import org.itss.prj_itss.model.site.application.SiteUseCase;
 import org.itss.prj_itss.model.site.domain.Site;
 
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public final class OrderDetailApplicationService {
 
-    private final OrderUseCase orderService;
+    private final OrderRepository orderRepository;
     private final SiteUseCase siteService;
     private final MerchandiseUseCase merchandiseService;
 
     public OrderDetailApplicationService(
-            OrderUseCase orderService,
+            OrderRepository orderRepository,
             SiteUseCase siteService,
             MerchandiseUseCase merchandiseService) {
-        this.orderService = orderService;
-        this.siteService = siteService;
-        this.merchandiseService = merchandiseService;
+        this.orderRepository = Objects.requireNonNull(orderRepository, "orderRepository");
+        this.siteService = Objects.requireNonNull(siteService, "siteService");
+        this.merchandiseService = Objects.requireNonNull(merchandiseService, "merchandiseService");
     }
 
     public OrderDetailViewModel load(int orderId) {
-        Order order = orderService.findById(orderId);
+        Order order = orderRepository.findById(orderId);
         if (order == null) {
             return null;
         }
 
         Site site = siteService.findById(order.getSiteId());
-        List<OrderMerchandise> items = orderService.findItemsByOrderId(orderId);
+        List<OrderMerchandise> items = orderRepository.findItemsByOrderId(orderId);
 
         return new OrderDetailViewModel(
             order.getId(),
@@ -55,11 +56,11 @@ public final class OrderDetailApplicationService {
         for (OrderMerchandise item : items) {
             Merchandise merchandise = merchandiseService.findById(item.getMerchandiseId());
             
-            java.time.LocalDate desiredDeliveryDate = orderService.findDesiredDeliveryDate(order.getId(), item.getMerchandiseId());
+            java.time.LocalDate desiredDeliveryDate = orderRepository.findDesiredDeliveryDate(order.getId(), item.getMerchandiseId());
             String desiredDateText = desiredDeliveryDate != null ? OrderingFormatters.formatDate(desiredDeliveryDate) : "N/A";
             
-            String statusTextVal = "N/A";
-            String statusStyleClass = "allocation-eta-unavailable";
+            Integer dayDelta = null;
+            boolean deliveryAvailable = false;
             
             if (desiredDeliveryDate != null && order.getCreatedAt() != null) {
                 int deadlineDays = (int) ChronoUnit.DAYS.between(order.getCreatedAt().toLocalDate(), desiredDeliveryDate);
@@ -70,11 +71,10 @@ public final class OrderDetailApplicationService {
                         ? (site.getShipDeliveryDays() == null ? 999 : site.getShipDeliveryDays())
                         : (site.getAirDeliveryDays() == null ? 999 : site.getAirDeliveryDays());
                 }
-                int dayDelta = deadlineDays - deliveryDays;
-                
-                DeliveryStatusFormatter.DeliveryStatusView statusView = DeliveryStatusFormatter.format(dayDelta, deliveryDays < 999);
-                statusTextVal = statusView.text();
-                statusStyleClass = statusView.styleClass();
+                if (deliveryDays < 999) {
+                    dayDelta = deadlineDays - deliveryDays;
+                    deliveryAvailable = true;
+                }
             }
 
             rows.add(new OrderDetailViewModel.OrderItemRow(
@@ -84,8 +84,8 @@ public final class OrderDetailApplicationService {
                 merchandise != null && merchandise.getUnit() != null ? merchandise.getUnit() : "N/A",
                 item.getDeliveryMethod(),
                 desiredDateText,
-                statusTextVal,
-                statusStyleClass
+                dayDelta,
+                deliveryAvailable
             ));
         }
         return rows;

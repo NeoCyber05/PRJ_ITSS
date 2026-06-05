@@ -1,8 +1,8 @@
-package org.itss.prj_itss.model.order.application;
+package org.itss.prj_itss.model.order.application.cancellation;
 
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
-import org.itss.prj_itss.model.order.application.OrderUseCase;
+import org.itss.prj_itss.model.order.application.port.OrderRepository;
 
 import java.util.Objects;
 
@@ -10,10 +10,10 @@ public final class OrderCancellationApplicationService {
 
     public static final String CANCELLED_STATUS = OrderingFormatters.STATUS_CANCELLED;
 
-    private final OrderUseCase orderService;
+    private final OrderRepository orderRepository;
 
-    public OrderCancellationApplicationService(OrderUseCase orderService) {
-        this.orderService = Objects.requireNonNull(orderService, "orderService");
+    public OrderCancellationApplicationService(OrderRepository orderRepository) {
+        this.orderRepository = Objects.requireNonNull(orderRepository, "orderRepository");
     }
 
     public CancellationResult cancel(int orderId) {
@@ -21,7 +21,7 @@ public final class OrderCancellationApplicationService {
             return CancellationResult.invalid(orderId, "Invalid order id");
         }
 
-        Order order = orderService.findById(orderId);
+        Order order = orderRepository.findById(orderId);
         if (order == null) {
             return CancellationResult.notFound(orderId);
         }
@@ -34,7 +34,7 @@ public final class OrderCancellationApplicationService {
             return CancellationResult.rejected(order, "Only pending orders can be cancelled");
         }
 
-        boolean updated = orderService.updateStatus(orderId, CANCELLED_STATUS);
+        boolean updated = orderRepository.updateStatus(orderId, CANCELLED_STATUS);
         if (!updated) {
             return CancellationResult.failed(order, "Unable to update order status");
         }
@@ -44,7 +44,7 @@ public final class OrderCancellationApplicationService {
     }
 
     public boolean canCancel(int orderId) {
-        return isCancellable(orderService.findById(orderId));
+        return isCancellable(orderRepository.findById(orderId));
     }
 
     public static boolean isCancellable(Order order) {

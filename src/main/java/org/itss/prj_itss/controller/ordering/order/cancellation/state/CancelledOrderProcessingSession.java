@@ -1,4 +1,4 @@
-package org.itss.prj_itss.view.ordering.order.cancellation.state;
+package org.itss.prj_itss.controller.ordering.order.cancellation.state;
 
 import org.itss.prj_itss.model.order.application.cancellation.CancelledOrderProcessingUseCase;
 
@@ -112,17 +112,17 @@ public final class CancelledOrderProcessingSession {
                     AllocationControl.AllocationSiteRowState stateRow = allocationControl.siteRowState(item, site);
                     var deliveryView = DeliveryStatusFormatter.format(stateRow.deliveryStatus().dayDelta(), stateRow.deliveryStatus().available());
                     siteRows.add(new CancelledOrderProcessingViewModel.AllocationSiteRowViewModel(
-                        item.merchandiseId,
-                        site.id,
-                        stateRow.siteName(),
-                        stateRow.siteDetail(),
-                        stateRow.stock(),
-                        stateRow.quantity(),
-                        stateRow.selectedTransportLabel(),
-                        stateRow.transportLabels(),
-                        stateRow.transportDisabled(),
-                        deliveryView.text(),
-                        deliveryView.styleClass()
+                         item.merchandiseId,
+                         site.id,
+                         stateRow.siteName(),
+                         stateRow.siteDetail(),
+                         stateRow.stock(),
+                         stateRow.quantity(),
+                         stateRow.selectedTransportLabel(),
+                         stateRow.transportLabels(),
+                         stateRow.transportDisabled(),
+                         deliveryView.text(),
+                         deliveryView.styleClass()
                     ));
                 }
             }

@@ -3,7 +3,7 @@ package org.itss.prj_itss.view.ordering.order.detail.components;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
-import org.itss.prj_itss.controller.ordering.order.OrderDetailController;
+import org.itss.prj_itss.controller.ordering.order.detail.OrderDetailController;
 import org.itss.prj_itss.controller.shared.ActionResult;
 
 public final class OrderCancellationHandler {

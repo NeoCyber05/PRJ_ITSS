@@ -27,7 +27,7 @@ public final class WarehouseModule {
     ) {
         this.warehouseReceiptRepository = new JdbcWarehouseReceiptRepository(warehouseConnectionProvider);
         this.warehouseReceivingUseCase = new WarehouseReceivingUseCase(
-            orderModule.orderUseCase(),
+            orderModule.orderRepository(),
             siteModule.siteUseCase(),
             merchandiseModule.merchandiseUseCase(),
             warehouseReceiptRepository,
@@ -35,7 +35,7 @@ public final class WarehouseModule {
             authModule.currentUserSupplier()
         );
         this.warehouseIncomingOrderQuery = new WarehouseIncomingOrderQuery(
-            orderModule.orderUseCase(),
+            orderModule.orderRepository(),
             siteModule.siteUseCase(),
             merchandiseModule.merchandiseUseCase()
         );

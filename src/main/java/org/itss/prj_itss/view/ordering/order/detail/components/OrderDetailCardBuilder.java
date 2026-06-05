@@ -6,8 +6,9 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
-import org.itss.prj_itss.model.order.application.OrderDetailViewModel;
-import org.itss.prj_itss.model.order.application.OrderDetailViewModel.OrderItemRow;
+import org.itss.prj_itss.model.order.application.detail.OrderDetailViewModel;
+import org.itss.prj_itss.model.order.application.detail.OrderDetailViewModel.OrderItemRow;
+import org.itss.prj_itss.model.shared.formatting.DeliveryStatusFormatter;
 import org.itss.prj_itss.view.shared.ui.StatusBadgeFactory;
 
 import java.util.List;
@@ -99,9 +100,14 @@ public final class OrderDetailCardBuilder {
         } else {
             int index = 1;
             for (OrderItemRow item : items) {
-                Label statusLabel = new Label(item.etaStatusText());
-                if (item.etaStatusStyleClass() != null && !item.etaStatusStyleClass().isBlank()) {
-                    statusLabel.getStyleClass().add(item.etaStatusStyleClass());
+                DeliveryStatusFormatter.DeliveryStatusView deliveryView =
+                    DeliveryStatusFormatter.format(
+                        item.dayDelta() != null ? item.dayDelta() : 0, 
+                        item.deliveryAvailable()
+                    );
+                Label statusLabel = new Label(deliveryView.text());
+                if (deliveryView.styleClass() != null && !deliveryView.styleClass().isBlank()) {
+                    statusLabel.getStyleClass().add(deliveryView.styleClass());
                 }
                 statusLabel.setWrapText(true);
                 statusLabel.setMinWidth(deliveryStatusWidth);

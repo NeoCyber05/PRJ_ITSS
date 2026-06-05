@@ -2,7 +2,7 @@ package org.itss.prj_itss.model.warehouse.application;
 
 import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
 import org.itss.prj_itss.model.merchandise.domain.Merchandise;
-import org.itss.prj_itss.model.order.application.OrderUseCase;
+import org.itss.prj_itss.model.order.application.port.OrderRepository;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.order.domain.OrderStatus;
@@ -15,22 +15,22 @@ import java.util.List;
 
 public final class WarehouseIncomingOrderQuery {
 
-    private final OrderUseCase orderUseCase;
+    private final OrderRepository orderRepository;
     private final SiteUseCase siteUseCase;
     private final MerchandiseUseCase merchandiseUseCase;
 
     public WarehouseIncomingOrderQuery(
-        OrderUseCase orderUseCase,
+        OrderRepository orderRepository,
         SiteUseCase siteUseCase,
         MerchandiseUseCase merchandiseUseCase
     ) {
-        this.orderUseCase = orderUseCase;
+        this.orderRepository = orderRepository;
         this.siteUseCase = siteUseCase;
         this.merchandiseUseCase = merchandiseUseCase;
     }
 
     public List<IncomingOrderRow> findIncomingRows() {
-        List<Order> orders = orderUseCase.findByStatus(OrderStatus.SHIPPING.displayValue());
+        List<Order> orders = orderRepository.findByStatus(OrderStatus.SHIPPING.displayValue());
         return orders.stream()
             .sorted(Comparator
                 .comparing(Order::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder()))
@@ -40,12 +40,12 @@ public final class WarehouseIncomingOrderQuery {
     }
 
     public IncomingOrderDetail findIncomingDetail(int orderId) {
-        Order order = orderUseCase.findById(orderId);
+        Order order = orderRepository.findById(orderId);
         if (order == null) {
             return null;
         }
         IncomingOrderRow summary = toRow(order);
-        List<IncomingOrderItemRow> items = orderUseCase.findItemsByOrderId(orderId).stream()
+        List<IncomingOrderItemRow> items = orderRepository.findItemsByOrderId(orderId).stream()
             .map(this::toItemRow)
             .toList();
         return new IncomingOrderDetail(summary, items);
@@ -53,7 +53,7 @@ public final class WarehouseIncomingOrderQuery {
 
     private IncomingOrderRow toRow(Order order) {
         Site site = siteUseCase.findById(order.getSiteId());
-        int itemCount = orderUseCase.findItemsByOrderId(order.getId()).size();
+        int itemCount = orderRepository.findItemsByOrderId(order.getId()).size();
         return new IncomingOrderRow(
             order.getId(),
             order.getRequestId(),

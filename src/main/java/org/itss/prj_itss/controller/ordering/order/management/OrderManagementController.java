@@ -1,7 +1,7 @@
-package org.itss.prj_itss.controller.ordering.order;
+package org.itss.prj_itss.controller.ordering.order.management;
 
-import org.itss.prj_itss.model.order.application.OrderManagementApplicationService;
-import org.itss.prj_itss.model.order.application.OrderRow;
+import org.itss.prj_itss.model.order.application.management.OrderManagementApplicationService;
+import org.itss.prj_itss.model.order.application.management.OrderRow;
 
 import java.util.List;
 
@@ -14,6 +14,6 @@ public final class OrderManagementController {
     }
 
     public List<OrderRow> findRows() {
-        return orderManagementService.findRows();
+        return orderManagementService.loadRows();
     }
 }

@@ -1,9 +1,9 @@
-package org.itss.prj_itss.controller.ordering.order;
+package org.itss.prj_itss.controller.ordering.order.detail;
 
 import org.itss.prj_itss.controller.shared.ActionResult;
-import org.itss.prj_itss.model.order.application.OrderCancellationApplicationService;
-import org.itss.prj_itss.model.order.application.OrderDetailApplicationService;
-import org.itss.prj_itss.model.order.application.OrderDetailViewModel;
+import org.itss.prj_itss.model.order.application.cancellation.OrderCancellationApplicationService;
+import org.itss.prj_itss.model.order.application.detail.OrderDetailApplicationService;
+import org.itss.prj_itss.model.order.application.detail.OrderDetailViewModel;
 
 public final class OrderDetailController {
 

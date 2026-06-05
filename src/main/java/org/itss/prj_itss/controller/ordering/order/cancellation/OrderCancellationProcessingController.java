@@ -1,8 +1,8 @@
-package org.itss.prj_itss.controller.ordering.order;
+package org.itss.prj_itss.controller.ordering.order.cancellation;
 
 import org.itss.prj_itss.model.order.application.cancellation.CancelledOrderProcessingException;
-import org.itss.prj_itss.view.ordering.order.cancellation.state.CancelledOrderProcessingSession;
-import org.itss.prj_itss.view.ordering.order.cancellation.state.CancelledOrderProcessingViewModel;
+import org.itss.prj_itss.controller.ordering.order.cancellation.state.CancelledOrderProcessingSession;
+import org.itss.prj_itss.controller.ordering.order.cancellation.state.CancelledOrderProcessingViewModel;
 import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
 import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
 

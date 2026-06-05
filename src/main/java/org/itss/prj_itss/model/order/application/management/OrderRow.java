@@ -1,4 +1,4 @@
-package org.itss.prj_itss.model.order.application;
+package org.itss.prj_itss.model.order.application.management;
 
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;

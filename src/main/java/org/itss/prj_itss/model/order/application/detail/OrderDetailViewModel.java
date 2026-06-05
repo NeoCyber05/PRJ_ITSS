@@ -1,11 +1,11 @@
-package org.itss.prj_itss.model.order.application;
+package org.itss.prj_itss.model.order.application.detail;
 
 import java.util.List;
 
 /**
  * A pure presentation model for the order detail screen.
- * Contains only pre-formatted strings so the View layer
- * never imports domain classes.
+ * Contains only business information so the View layer
+ * can format it as needed.
  */
 public record OrderDetailViewModel(
     int orderId,
@@ -26,8 +26,8 @@ public record OrderDetailViewModel(
             String unit,
             String deliveryMethod,
             String desiredDateText,
-            String etaStatusText,
-            String etaStatusStyleClass
+            Integer dayDelta,
+            boolean deliveryAvailable
     ) {
     }
 }

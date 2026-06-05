@@ -13,7 +13,7 @@ import org.itss.prj_itss.model.warehouse.domain.InspectionResult;
 import org.itss.prj_itss.model.order.domain.OrderStatus;
 import org.itss.prj_itss.model.warehouse.application.port.WarehouseReceiptRepository;
 import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
-import org.itss.prj_itss.model.order.application.OrderUseCase;
+import org.itss.prj_itss.model.order.application.port.OrderRepository;
 import org.itss.prj_itss.model.site.application.SiteUseCase;
 
 import java.math.BigDecimal;
@@ -27,7 +27,7 @@ import java.util.stream.Collectors;
 
 public final class WarehouseReceivingUseCase {
 
-    private final OrderUseCase orderService;
+    private final OrderRepository orderRepository;
     private final SiteUseCase siteService;
     private final MerchandiseUseCase merchandiseService;
     private final WarehouseReceiptRepository warehouseReceiptRepository;
@@ -35,14 +35,14 @@ public final class WarehouseReceivingUseCase {
     private final Supplier<AuthenticatedUser> authenticatedUserSupplier;
 
     public WarehouseReceivingUseCase(
-        OrderUseCase orderService,
+        OrderRepository orderRepository,
         SiteUseCase siteService,
         MerchandiseUseCase merchandiseService,
         WarehouseReceiptRepository warehouseReceiptRepository,
         TransactionRunner warehouseTransactionRunner,
         Supplier<AuthenticatedUser> authenticatedUserSupplier
     ) {
-        this.orderService = orderService;
+        this.orderRepository = orderRepository;
         this.siteService = siteService;
         this.merchandiseService = merchandiseService;
         this.warehouseReceiptRepository = warehouseReceiptRepository;
@@ -51,7 +51,7 @@ public final class WarehouseReceivingUseCase {
     }
 
     public List<Order> findInboundOrders() {
-        return orderService.findByStatus(OrderStatus.SHIPPING.displayValue()).stream()
+        return orderRepository.findByStatus(OrderStatus.SHIPPING.displayValue()).stream()
             .sorted(Comparator
                 .comparing(Order::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder()))
                 .thenComparing(Comparator.comparingInt(Order::getId).reversed()))
@@ -59,11 +59,11 @@ public final class WarehouseReceivingUseCase {
     }
 
     public List<OrderMerchandise> findItemsByOrderId(int orderId) {
-        return orderService.findItemsByOrderId(orderId);
+        return orderRepository.findItemsByOrderId(orderId);
     }
 
     public ConfirmationResult confirmArrival(int orderId, List<InspectionItemInput> itemInputs, String overallNote) {
-        Order order = orderService.findById(orderId);
+        Order order = orderRepository.findById(orderId);
         if (order == null) {
             return ConfirmationResult.failure("Không tìm thấy đơn hàng.");
         }
@@ -71,7 +71,7 @@ public final class WarehouseReceivingUseCase {
             return ConfirmationResult.failure("Chỉ có thể xác nhận đơn hàng đang giao.");
         }
 
-        List<OrderMerchandise> orderItems = orderService.findItemsByOrderId(orderId);
+        List<OrderMerchandise> orderItems = orderRepository.findItemsByOrderId(orderId);
         if (orderItems.isEmpty()) {
             return ConfirmationResult.failure("Đơn hàng không có mặt hàng để kiểm nhận.");
         }
@@ -161,7 +161,7 @@ public final class WarehouseReceivingUseCase {
             return ConfirmationResult.failure(exception.getMessage());
         }
 
-        if (!orderService.updateStatus(orderId, OrderStatus.DELIVERED.displayValue())) {
+        if (!orderRepository.updateStatus(orderId, OrderStatus.DELIVERED.displayValue())) {
             return ConfirmationResult.failure(
                 "Đã lưu kết quả kiểm nhận vào DB kho nhưng không thể cập nhật trạng thái đơn hàng ở DB chính."
             );

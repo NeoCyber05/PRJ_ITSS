@@ -14,7 +14,7 @@ import javafx.scene.layout.Region;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import org.itss.prj_itss.view.ordering.order.cancellation.OrderCancellationLayoutView;
-import org.itss.prj_itss.view.ordering.order.cancellation.state.CancelledOrderProcessingViewModel;
+import org.itss.prj_itss.controller.ordering.order.cancellation.state.CancelledOrderProcessingViewModel;
 import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
 import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
 
