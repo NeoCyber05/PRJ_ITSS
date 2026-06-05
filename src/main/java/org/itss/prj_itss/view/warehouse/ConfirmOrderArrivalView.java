@@ -154,7 +154,6 @@ public final class ConfirmOrderArrivalView implements ViewLifecycle {
 
     public void setController(ConfirmOrderArrivalController controller) {
         this.controller = controller;
-        loadInboundOrders();
     }
 
     @Override
@@ -383,7 +382,9 @@ public final class ConfirmOrderArrivalView implements ViewLifecycle {
             return;
         }
         List<Order> inboundOrders = controller.findInboundOrders();
-        orderRows.setAll(inboundOrders.stream().map(this::toOrderRow).toList());
+        java.util.Map<Integer, Site> siteMap = controller.findAllSites().stream()
+            .collect(java.util.stream.Collectors.toMap(Site::getId, s -> s, (a, b) -> a));
+        orderRows.setAll(inboundOrders.stream().map(o -> toOrderRow(o, siteMap)).toList());
 
         orderListInfoLabel.setText(orderRows.isEmpty()
             ? "Không có đơn hàng nào đang giao tới."
@@ -517,11 +518,18 @@ public final class ConfirmOrderArrivalView implements ViewLifecycle {
     }
 
     private void showDetailDialog(OrderRow row) {
-        IncomingOrderDetail detail = new IncomingOrderDetail(toIncomingOrderRow(row), buildIncomingOrderItemRows(row.order()));
+        if (controller == null) {
+            return;
+        }
+        List<OrderMerchandise> items = controller.findItemsByOrderId(row.order().getId());
+        IncomingOrderDetail detail = new IncomingOrderDetail(
+            toIncomingOrderRow(row, items.size()),
+            buildIncomingOrderItemRows(items)
+        );
         IncomingOrderDetailDialog.show(orderTable.getScene().getWindow(), detail);
     }
 
-    private IncomingOrderRow toIncomingOrderRow(OrderRow row) {
+    private IncomingOrderRow toIncomingOrderRow(OrderRow row, int itemCount) {
         Order order = row.order();
         return new IncomingOrderRow(
             order.getId(),
@@ -534,15 +542,15 @@ public final class ConfirmOrderArrivalView implements ViewLifecycle {
             row.createdAt(),
             order.getStatus(),
             row.status(),
-            controller == null ? 0 : controller.findItemsByOrderId(order.getId()).size()
+            itemCount
         );
     }
 
-    private List<IncomingOrderItemRow> buildIncomingOrderItemRows(Order order) {
+    private List<IncomingOrderItemRow> buildIncomingOrderItemRows(List<OrderMerchandise> items) {
         if (controller == null) {
             return List.of();
         }
-        return controller.findItemsByOrderId(order.getId()).stream()
+        return items.stream()
             .map(item -> {
                 Merchandise merchandise = controller.findMerchandiseById(item.getMerchandiseId());
                 return new IncomingOrderItemRow(
@@ -557,11 +565,8 @@ public final class ConfirmOrderArrivalView implements ViewLifecycle {
             .toList();
     }
 
-    private OrderRow toOrderRow(Order order) {
-        if (controller == null) {
-            return new OrderRow(order, formatOrderCode(order.getId()), String.format("YC-2026-%03d", order.getRequestId()), "N/A", "N/A", "", "");
-        }
-        Site site = controller.findSiteById(order.getSiteId());
+    private OrderRow toOrderRow(Order order, java.util.Map<Integer, Site> siteMap) {
+        Site site = siteMap.get(order.getSiteId());
         return new OrderRow(
             order,
             formatOrderCode(order.getId()),
