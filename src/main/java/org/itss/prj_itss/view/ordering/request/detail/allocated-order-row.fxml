@@ -18,6 +18,7 @@
         <HBox fx:id="actionBox" alignment="CENTER_RIGHT" minWidth="90.0" prefWidth="90.0" spacing="8.0">
             <children>
                 <Button fx:id="cancelBtn" text="Hủy" style="-fx-background-color: transparent; -fx-text-fill: #DC2626; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 4;" visible="false" managed="false" />
+                <Button fx:id="processBtn" text="Xử lý" style="-fx-background-color: transparent; -fx-text-fill: #2563EB; -fx-font-weight: bold; -fx-cursor: hand; -fx-padding: 0 4;" visible="false" managed="false" />
                 <Button fx:id="openButton" text="→" styleClass="request-detail-open-button" />
             </children>
         </HBox>
