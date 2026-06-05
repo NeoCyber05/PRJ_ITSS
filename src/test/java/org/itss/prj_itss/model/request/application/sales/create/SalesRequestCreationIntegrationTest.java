@@ -205,6 +205,11 @@ public class SalesRequestCreationIntegrationTest {
 
         @Override
         public int countMerchandiseAtSite(int siteId) { return 0; }
+
+        @Override
+        public java.util.Map<Integer, Integer> countMerchandiseGroupedBySiteId() {
+            return java.util.Map.of();
+        }
     }
 
     private static class FakeCommandPort implements SalesRequestCommandPort {

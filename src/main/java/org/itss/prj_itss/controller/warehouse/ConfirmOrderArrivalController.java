@@ -42,6 +42,10 @@ public class ConfirmOrderArrivalController {
         return siteUseCase.findById(siteId);
     }
 
+    public List<Site> findAllSites() {
+        return siteUseCase.findAll();
+    }
+
     public Merchandise findMerchandiseById(int merchandiseId) {
         return MerchandiseUseCase.findById(merchandiseId);
     }

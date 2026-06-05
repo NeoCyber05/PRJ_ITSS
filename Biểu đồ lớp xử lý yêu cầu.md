@@ -9,7 +9,6 @@ package "View Layer" {
     class RequestProcessingPreviewDialogView
     class ItemsSectionView
     class SiteFilterState
-    class SuggestedPlanView <<record>>
 }
 
 package "Controller Layer" {
@@ -17,6 +16,7 @@ package "Controller Layer" {
     class RequestProcessingPreviewDialogController
     class RequestProcessingLayoutController
     class RequestProcessingSession
+    class SuggestedPlanView <<record>>
 }
 
 package Model {
@@ -56,7 +56,7 @@ RequestProcessingLayoutView ..> AllSuggestPopupView
 RequestProcessingLayoutView ..> RequestProcessingPreviewDialog
 RequestProcessingLayoutView ..> RequestProcessingPreviewDialogController
 RequestProcessingLayoutView --> RequestProcessingLayoutController
-SiteFilterView *-- SiteFilterController
+SiteFilterView --> SiteFilterController
 AllSuggestPopupView ..> SuggestedPlanView
 RequestProcessingPreviewDialog *-- RequestProcessingPreviewDialogView
 RequestProcessingPreviewDialog --> RequestProcessingPreviewDialogController
