@@ -6,7 +6,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.view.ordering.request.process.state.SuggestedPlanView;
+import org.itss.prj_itss.controller.ordering.request.process.state.SuggestedPlanState;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -26,11 +26,11 @@ public final class SuggestPlanCardView {
     @FXML
     private Button applyButton;
 
-    private SuggestedPlanView plan;
+    private SuggestedPlanState plan;
     private int number;
-    private Consumer<SuggestedPlanView> onApply = ignored -> {};
+    private Consumer<SuggestedPlanState> onApply = ignored -> {};
 
-    public static VBox load(SuggestedPlanView plan, int number, Consumer<SuggestedPlanView> onApply) {
+    public static VBox load(SuggestedPlanState plan, int number, Consumer<SuggestedPlanState> onApply) {
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
                 SuggestPlanCardView.class.getResource(VIEW_RESOURCE),
@@ -50,7 +50,7 @@ public final class SuggestPlanCardView {
         onApply.accept(plan);
     }
 
-    private void init(SuggestedPlanView plan, int number, Consumer<SuggestedPlanView> onApply) {
+    private void init(SuggestedPlanState plan, int number, Consumer<SuggestedPlanState> onApply) {
         this.plan = Objects.requireNonNull(plan, "plan");
         this.number = number;
         this.onApply = onApply == null ? ignored -> {} : onApply;

@@ -3,11 +3,11 @@ package org.itss.prj_itss.controller.ordering.request.process;
 import org.itss.prj_itss.controller.ordering.request.process.session.RequestProcessingSession;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingException;
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView;
-import org.itss.prj_itss.view.ordering.request.process.state.RequestProcessingViewModel;
-import org.itss.prj_itss.view.ordering.request.process.state.SuggestedPlanView;
+import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeCommand;
+import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeResult;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingPreviewOrder;
+import org.itss.prj_itss.controller.ordering.request.process.state.RequestProcessingState;
+import org.itss.prj_itss.controller.ordering.request.process.state.SuggestedPlanState;
 
 import java.util.List;
 import java.util.Objects;
@@ -25,8 +25,8 @@ public final class RequestProcessingLayoutController {
         session.start(requestId);
     }
 
-    public RequestProcessingViewModel snapshot() {
-        return session.buildViewModel();
+    public RequestProcessingState snapshot() {
+        return session.buildState();
     }
 
     public void handleSiteFilterChanged(Set<Integer> excludedSiteIds, Set<Integer> selectedSiteIds) {
@@ -37,7 +37,7 @@ public final class RequestProcessingLayoutController {
         session.handleOptimizeAllocation();
     }
 
-    public List<SuggestedPlanView> handleShowAllPlans() {
+    public List<SuggestedPlanState> handleShowAllPlans() {
         return session.handleShowAllPlans();
     }
 
@@ -45,7 +45,7 @@ public final class RequestProcessingLayoutController {
         session.applySelectedPlanBySignature(signature);
     }
 
-    public AllocationChangeResultView handleAllocationInputChanged(AllocationChangeCommand request) {
+    public AllocationChangeResult handleAllocationInputChanged(AllocationChangeCommand request) {
         return session.handleAllocationInputChanged(request);
     }
 
@@ -65,20 +65,20 @@ public final class RequestProcessingLayoutController {
         return session.validateCurrentSubmission();
     }
 
-    public List<ProcessingPreviewOrderView> buildPreviewOrders() {
-        return session.buildPreviewOrderViews();
+    public List<ProcessingPreviewOrder> buildPreviewOrders() {
+        return session.buildPreviewOrders();
     }
 
     public void submitAllocatedOrders() throws RequestProcessingException {
         session.submitAllocatedOrders();
     }
 
-    public record ConfirmResult(String validationMessage, List<ProcessingPreviewOrderView> previewOrders) {
+    public record ConfirmResult(String validationMessage, List<ProcessingPreviewOrder> previewOrders) {
         public static ConfirmResult invalid(String validationMessage) {
             return new ConfirmResult(validationMessage, List.of());
         }
 
-        public static ConfirmResult valid(List<ProcessingPreviewOrderView> previewOrders) {
+        public static ConfirmResult valid(List<ProcessingPreviewOrder> previewOrders) {
             return new ConfirmResult(null, List.copyOf(previewOrders));
         }
 

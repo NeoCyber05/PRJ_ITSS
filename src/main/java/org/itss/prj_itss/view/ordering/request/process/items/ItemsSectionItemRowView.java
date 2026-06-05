@@ -7,7 +7,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 
-import org.itss.prj_itss.view.ordering.request.process.state.RequestProcessingViewModel;
+import org.itss.prj_itss.controller.ordering.request.process.state.RequestProcessingState;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -44,7 +44,7 @@ public final class ItemsSectionItemRowView {
     private IntConsumer onToggle = index -> {};
 
     public static ItemsSectionItemRowView load(
-        RequestProcessingViewModel.AllocationItemViewModel item,
+        RequestProcessingState.AllocationItemState item,
         int itemIndex,
         String earliestDeliveryDate,
         IntConsumer onToggle
@@ -68,7 +68,7 @@ public final class ItemsSectionItemRowView {
         return root;
     }
 
-    public void refresh(RequestProcessingViewModel.AllocationItemViewModel item) {
+    public void refresh(RequestProcessingState.AllocationItemState item) {
         updateAllocationLabels(item);
     }
 
@@ -78,7 +78,7 @@ public final class ItemsSectionItemRowView {
     }
 
     private void init(
-        RequestProcessingViewModel.AllocationItemViewModel item,
+        RequestProcessingState.AllocationItemState item,
         int itemIndex,
         String earliestDeliveryDate,
         IntConsumer onToggle
@@ -102,7 +102,7 @@ public final class ItemsSectionItemRowView {
         updateAllocationLabels(item);
     }
 
-    private void updateAllocationLabels(RequestProcessingViewModel.AllocationItemViewModel item) {
+    private void updateAllocationLabels(RequestProcessingState.AllocationItemState item) {
         allocationStatusLabel.setText(item.allocationStatusText());
         String stateClass = switch (item.allocationStatusText()) {
             case "Vượt mức" -> "allocation-fraction-over";

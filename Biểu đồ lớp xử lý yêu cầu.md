@@ -4,11 +4,17 @@ package "View Layer" {
     interface Navigator
     class RequestProcessingLayoutView
     class SiteFilterView
+    class SiteFilterCardView
     class AllSuggestPopupView
+    class SuggestPlanCardView
     class RequestProcessingPreviewDialog
     class RequestProcessingPreviewDialogView
+    class PreviewOrderCardView
+    class PreviewTableRowView
     class ItemsSectionView
-    class SiteFilterState
+    class ItemsSectionItemRowView
+    class AllocationItemEditorView
+    class AllocationSiteRowView
 }
 
 package "Controller Layer" {
@@ -16,13 +22,25 @@ package "Controller Layer" {
     class RequestProcessingPreviewDialogController
     class RequestProcessingLayoutController
     class RequestProcessingSession
-    class SuggestedPlanView <<record>>
+
+    package "Request Processing State" {
+        class RequestProcessingState <<record>>
+        class ProcessingSiteState <<record>>
+        class ProcessingItemState <<record>>
+        class ProcessingPreviewOrder <<record>>
+        class SuggestedPlanState <<record>>
+        class SiteFilterState
+        class AllocationChangeCommand <<record>>
+        class AllocationChangeResult <<record>>
+    }
 }
 
 package Model {
     package "Application Layer" {
         class RequestProcessingUseCase
         interface RequestProcessingGateway
+        interface PreviewBuilder
+        class RequestProcessingPreviewBuilder
     }
 
     package "Infrastructure Layer" {
@@ -57,26 +75,53 @@ RequestProcessingLayoutView ..> RequestProcessingPreviewDialog
 RequestProcessingLayoutView ..> RequestProcessingPreviewDialogController
 RequestProcessingLayoutView --> RequestProcessingLayoutController
 SiteFilterView --> SiteFilterController
-AllSuggestPopupView ..> SuggestedPlanView
+AllSuggestPopupView ..> SuggestedPlanState
 RequestProcessingPreviewDialog *-- RequestProcessingPreviewDialogView
 RequestProcessingPreviewDialog --> RequestProcessingPreviewDialogController
 RequestProcessingPreviewDialogView --> RequestProcessingPreviewDialogController
+
+' --- View Subview Nesting (Mối quan hệ View con) ---
+SiteFilterView ..> SiteFilterCardView
+SiteFilterCardView --> ProcessingSiteState
+AllSuggestPopupView ..> SuggestPlanCardView
+SuggestPlanCardView --> SuggestedPlanState
+ItemsSectionView ..> ItemsSectionItemRowView
+ItemsSectionView ..> AllocationItemEditorView
+ItemsSectionItemRowView --> RequestProcessingState
+AllocationItemEditorView ..> AllocationSiteRowView
+AllocationItemEditorView --> RequestProcessingState
+AllocationSiteRowView --> AllocationChangeCommand
+AllocationSiteRowView --> AllocationChangeResult
+RequestProcessingPreviewDialogView ..> PreviewOrderCardView
+PreviewOrderCardView ..> PreviewTableRowView
+PreviewOrderCardView --> ProcessingPreviewOrder
+PreviewTableRowView --> ProcessingPreviewOrder
 
 ' --- Controller Relations ---
 SiteFilterController *-- SiteFilterState
 RequestProcessingLayoutController *-- RequestProcessingSession
 RequestProcessingSession --> RequestProcessingUseCase
 RequestProcessingPreviewDialogController --> RequestProcessingLayoutController
+RequestProcessingLayoutController ..> RequestProcessingState
+RequestProcessingLayoutController ..> SuggestedPlanState
+RequestProcessingLayoutController ..> ProcessingPreviewOrder
+RequestProcessingLayoutController ..> AllocationChangeResult
+RequestProcessingSession ..> RequestProcessingState
+RequestProcessingSession ..> ProcessingPreviewOrder
+RequestProcessingSession ..> SuggestedPlanState
+RequestProcessingSession ..> AllocationChangeResult
 
 ' --- Application & Infrastructure Relations ---
 RequestProcessingUseCase --> RequestProcessingGateway
 RequestProcessingUseCase --> AllocationValidator
 RequestProcessingUseCase --> AllocationSuggester
+RequestProcessingUseCase ..> RequestProcessingPreviewBuilder
+RequestProcessingPreviewBuilder ..|> PreviewBuilder
 JdbcRequestProcessingGateway ..|> RequestProcessingGateway
 JdbcRequestProcessingGateway ..> RequestProcessingData
 
 ' --- Domain & State Relations ---
-RequestProcessingSession *-- AllocationControl
+RequestProcessingSession ..> AllocationControl : uses
 RequestProcessingSession ..> RequestProcessingData
 RequestProcessingSession ..> AllocationPlan
 DefaultAllocationValidator ..|> AllocationValidator

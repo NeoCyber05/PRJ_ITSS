@@ -10,7 +10,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 
-import org.itss.prj_itss.view.ordering.request.process.state.SuggestedPlanView;
+import org.itss.prj_itss.controller.ordering.request.process.state.SuggestedPlanState;
 
 import java.io.IOException;
 import java.util.List;
@@ -39,11 +39,11 @@ public final class AllSuggestPopupView {
     @FXML
     private Button closeButton;
 
-    private List<SuggestedPlanView> plans = List.of();
-    private Consumer<SuggestedPlanView> onApply = plan -> {};
+    private List<SuggestedPlanState> plans = List.of();
+    private Consumer<SuggestedPlanState> onApply = plan -> {};
     private Stage dialog;
 
-    public static void show(List<SuggestedPlanView> plans, Consumer<SuggestedPlanView> onApply) {
+    public static void show(List<SuggestedPlanState> plans, Consumer<SuggestedPlanState> onApply) {
         Stage dialog = new Stage();
         dialog.initModality(Modality.APPLICATION_MODAL);
         dialog.setTitle("Các phương án phân bổ thỏa mãn");
@@ -67,7 +67,7 @@ public final class AllSuggestPopupView {
         }
     }
 
-    private void init(Stage dialog, List<SuggestedPlanView> plans, Consumer<SuggestedPlanView> onApply) {
+    private void init(Stage dialog, List<SuggestedPlanState> plans, Consumer<SuggestedPlanState> onApply) {
         this.dialog = dialog;
         this.plans = plans == null ? List.of() : plans;
         this.onApply = onApply == null ? plan -> {} : onApply;
@@ -96,7 +96,7 @@ public final class AllSuggestPopupView {
         }
     }
 
-    private void applyPlan(SuggestedPlanView plan, int number) {
+    private void applyPlan(SuggestedPlanState plan, int number) {
         onApply.accept(plan);
         dialog.close();
         showToast("Đã áp dụng phương án " + number + ".");

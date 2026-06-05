@@ -60,6 +60,51 @@ class MvcDependencyTest {
     }
 
     @Test
+    void requestProcessControllerDoesNotDependOnRequestProcessViewState() throws IOException {
+        List<String> violations = new ArrayList<>();
+        for (SourceFile sourceFile : sourceFiles()) {
+            if (!sourceFile.packageName().startsWith(BASE_PACKAGE + ".controller.ordering.request.process")) {
+                continue;
+            }
+            for (String importLine : sourceFile.imports()) {
+                if (importLine.startsWith(BASE_PACKAGE + ".view.ordering.request.process.state")) {
+                    violations.add(sourceFile.relativePath() + " imports request-process View state: " + importLine);
+                }
+            }
+        }
+        assertNoViolations(violations);
+    }
+
+    @Test
+    void requestProcessControllerStateUsesControllerTerminology() throws IOException {
+        Path stateRoot = SOURCE_ROOT.resolve(Path.of(
+            "org",
+            "itss",
+            "prj_itss",
+            "controller",
+            "ordering",
+            "request",
+            "process",
+            "state"
+        ));
+        List<String> violations = new ArrayList<>();
+
+        if (!Files.isDirectory(stateRoot)) {
+            violations.add(normalized(SOURCE_ROOT.relativize(stateRoot)) + " is missing");
+        } else {
+            try (Stream<Path> paths = Files.walk(stateRoot)) {
+                paths
+                    .filter(path -> path.toString().endsWith(".java"))
+                    .map(path -> path.getFileName().toString())
+                    .filter(fileName -> fileName.contains("View") || fileName.contains("Model"))
+                    .forEach(fileName -> violations.add(fileName + " uses View/Model terminology in controller state"));
+            }
+        }
+
+        assertNoViolations(violations);
+    }
+
+    @Test
     void viewDoesNotDependOnPersistence() throws IOException {
         List<String> violations = new ArrayList<>();
         for (SourceFile sourceFile : sourceFiles()) {

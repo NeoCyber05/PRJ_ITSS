@@ -11,13 +11,13 @@ import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.model.request.domain.processing.RequestProcessingData;
 import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
 import org.itss.prj_itss.model.request.domain.processing.suggestion.SuggestedPlan;
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingItemView;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;
-import org.itss.prj_itss.view.ordering.request.process.state.RequestProcessingViewModel;
-import org.itss.prj_itss.view.ordering.request.process.state.SuggestedPlanView;
+import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeCommand;
+import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeResult;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingItemState;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingPreviewOrder;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingSiteState;
+import org.itss.prj_itss.controller.ordering.request.process.state.RequestProcessingState;
+import org.itss.prj_itss.controller.ordering.request.process.state.SuggestedPlanState;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -69,8 +69,8 @@ public final class RequestProcessingSession {
         return OrderingFormatters.formatRequestCode(requestId);
     }
 
-    public RequestProcessingViewModel buildViewModel() {
-        List<RequestProcessingViewModel.AllocationItemViewModel> allocationItems = new ArrayList<>();
+    public RequestProcessingState buildState() {
+        List<RequestProcessingState.AllocationItemState> allocationItems = new ArrayList<>();
         for (int index = 0; index < items.size(); index++) {
             ItemRequirement item = items.get(index);
             int allocated = getAllocated(item.merchandiseId);
@@ -104,14 +104,17 @@ public final class RequestProcessingSession {
                 .sum();
 
             boolean expanded = expandedItemIndex == index;
-            List<RequestProcessingViewModel.AllocationSiteRowViewModel> siteRows = new ArrayList<>();
+            List<RequestProcessingState.AllocationSiteRowState> siteRows = new ArrayList<>();
             if (expanded) {
                 for (SiteStockOption site : allSites) {
                     if (excludedSiteIds.contains(site.id)) continue;
                     if (site.stock.getOrDefault(item.merchandiseId, 0) <= 0) continue;
                     AllocationControl.AllocationSiteRowState stateRow = allocationControl.siteRowState(item, site);
-                    var deliveryView = DeliveryStatusFormatter.format(stateRow.deliveryStatus().dayDelta(), stateRow.deliveryStatus().available());
-                    siteRows.add(new RequestProcessingViewModel.AllocationSiteRowViewModel(
+                    var deliveryStatus = DeliveryStatusFormatter.format(
+                        stateRow.deliveryStatus().dayDelta(),
+                        stateRow.deliveryStatus().available()
+                    );
+                    siteRows.add(new RequestProcessingState.AllocationSiteRowState(
                         item.merchandiseId,
                         site.id,
                         stateRow.siteName(),
@@ -121,13 +124,13 @@ public final class RequestProcessingSession {
                         stateRow.selectedTransportLabel(),
                         stateRow.transportLabels(),
                         stateRow.transportDisabled(),
-                        deliveryView.text(),
-                        deliveryView.styleClass()
+                        deliveryStatus.text(),
+                        deliveryStatus.styleClass()
                     ));
                 }
             }
 
-            allocationItems.add(new RequestProcessingViewModel.AllocationItemViewModel(
+            allocationItems.add(new RequestProcessingState.AllocationItemState(
                 item.merchandiseId,
                 item.code,
                 item.name,
@@ -141,25 +144,25 @@ public final class RequestProcessingSession {
             ));
         }
 
-        List<ProcessingItemView> itemViews = items.stream()
-            .map(i -> new ProcessingItemView(i.merchandiseId, i.code, i.name, i.required))
+        List<ProcessingItemState> itemStates = items.stream()
+            .map(i -> new ProcessingItemState(i.merchandiseId, i.code, i.name, i.required))
             .toList();
 
-        List<ProcessingSiteView> siteViews = allSites.stream()
-            .map(s -> new ProcessingSiteView(s.id, s.siteCode, s.name, s.description, s.shipDays, s.airDays, s.stock))
+        List<ProcessingSiteState> siteStates = allSites.stream()
+            .map(s -> new ProcessingSiteState(s.id, s.siteCode, s.name, s.description, s.shipDays, s.airDays, s.stock))
             .toList();
 
-        Map<Integer, String> desiredDateViews = new LinkedHashMap<>();
-        desiredDeliveryDates.forEach((k, v) -> desiredDateViews.put(k, OrderingFormatters.formatDate(v)));
+        Map<Integer, String> desiredDeliveryDateTexts = new LinkedHashMap<>();
+        desiredDeliveryDates.forEach((k, v) -> desiredDeliveryDateTexts.put(k, OrderingFormatters.formatDate(v)));
 
-        return new RequestProcessingViewModel(
+        return new RequestProcessingState(
             requestId,
             requestCode(),
             OrderingFormatters.formatDate(earliestDeliveryDate),
             deadlineDays,
-            itemViews,
-            siteViews,
-            desiredDateViews,
+            itemStates,
+            siteStates,
+            desiredDeliveryDateTexts,
             allocationItems
         );
     }
@@ -175,10 +178,10 @@ public final class RequestProcessingSession {
         allocationControl.applyOptimalAllocation();
     }
 
-    public List<SuggestedPlanView> handleShowAllPlans() {
+    public List<SuggestedPlanState> handleShowAllPlans() {
         currentSuggestedPlans = allocationControl.buildSuggestedPlans();
         return currentSuggestedPlans.stream()
-            .map(p -> new SuggestedPlanView(
+            .map(p -> new SuggestedPlanState(
                 p.signature(),
                 p.totalQuantity(),
                 p.totalLineCount(),
@@ -195,7 +198,7 @@ public final class RequestProcessingSession {
             .ifPresent(allocationControl::applySelectedPlan);
     }
 
-    public AllocationChangeResultView handleAllocationInputChanged(AllocationChangeCommand command) {
+    public AllocationChangeResult handleAllocationInputChanged(AllocationChangeCommand command) {
         ItemRequirement item = items.stream()
             .filter(i -> i.merchandiseId == command.itemMerchandiseId())
             .findFirst()
@@ -205,16 +208,16 @@ public final class RequestProcessingSession {
             .findFirst()
             .orElse(null);
         if (item == null || site == null) {
-            var deliveryView = DeliveryStatusFormatter.format(0, false);
-            return new AllocationChangeResultView(
+            var deliveryStatus = DeliveryStatusFormatter.format(0, false);
+            return new AllocationChangeResult(
                 false,
                 "INVALID",
                 0,
                 0,
                 0,
                 false,
-                deliveryView.text(),
-                deliveryView.styleClass()
+                deliveryStatus.text(),
+                deliveryStatus.styleClass()
             );
         }
 
@@ -230,16 +233,19 @@ public final class RequestProcessingSession {
                 case NONE -> null;
             };
 
-        var deliveryView = DeliveryStatusFormatter.format(result.deliveryStatus().dayDelta(), result.deliveryStatus().available());
-        return new AllocationChangeResultView(
+        var deliveryStatus = DeliveryStatusFormatter.format(
+            result.deliveryStatus().dayDelta(),
+            result.deliveryStatus().available()
+        );
+        return new AllocationChangeResult(
             result.applied(),
             errorType,
             result.stock(),
             result.deliveryStatus().deliveryDays(),
             result.deliveryStatus().dayDelta(),
             result.deliveryStatus().available(),
-            deliveryView.text(),
-            deliveryView.styleClass()
+            deliveryStatus.text(),
+            deliveryStatus.styleClass()
         );
     }
 
@@ -252,7 +258,7 @@ public final class RequestProcessingSession {
         if (validationMessage != null) {
             return ConfirmResult.invalid(validationMessage);
         }
-        return ConfirmResult.valid(buildPreviewOrderViews());
+        return ConfirmResult.valid(buildPreviewOrders());
     }
 
     public String validateCurrentSubmission() {
@@ -264,12 +270,12 @@ public final class RequestProcessingSession {
         );
     }
 
-    public List<ProcessingPreviewOrderView> buildPreviewOrderViews() {
+    public List<ProcessingPreviewOrder> buildPreviewOrders() {
         var previewOrders = requestProcessingUseCase.buildPreviewOrders(items, allSites, allocations, desiredDeliveryDates);
-        return previewOrders.stream().map(po -> new ProcessingPreviewOrderView(
+        return previewOrders.stream().map(po -> new ProcessingPreviewOrder(
             po.site().name,
             po.site().siteCode,
-            po.lines().stream().map(line -> new ProcessingPreviewOrderView.ProcessingPreviewLineView(
+            po.lines().stream().map(line -> new ProcessingPreviewOrder.ProcessingPreviewLine(
                 line.item().code,
                 line.item().name,
                 line.quantity(),
@@ -361,12 +367,12 @@ public final class RequestProcessingSession {
         return ids == null ? new LinkedHashSet<>() : new LinkedHashSet<>(ids);
     }
 
-    public record ConfirmResult(String validationMessage, List<ProcessingPreviewOrderView> previewOrders) {
+    public record ConfirmResult(String validationMessage, List<ProcessingPreviewOrder> previewOrders) {
         public static ConfirmResult invalid(String validationMessage) {
             return new ConfirmResult(validationMessage, List.of());
         }
 
-        public static ConfirmResult valid(List<ProcessingPreviewOrderView> previewOrders) {
+        public static ConfirmResult valid(List<ProcessingPreviewOrder> previewOrders) {
             return new ConfirmResult(null, List.copyOf(previewOrders));
         }
 

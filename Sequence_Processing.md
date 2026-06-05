@@ -19,11 +19,35 @@ LC -> Session: start(requestId)
 ref over LC, Session, UC : Lấy dữ liệu yêu cầu
 LV -> LV: renderProcessingScreen()
 LV -> LV: renderHeader()
+
 LV -> FV: load(sites, callback)
 create FV
+FV -> FC: new SiteFilterController()
+create FC
+FV -> FC: init(sites)
+FV -> FV: renderUi()
+loop For each site
+    FV -> SiteFilterCardView: load(site, ...)
+    create SiteFilterCardView
+end
+
 LV -> LV: renderItemsViewSection()
 LV -> IV: load(vm, callbacks...)
 create IV
+IV -> IV: renderItems()
+loop For each item
+    IV -> ItemsSectionItemRowView: load(item, ...)
+    create ItemsSectionItemRowView
+    opt item.expanded()
+        IV -> AllocationItemEditorView: load(item, ...)
+        create AllocationItemEditorView
+        AllocationItemEditorView -> AllocationItemEditorView: renderSiteRows()
+        loop For each site row
+            AllocationItemEditorView -> AllocationSiteRowView: load(siteRow, ...)
+            create AllocationSiteRowView
+        end
+    end
+end
 
 opt Tương tác bộ lọc Site
     ref over User, FV, LC, Session, LV : Tương tác bộ lọc Site
@@ -40,6 +64,14 @@ LV -> LC: handleConfirm()
 LC -> Session: handleConfirm()
 Session -> UC: validateSubmission(...)
 UC -> Session: validationMessage
+alt validationMessage == null
+    Session -> UC: buildPreviewOrders(items, allSites, allocations, desiredDeliveryDates)
+    UC -> RequestProcessingPreviewBuilder: new RequestProcessingPreviewBuilder()
+    create RequestProcessingPreviewBuilder
+    UC -> RequestProcessingPreviewBuilder: items(items).sites(allSites).allocations(allocations).desiredDeliveryDates(desiredDeliveryDates).getProduct()
+    RequestProcessingPreviewBuilder -> UC: List<PreviewOrder>
+    UC -> Session: List<PreviewOrder>
+end
 Session -> LC: ConfirmResult
 LC -> LV: ConfirmResult
 alt validationMessage != null
@@ -169,6 +201,11 @@ Session -> LC: List<SuggestedPlanView> (lưu suggested plans gốc)
 LC -> LV: List<SuggestedPlanView>
 LV -> Popup: show(suggestedPlans, callback)
 create Popup
+Popup -> Popup: renderPlans()
+loop For each suggested plan
+    Popup -> SuggestPlanCardView: load(plan, ...)
+    create SuggestPlanCardView
+end
 User -> Popup: Chọn 1 phương án
 Popup -> LV: applySelectedPlan(plan) via callback
 LV -> LC: applySelectedPlan(signature)
@@ -206,6 +243,15 @@ Dialog -> DialogView: init(dialog, onOrdersRequested, controller)
 DialogView -> DialogController: previewOrders()
 DialogController -> DialogView: List<ProcessingPreviewOrderView>
 DialogView -> DialogView: render(previewOrders)
+loop For each preview order
+    DialogView -> PreviewOrderCardView: load(order, ...)
+    create PreviewOrderCardView
+    PreviewOrderCardView -> PreviewOrderCardView: init(order)
+    loop For each preview line
+        PreviewOrderCardView -> PreviewTableRowView: load(line)
+        create PreviewTableRowView
+    end
+end
 User -> DialogView: Ấn nút Gửi
 DialogView -> DialogController: submit()
 DialogController -> LC: submitAllocatedOrders()

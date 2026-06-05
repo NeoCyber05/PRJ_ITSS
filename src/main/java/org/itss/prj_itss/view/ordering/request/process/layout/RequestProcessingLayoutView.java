@@ -6,9 +6,9 @@ import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.view.ordering.request.process.state.RequestProcessingViewModel;
-import org.itss.prj_itss.view.ordering.request.process.state.SuggestedPlanView;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView;
+import org.itss.prj_itss.controller.ordering.request.process.state.RequestProcessingState;
+import org.itss.prj_itss.controller.ordering.request.process.state.SuggestedPlanState;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingPreviewOrder;
 import org.itss.prj_itss.controller.ordering.request.process.RequestProcessingLayoutController;
 import org.itss.prj_itss.view.ordering.request.process.items.ItemsSectionView;
 import org.itss.prj_itss.view.ordering.request.process.preview.RequestProcessingPreviewDialog;
@@ -70,7 +70,7 @@ public final class RequestProcessingLayoutView {
         showPreviewDialog(result.previewOrders());
     }
 
-    private void showPreviewDialog(List<ProcessingPreviewOrderView> previewOrders) {
+    private void showPreviewDialog(List<ProcessingPreviewOrder> previewOrders) {
         new RequestProcessingPreviewDialog(
             () -> navigateToView.accept("received-requests"),
             new RequestProcessingPreviewDialogController(controller, previewOrders)
@@ -85,7 +85,7 @@ public final class RequestProcessingLayoutView {
     }
 
     private void renderHeader() {
-        RequestProcessingViewModel vm = controller.snapshot();
+        RequestProcessingState vm = controller.snapshot();
         int totalQuantity = vm.items().stream().mapToInt(item -> item.required()).sum();
         requestCodeLabel.setText("Yêu cầu " + vm.requestCode());
         requestSummaryLabel.setText(
@@ -98,7 +98,7 @@ public final class RequestProcessingLayoutView {
     }
 
     private void renderSiteFilterSection() {
-        RequestProcessingViewModel vm = controller.snapshot();
+        RequestProcessingState vm = controller.snapshot();
         siteFilterView = SiteFilterView.load(vm.sites(), this::handleSiteFilterChanged);
         siteFilterContainer.getChildren().setAll(siteFilterView.root());
     }
@@ -113,7 +113,7 @@ public final class RequestProcessingLayoutView {
     }
 
     private void renderItemsViewSection() {
-        RequestProcessingViewModel vm = controller.snapshot();
+        RequestProcessingState vm = controller.snapshot();
         ItemsSectionView itemsSection = ItemsSectionView.load(
             vm,
             this::handleOptimizeAllocation,
@@ -135,7 +135,7 @@ public final class RequestProcessingLayoutView {
         AllSuggestPopupView.show(controller.handleShowAllPlans(), this::applySelectedPlan);
     }
 
-    private void applySelectedPlan(SuggestedPlanView plan) {
+    private void applySelectedPlan(SuggestedPlanState plan) {
         controller.applySelectedPlan(plan.signature());
         renderItemsViewSection();
     }

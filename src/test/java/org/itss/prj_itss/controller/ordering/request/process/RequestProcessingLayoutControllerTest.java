@@ -9,13 +9,13 @@ import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
 import org.itss.prj_itss.model.request.domain.request.RequestStatus;
 import org.itss.prj_itss.model.site.domain.Site;
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingItemView;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;
+import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeCommand;
+import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeResult;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingItemState;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingSiteState;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
-import org.itss.prj_itss.view.ordering.request.process.state.RequestProcessingViewModel;
-import org.itss.prj_itss.view.ordering.request.process.state.SuggestedPlanView;
+import org.itss.prj_itss.controller.ordering.request.process.state.RequestProcessingState;
+import org.itss.prj_itss.controller.ordering.request.process.state.SuggestedPlanState;
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcRequestProcessingGateway;
 import org.itss.prj_itss.model.site.application.port.InventoryRepository;
 import org.itss.prj_itss.model.merchandise.application.port.MerchandiseRepository;
@@ -47,7 +47,7 @@ class RequestProcessingLayoutControllerTest {
 
         controller.setRequestId(99);
 
-        RequestProcessingViewModel vm = controller.snapshot();
+        RequestProcessingState vm = controller.snapshot();
         assertEquals(99, vm.requestId());
         assertEquals(1, vm.items().size());
         assertEquals(1, vm.sites().size());
@@ -59,11 +59,11 @@ class RequestProcessingLayoutControllerTest {
     void excludedSiteRemovesMatchingAllocation() {
         RequestProcessingLayoutController controller = controllerWith(defaultScenario());
         controller.setRequestId(99);
-        RequestProcessingViewModel vm = controller.snapshot();
-        ProcessingItemView item = vm.items().get(0);
-        ProcessingSiteView site = vm.sites().get(0);
+        RequestProcessingState vm = controller.snapshot();
+        ProcessingItemState item = vm.items().get(0);
+        ProcessingSiteState site = vm.sites().get(0);
 
-        AllocationChangeResultView result = controller.handleAllocationInputChanged(
+        AllocationChangeResult result = controller.handleAllocationInputChanged(
             new AllocationChangeCommand(item.merchandiseId(), site.id(), "3", "Tàu")
         );
         assertTrue(result.applied());
@@ -78,16 +78,16 @@ class RequestProcessingLayoutControllerTest {
     }
 
     @Test
-    void optimalAndSuggestedPlansApplyAllocations() {
+    void optimalAndSuggestedPlanStatesApplyAllocations() {
         RequestProcessingLayoutController controller = controllerWith(defaultScenario());
         controller.setRequestId(99);
 
         controller.handleOptimizeAllocation();
 
-        RequestProcessingViewModel vm = controller.snapshot();
+        RequestProcessingState vm = controller.snapshot();
         assertEquals(5, vm.allocationItems().get(0).allocated());
 
-        List<SuggestedPlanView> plans = controller.handleShowAllPlans();
+        List<SuggestedPlanState> plans = controller.handleShowAllPlans();
         assertFalse(plans.isEmpty());
 
         controller.applySelectedPlan(plans.get(0).signature());
@@ -124,9 +124,9 @@ class RequestProcessingLayoutControllerTest {
 
         RequestProcessingLayoutController controller = controllerWith(scenario);
         controller.setRequestId(99);
-        RequestProcessingViewModel vm = controller.snapshot();
-        ProcessingItemView item = vm.items().get(0);
-        ProcessingSiteView site = vm.sites().get(0);
+        RequestProcessingState vm = controller.snapshot();
+        ProcessingItemState item = vm.items().get(0);
+        ProcessingSiteState site = vm.sites().get(0);
 
         controller.handleAllocationInputChanged(
             new AllocationChangeCommand(item.merchandiseId(), site.id(), "5", "Tàu")

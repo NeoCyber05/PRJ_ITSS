@@ -2,7 +2,7 @@ package org.itss.prj_itss.controller.ordering.request.process.preview;
 
 import org.itss.prj_itss.controller.ordering.request.process.RequestProcessingLayoutController;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingException;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingPreviewOrder;
 
 import java.util.List;
 import java.util.Objects;
@@ -10,11 +10,11 @@ import java.util.Objects;
 public final class RequestProcessingPreviewDialogController {
 
     private final RequestProcessingLayoutController requestProcessingLayoutController;
-    private final List<ProcessingPreviewOrderView> previewOrders;
+    private final List<ProcessingPreviewOrder> previewOrders;
 
     public RequestProcessingPreviewDialogController(
         RequestProcessingLayoutController requestProcessingLayoutController,
-        List<ProcessingPreviewOrderView> previewOrders
+        List<ProcessingPreviewOrder> previewOrders
     ) {
         this.requestProcessingLayoutController = Objects.requireNonNull(
             requestProcessingLayoutController,
@@ -23,7 +23,7 @@ public final class RequestProcessingPreviewDialogController {
         this.previewOrders = previewOrders == null ? List.of() : List.copyOf(previewOrders);
     }
 
-    public List<ProcessingPreviewOrderView> previewOrders() {
+    public List<ProcessingPreviewOrder> previewOrders() {
         return previewOrders;
     }
 

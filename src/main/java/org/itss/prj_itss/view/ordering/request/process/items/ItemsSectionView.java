@@ -5,9 +5,9 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
-import org.itss.prj_itss.view.ordering.request.process.state.RequestProcessingViewModel;
+import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeCommand;
+import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeResult;
+import org.itss.prj_itss.controller.ordering.request.process.state.RequestProcessingState;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -32,20 +32,20 @@ public final class ItemsSectionView {
 
     private VBox root;
 
-    private RequestProcessingViewModel viewModel;
+    private RequestProcessingState viewModel;
     private Runnable onOptimizeRequested = () -> {};
     private Runnable onShowAllPlansRequested = () -> {};
     private IntConsumer onToggleExpandedItem = index -> {};
-    private Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged = request -> null;
+    private Function<AllocationChangeCommand, AllocationChangeResult> onAllocationInputChanged = request -> null;
 
     private final List<ItemsSectionItemRowView> itemRowViews = new ArrayList<>();
 
     public static ItemsSectionView load(
-        RequestProcessingViewModel viewModel,
+        RequestProcessingState viewModel,
         Runnable onOptimizeRequested,
         Runnable onShowAllPlansRequested,
         IntConsumer onToggleExpandedItem,
-        Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged
+        Function<AllocationChangeCommand, AllocationChangeResult> onAllocationInputChanged
     ) {
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
@@ -89,11 +89,11 @@ public final class ItemsSectionView {
     }
 
     private void init(
-        RequestProcessingViewModel viewModel,
+        RequestProcessingState viewModel,
         Runnable onOptimizeRequested,
         Runnable onShowAllPlansRequested,
         IntConsumer onToggleExpandedItem,
-        Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged
+        Function<AllocationChangeCommand, AllocationChangeResult> onAllocationInputChanged
     ) {
         this.viewModel = Objects.requireNonNull(viewModel, "viewModel");
         this.onOptimizeRequested = onOptimizeRequested == null ? () -> {} : onOptimizeRequested;
@@ -108,9 +108,9 @@ public final class ItemsSectionView {
         itemsContainer.getChildren().clear();
         itemRowViews.clear();
 
-        List<RequestProcessingViewModel.AllocationItemViewModel> items = viewModel.allocationItems();
+        List<RequestProcessingState.AllocationItemState> items = viewModel.allocationItems();
         for (int index = 0; index < items.size(); index++) {
-            RequestProcessingViewModel.AllocationItemViewModel item = items.get(index);
+            RequestProcessingState.AllocationItemState item = items.get(index);
 
             VBox block = new VBox(0);
             ItemsSectionItemRowView rowView = ItemsSectionItemRowView.load(
