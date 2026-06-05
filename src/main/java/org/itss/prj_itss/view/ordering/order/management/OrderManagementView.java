@@ -1,4 +1,4 @@
-package org.itss.prj_itss.view.ordering.order;
+package org.itss.prj_itss.view.ordering.order.management;
 
 import javafx.beans.property.ReadOnlyObjectWrapper;
 import javafx.beans.property.SimpleStringProperty;
@@ -105,7 +105,7 @@ public final class OrderManagementView implements ViewLifecycle {
                 actions.getChildren().add(detailButton);
 
                 if (OrderingFormatters.STATUS_CANCELLED.equalsIgnoreCase(OrderingFormatters.normalizeStatusKey(row.status()))) {
-                    Button processButton = new Button("X\u1eed l\u00ed");
+                    Button processButton = new Button("Xử lý");
                     processButton.setOnAction(event -> {
                         if (navigator != null) {
                             navigator.showView("ordering-order-handle-cancellation:" + row.order().getId());
@@ -122,14 +122,14 @@ public final class OrderManagementView implements ViewLifecycle {
         orderTable.setItems(filteredRows);
 
         statusFilter.getItems().addAll(
-            "M\u1ecdi tr\u1ea1ng th\u00e1i",
-            "Ch\u1edd x\u00e1c nh\u1eadn",
-            "\u0110ang giao",
-            "\u0110\u00e3 ho\u00e0n th\u00e0nh",
-            "\u0110\u00e3 h\u1ee7y",
-            "\u0110\u00e3 lo\u1ea1i b\u1ecf"
+            "Mọi trạng thái",
+            "Chờ xác nhận",
+            "Đang giao",
+            "Đã hoàn thành",
+            "Đã hủy",
+            "Đã loại bỏ"
         );
-        statusFilter.setValue("M\u1ecdi tr\u1ea1ng th\u00e1i");
+        statusFilter.setValue("Mọi trạng thái");
 
         searchField.textProperty().addListener((observable, oldValue, newValue) -> applyFilters());
         statusFilter.valueProperty().addListener((observable, oldValue, newValue) -> applyFilters());

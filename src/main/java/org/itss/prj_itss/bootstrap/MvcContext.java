@@ -31,9 +31,9 @@ import org.itss.prj_itss.controller.admin.account.AdminControllerModule;
 import org.itss.prj_itss.view.admin.account.AccountManagementView;
 import org.itss.prj_itss.view.auth.RoleWorkspaceView;
 import org.itss.prj_itss.view.home.HomeView;
-import org.itss.prj_itss.view.ordering.order.OrderCancellationView;
-import org.itss.prj_itss.view.ordering.order.OrderDetailView;
-import org.itss.prj_itss.view.ordering.order.OrderManagementView;
+import org.itss.prj_itss.view.ordering.order.cancellation.OrderCancellationLayoutView;
+import org.itss.prj_itss.view.ordering.order.detail.OrderDetailView;
+import org.itss.prj_itss.view.ordering.order.management.OrderManagementView;
 import org.itss.prj_itss.view.ordering.request.ReceivedRequestsView;
 import org.itss.prj_itss.view.ordering.request.RequestDetailContext;
 import org.itss.prj_itss.view.ordering.request.process.layout.RequestProcessingLayoutView;
@@ -135,7 +135,7 @@ public final class MvcContext {
         ),
         RouteRegistry.fxml(
             "orders",
-            "/org/itss/prj_itss/view/ordering/order/order-management-view.fxml",
+            "/org/itss/prj_itss/view/ordering/order/management/order-management-view.fxml",
             (viewId, viewInstance, navigator) ->
                 ((OrderManagementView) viewInstance).init(navigator, orderControllers.orderManagementController())
         ),
@@ -360,11 +360,11 @@ public final class MvcContext {
     private LoadedView loadOrderCancellationView(String viewId, Navigator navigator) throws Exception {
         int orderId = parsePositiveInt(viewId.substring("ordering-order-handle-cancellation:".length()), 1);
         return RouteRegistry.loadFxml(
-            "/org/itss/prj_itss/view/ordering/order/handle-order-cancellation-view.fxml",
+            "/org/itss/prj_itss/view/ordering/order/cancellation/order-cancellation-layout-view.fxml",
             viewId,
             navigator,
             (requestedViewId, viewInstance, routeNavigator) -> {
-                OrderCancellationView view = (OrderCancellationView) viewInstance;
+                OrderCancellationLayoutView view = (OrderCancellationLayoutView) viewInstance;
                 view.init(routeNavigator, orderControllers.newCancellationProcessingController());
                 view.setCancelledOrderId(orderId);
             }

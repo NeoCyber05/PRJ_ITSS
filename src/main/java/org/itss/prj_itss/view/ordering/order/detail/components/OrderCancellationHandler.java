@@ -1,4 +1,4 @@
-package org.itss.prj_itss.view.ordering.order.components;
+package org.itss.prj_itss.view.ordering.order.detail.components;
 
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
