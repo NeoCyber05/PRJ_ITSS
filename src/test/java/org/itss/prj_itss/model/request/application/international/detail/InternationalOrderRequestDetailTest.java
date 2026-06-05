@@ -1,4 +1,4 @@
-package org.itss.prj_itss.model.request.application;
+package org.itss.prj_itss.model.request.application.international.detail;
 
 import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailApplicationService;
 import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailQueryPort;
