@@ -76,7 +76,7 @@ public class ConfirmOrderArrivalController {
 
         String normalizedNote = overallNote == null ? "" : overallNote.trim();
         if (hasDiscrepancy && normalizedNote.isEmpty()) {
-            errors.add("Vui lòng nhập Ghi chú tổng thể khi có chênh lệch kiểm nhận.");
+            errors.add("Có chênh lệch, hãy viết ghi chú chênh lệch.");
             return new ValidationResult(false, errors);
         }
 

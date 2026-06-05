@@ -91,7 +91,7 @@ public class MainLayoutView implements Navigator {
         registerNavButton("sales-requests",          salesRequestsButton);
         registerNavButton("merchandise-management",  merchandiseManagementButton);
         registerNavButton("account-management",      accountManagementButton);
-        registerNavButton("warehouse-inbound-orders",warehouseIncomingOrdersButton);
+        registerNavButton("warehouse-order-confirm-arrival", warehouseIncomingOrdersButton);
 
         // Site direct tab buttons
         siteProfileDirectBtn .setOnAction(e -> showSiteTab(0));
