@@ -18,12 +18,13 @@ class SalesRequestCommandServiceTest {
     void createRequestBuildsPendingRequestAggregateBeforeSaving() throws Exception {
         RecordingCommandPort commandPort = new RecordingCommandPort();
         SalesRequestCommandService service = new SalesRequestCommandService(commandPort);
+        LocalDate desiredDate = LocalDate.now().plusDays(2);
 
         int requestId = service.createRequest(
             List.of(new SalesRequestItemSubmission(
                 10,
                 BigDecimal.valueOf(3),
-                LocalDate.of(2026, 6, 4)
+                desiredDate
             )),
             "restock"
         );
@@ -34,7 +35,7 @@ class SalesRequestCommandServiceTest {
         assertEquals(1, commandPort.savedRequest.getItems().size());
         assertEquals(10, commandPort.savedRequest.getItems().get(0).getMerchandiseId());
         assertEquals(BigDecimal.valueOf(3), commandPort.savedRequest.getItems().get(0).getQuantityOrdered());
-        assertEquals(LocalDate.of(2026, 6, 4), commandPort.savedRequest.getItems().get(0).getDesiredDeliveryDate());
+        assertEquals(desiredDate, commandPort.savedRequest.getItems().get(0).getDesiredDeliveryDate());
     }
 
     private static final class RecordingCommandPort implements SalesRequestCommandPort {

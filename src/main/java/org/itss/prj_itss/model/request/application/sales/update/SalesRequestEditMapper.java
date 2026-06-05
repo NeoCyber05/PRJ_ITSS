@@ -36,7 +36,7 @@ public final class SalesRequestEditMapper {
         return state;
     }
 
-    public List<SalesRequestItemSubmission> toInput(SalesRequestEditDraft draft) {
+    public List<SalesRequestItemSubmission> toInput(ValidatedSalesRequestEditDraft draft) {
         return draft.items().stream()
             .map(item -> new SalesRequestItemSubmission(
                 item.merchandise().id(),
