@@ -9,9 +9,6 @@ import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEdit
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditMapper;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditUseCase;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidator;
-import org.itss.prj_itss.view.sales.request.update.SalesRequestEditActionHandler;
-import org.itss.prj_itss.view.sales.request.update.SalesRequestEditView;
-import org.itss.prj_itss.view.sales.request.update.SalesRequestEditScreenStarter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -21,14 +18,14 @@ import java.util.Objects;
 public final class SalesRequestEditController implements SalesRequestEditActionHandler, SalesRequestEditScreenStarter {
 
     private final SalesRequestEditSession session;
-    private SalesRequestEditView view;
+    private SalesRequestEditViewPort view;
 
     public SalesRequestEditController(SalesRequestEditUseCase useCase) {
         this.session = new SalesRequestEditSession(Objects.requireNonNull(useCase, "useCase"));
     }
 
     public void start(
-            SalesRequestEditView view,
+            SalesRequestEditViewPort view,
             SalesRequestEditDialogInput input,
             SalesRequestDialogListener listener
     ) {
