@@ -1,0 +1,92 @@
+CÁCH 1:
+
+View{
+	Controller c;
+
+	button1.click{
+		c.m1()
+	}
+	button2.click{
+		c.m2()
+	}
+	button1.click{
+		c.m3()
+	}
+}
+
+Controller{
+	View v;
+	m1(){}
+	m2(){}
+	m3(){}
+}
+
+
+
+
+CÁCH 2:
+View{
+	addListenerButton1(ActionListener al){
+		button1.addActionListener(al)
+	}
+	addListenerButton2(ActionListener al){
+		button2.addActionListener(al)
+	}
+	addListenerButton3(ActionListener al){
+		button3.addActionListener(al)
+	}
+}
+
+Controller{
+	View v;
+	v.addListenerButton1(new ActionListener(){
+
+	})
+	v.addListenerButton2(new ActionListener(){
+
+	})
+	v.addListenerButton3(new ActionListener(){
+
+	})
+}
+
+
+CÁCH 3:
+IViewController{
+	m1()
+	m2()
+	m3()
+}
+
+View {
+	addListener(IViewController ivc){
+		button1.addActionListener(new AL(){
+			void actionPerformed(){
+				ivc.m1();
+			}
+
+		})
+		button2.addActionListener(new AL(){
+			void actionPerformed(){
+				ivc.m2();
+			}
+
+		})
+		button3.addActionListener(new AL(){
+			void actionPerformed(){
+				ivc.m3();
+			}
+
+		})
+	}
+}
+
+Controller {
+	View v;
+	v.addListener(new IViewController(){
+
+	})
+	
+}
+
+

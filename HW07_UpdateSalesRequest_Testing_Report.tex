@@ -1,0 +1,486 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage[vietnamese]{babel}
+\usepackage{geometry}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage{xcolor}
+\usepackage{tcolorbox}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage{hyperref}
+
+\geometry{margin=2.2cm}
+
+\definecolor{softgray}{RGB}{245,245,245}
+\definecolor{linegray}{RGB}{210,210,210}
+\definecolor{softgreen}{RGB}{235,250,235}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\mcode}[1]{\texttt{#1}}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  breaklines=true,
+  columns=fullflexible,
+  frame=single,
+  backgroundcolor=\color{softgray}
+}
+
+\begin{document}
+
+\section{Tóm tắt}
+
+Lớp được chọn nằm trong module cập nhật yêu cầu bán hàng:
+\begin{tcolorbox}[colback=softgray,colframe=linegray,sharp corners]
+\code{SalesRequestEditValidator}
+\end{tcolorbox}
+
+Tài liệu tập trung kiểm thử phương thức chính:
+\begin{tcolorbox}[colback=softgray,colframe=linegray,sharp corners]
+\code{validate(SalesRequestEditDraft draft, LocalDate today)}
+\end{tcolorbox}
+
+Đây là bước kiểm tra dữ liệu nháp của form cập nhật Sales Request trước khi hệ thống cho phép submit yêu cầu cập nhật. Phương thức có vai trò nghiệp vụ rõ ràng: kiểm tra danh sách mặt hàng, mặt hàng được chọn, số lượng yêu cầu và ngày nhận mong muốn.
+
+Ngoài phương thức chính \code{validate(...)}, báo cáo có kiểm thử bổ sung phương thức \code{validateForSubmission(...)} vì đây là phương thức được gọi trong luồng submit. Tuy nhiên, phần bảng quyết định và luồng điều khiển tập trung vào logic validate.
+
+Hai kỹ thuật được áp dụng lần lượt và độc lập:
+\begin{enumerate}[leftmargin=1.2cm]
+  \item \textbf{Kiểm thử hộp đen - Bảng quyết định}: thiết kế test case từ đặc tả nghiệp vụ, không dựa vào cấu trúc mã nguồn.
+  \item \textbf{Kiểm thử hộp trắng - Luồng điều khiển}: thiết kế test case từ cấu trúc điều kiện và độ đo C1, bảo đảm mọi nhánh quyết định được thực thi ít nhất một lần.
+\end{enumerate}
+
+\section{Mô tả lớp và phương thức cần kiểm thử}
+
+\subsection{Mục đích của lớp}
+
+\code{SalesRequestEditValidator} có nhiệm vụ kiểm tra dữ liệu cập nhật Sales Request trước khi dữ liệu được gửi xuống use case submit. Lớp này phù hợp để kiểm thử vì:
+\begin{itemize}[leftmargin=1.1cm]
+  \item logic nghiệp vụ rõ ràng, ảnh hưởng trực tiếp tới tính đúng đắn của yêu cầu cập nhật;
+  \item là logic Java thuần, không phụ thuộc JavaFX, database hoặc service bên ngoài;
+  \item có đủ điều kiện nghiệp vụ để áp dụng bảng quyết định và có đủ nhánh điều khiển để áp dụng kiểm thử luồng điều khiển.
+\end{itemize}
+
+\subsection{Đầu vào và đầu ra của phương thức}
+
+Các đầu vào chính của phương thức \code{validate(...)}:
+
+\begin{longtable}{p{0.30\textwidth}p{0.62\textwidth}}
+\toprule
+\textbf{Tham số} & \textbf{Ý nghĩa}\\
+\midrule
+\code{draft} & Dữ liệu nháp của form cập nhật Sales Request, gồm mã request và danh sách dòng hàng.\\
+\code{draft.items()} & Danh sách các dòng hàng cần cập nhật. Mỗi dòng là một \code{SalesRequestEditItemDraft}.\\
+\code{item.merchandise()} & Mặt hàng được chọn trên từng dòng.\\
+\code{item.quantity()} & Số lượng yêu cầu trên từng dòng.\\
+\code{item.desiredDate()} & Ngày mong muốn nhận hàng trên từng dòng.\\
+\code{today} & Ngày hiện tại dùng để kiểm tra ngày nhận mong muốn.\\
+\bottomrule
+\end{longtable}
+
+Kết quả trả về:
+
+\begin{longtable}{p{0.46\textwidth}p{0.45\textwidth}}
+\toprule
+\textbf{Trường hợp} & \textbf{Giá trị trả về}\\
+\midrule
+Dữ liệu hợp lệ & \code{SalesRequestEditValidationResult} với \code{validForm() = true}.\\
+Danh sách item rỗng & Kết quả có violation field \code{items}.\\
+Chưa chọn mặt hàng & Kết quả có violation field \code{merchandise}.\\
+Số lượng không hợp lệ & Kết quả có violation field \code{quantity}.\\
+Ngày nhận không hợp lệ & Kết quả có violation field \code{desiredDate}.\\
+\bottomrule
+\end{longtable}
+
+Với phương thức bổ sung \code{validateForSubmission(...)}, kết quả là:
+\begin{longtable}{p{0.46\textwidth}p{0.45\textwidth}}
+\toprule
+\textbf{Trường hợp} & \textbf{Giá trị trả về}\\
+\midrule
+Draft hợp lệ & Trả về \code{ValidatedSalesRequestEditDraft}.\\
+Draft không hợp lệ & Ném \code{SalesRequestEditValidationException}.\\
+\bottomrule
+\end{longtable}
+
+\subsection{Đoạn mã cần kiểm thử}
+
+\begin{lstlisting}[language=Java]
+public SalesRequestEditValidationResult validate(
+        SalesRequestEditDraft draft,
+        LocalDate today
+) {
+    List<SalesRequestEditFieldViolation> violations = new ArrayList<>();
+    if (draft.items().isEmpty()) {
+        violations.add(new SalesRequestEditFieldViolation(
+            0,
+            "items",
+            "Phải có ít nhất 1 mặt hàng."
+        ));
+        return new SalesRequestEditValidationResult(violations);
+    }
+
+    for (SalesRequestEditItemDraft item : draft.items()) {
+        MerchandiseOption merchandise = item.merchandise();
+        if (merchandise == null) {
+            violations.add(new SalesRequestEditFieldViolation(
+                item.lineId(),
+                "merchandise",
+                "Vui lòng chọn mặt hàng cho tất cả các dòng."
+            ));
+        } else if (selectionPolicy.isDuplicateSelection(
+                item.lineId(),
+                merchandise.id(),
+                draft.items()
+        )) {
+            violations.add(new SalesRequestEditFieldViolation(
+                item.lineId(),
+                "merchandise",
+                "Không được chọn trùng mặt hàng."
+            ));
+        }
+
+        BigDecimal quantity = item.quantity();
+        if (quantity == null || quantity.compareTo(BigDecimal.ZERO) <= 0) {
+            violations.add(new SalesRequestEditFieldViolation(
+                item.lineId(),
+                "quantity",
+                "Số lượng phải là số lớn hơn 0."
+            ));
+        }
+
+        LocalDate desiredDate = item.desiredDate();
+        if (desiredDate == null || desiredDate.isBefore(today)) {
+            violations.add(new SalesRequestEditFieldViolation(
+                item.lineId(),
+                "desiredDate",
+                "Ngày nhận không hợp lệ."
+            ));
+        }
+    }
+    return new SalesRequestEditValidationResult(violations);
+}
+\end{lstlisting}
+
+\section{Kiểm thử hộp đen - Bảng quyết định}
+
+\subsection{Điều kiện và hành động}
+
+Ở kiểm thử hộp đen, phương thức được xem như một hộp kín. Test case được thiết kế dựa trên đặc tả nghiệp vụ, không xét tới cách mã nguồn hiện thực bên trong.
+
+\begin{longtable}{p{0.12\textwidth}p{0.78\textwidth}}
+\toprule
+\textbf{Ký hiệu} & \textbf{Điều kiện}\\
+\midrule
+C1 & Danh sách item rỗng: \code{items=[]}.\\
+C2 & Chưa chọn mặt hàng: \code{merchandise == null}.\\
+C3 & Số lượng bị bỏ trống: \code{quantity == null}.\\
+C4 & Số lượng nhỏ hơn hoặc bằng 0: \code{quantity <= 0}.\\
+C5 & Ngày nhận bị bỏ trống: \code{desiredDate == null}.\\
+C6 & Ngày nhận trước ngày hiện tại: \code{desiredDate < today}.\\
+C7 & Draft hợp lệ khi submit.\\
+C8 & Draft không hợp lệ khi submit.\\
+\bottomrule
+\end{longtable}
+
+\begin{longtable}{p{0.12\textwidth}p{0.78\textwidth}}
+\toprule
+\textbf{Ký hiệu} & \textbf{Hành động}\\
+\midrule
+A1 & Trả về violation field \code{items}.\\
+A2 & Trả về violation field \code{merchandise}.\\
+A3 & Trả về violation field \code{quantity}.\\
+A4 & Trả về violation field \code{desiredDate}.\\
+A5 & Không có violation, \code{validForm() = true}.\\
+A6 & Trả về \code{ValidatedSalesRequestEditDraft}.\\
+A7 & Ném \code{SalesRequestEditValidationException}.\\
+\bottomrule
+\end{longtable}
+
+Quan hệ phụ thuộc giữa các điều kiện:
+\begin{itemize}[leftmargin=1.1cm]
+  \item C1 có mức ưu tiên cao nhất. Nếu \code{items=[]}, validator trả về lỗi \code{items} và không cần xét các điều kiện trên từng dòng hàng.
+  \item Điều kiện trùng mặt hàng không được đưa vào bảng quyết định hộp đen vì FE đã lọc combobox, người dùng chỉ chọn được các mặt hàng chưa xuất hiện ở dòng khác.
+  \item C3 và C4 nằm trong cùng nhóm kiểm tra \code{quantity}; C4 chỉ có ý nghĩa khi \code{quantity != null}.
+  \item C5 và C6 nằm trong cùng nhóm kiểm tra \code{desiredDate}; C6 chỉ có ý nghĩa khi \code{desiredDate != null}.
+  \item C7 và C8 là hai trường hợp của \code{validateForSubmission(...)}: hợp lệ thì trả về validated draft, không hợp lệ thì ném exception.
+  \item Trùng mặt hàng vẫn được kiểm thử ở phần hộp trắng C1 vì trong validator có nhánh phòng vệ \code{selectionPolicy.isDuplicateSelection(...)}.
+\end{itemize}
+
+\subsection{Bảng quyết định}
+
+Bảng quyết định dưới đây chỉ xét các input có thể phát sinh từ luồng người dùng trên FE. Trường hợp trùng mặt hàng không được đưa vào bảng hộp đen vì combobox đã lọc.
+
+\begin{table}[H]
+\centering
+\small
+\begin{tabularx}{\textwidth}{>{\raggedright\arraybackslash}p{0.32\textwidth}*{9}{>{\centering\arraybackslash}X}}
+\toprule
+\textbf{Điều kiện / Hành động}
+& \textbf{TC1} & \textbf{TC2} & \textbf{TC3}
+& \textbf{TC4} & \textbf{TC5} & \textbf{TC6}
+& \textbf{TC7} & \textbf{TC8} & \textbf{TC9} \\
+\midrule
+C1: \code{items=[]}
+& Y & N & N & N & N & N & N & N & N \\
+
+C2: \code{merchandise == null}
+& -- & Y & N & N & N & N & N & N & Y \\
+
+C3: \code{quantity == null}
+& -- & N & Y & N & N & N & N & N & N \\
+
+C4: \code{quantity <= 0}
+& -- & N & -- & Y & N & N & N & N & Y \\
+
+C5: \code{desiredDate == null}
+& -- & N & N & N & Y & N & N & N & N \\
+
+C6: \code{desiredDate < today}
+& -- & N & N & N & -- & Y & N & N & Y \\
+
+C7: submit draft hợp lệ
+& -- & -- & -- & -- & -- & -- & -- & Y & N \\
+
+C8: submit draft không hợp lệ
+& -- & -- & -- & -- & -- & -- & -- & N & Y \\
+
+\midrule
+A1: violation \code{items}
+& X &  &  &  &  &  &  &  &  \\
+
+A2: violation \code{merchandise}
+&  & X &  &  &  &  &  &  & X \\
+
+A3: violation \code{quantity}
+&  &  & X & X &  &  &  &  & X \\
+
+A4: violation \code{desiredDate}
+&  &  &  &  & X & X &  &  & X \\
+
+A5: \code{validForm() = true}
+&  &  &  &  &  &  & X &  &  \\
+
+A6: trả về validated draft
+&  &  &  &  &  &  &  & X &  \\
+
+A7: ném validation exception
+&  &  &  &  &  &  &  &  & X \\
+\bottomrule
+\end{tabularx}
+\caption{Bảng quyết định và test case tương ứng}
+\end{table}
+
+\subsection{Danh sách test case hộp đen}
+
+\begin{table}[H]
+\centering
+\scriptsize
+\setlength{\tabcolsep}{3pt}
+\renewcommand{\arraystretch}{1.18}
+\begin{tabularx}{\textwidth}{
+>{\centering\arraybackslash}p{0.10\textwidth}
+>{\centering\arraybackslash}p{0.10\textwidth}
+>{\raggedright\arraybackslash}p{0.27\textwidth}
+>{\raggedright\arraybackslash}p{0.25\textwidth}
+>{\raggedright\arraybackslash}X
+}
+\toprule
+\textbf{Mã TC} &
+\textbf{Quy tắc} &
+\textbf{Tên test JUnit} &
+\textbf{Dữ liệu kiểm thử} &
+\textbf{Kết quả mong đợi} \\
+\midrule
+DT-01 & C1 &
+\code{validate\_shouldReject\_whenItemsEmpty} &
+\code{items=[]} &
+Báo lỗi trường \code{items} \\
+
+DT-02 & C2 &
+\code{validate\_shouldReject\_whenMerchandiseMissing} &
+\code{merchandise=null} &
+Báo lỗi trường \code{merchandise} \\
+
+DT-03 & C3 &
+\code{validate\_shouldReject\_whenQuantityNull} &
+\code{quantity=null} &
+Báo lỗi trường \code{quantity} \\
+
+DT-04 & C4 &
+\code{validate\_shouldReject\_whenQuantityNonPositive} &
+\code{quantity=0} &
+Báo lỗi trường \code{quantity} \\
+
+DT-05 & C5 &
+\code{validate\_shouldReject\_whenDesiredDateNull} &
+\code{desiredDate=null} &
+Báo lỗi trường \code{desiredDate} \\
+
+DT-06 & C6 &
+\code{validate\_shouldReject\_whenDesiredDateBeforeToday} &
+\code{desiredDate=2026-05-24} &
+Báo lỗi trường \code{desiredDate} \\
+
+DT-07 & Valid form &
+\code{validate\_shouldHaveNoViolations\_whenDraftIsValid} &
+1 item: \code{M1}, \code{quantity=1}, \code{desiredDate=2026-05-25} &
+Dữ liệu hợp lệ, không có lỗi kiểm tra \\
+
+DT-08 & C7 &
+\code{validateForSubmission\_shouldReturnValidatedDraft\_whenDraftValid} &
+Draft hợp lệ &
+Trả về đối tượng draft đã được xác thực \\
+
+DT-09 & C8 &
+\code{validateForSubmission\_shouldThrow\_whenDraftInvalid} &
+Draft không hợp lệ &
+Ném ngoại lệ kiểm tra dữ liệu không hợp lệ \\
+\bottomrule
+\end{tabularx}
+\caption{Danh sách test case hộp đen}
+\end{table}
+
+\section{Kiểm thử hộp trắng - Luồng điều khiển và độ phủ C1}
+
+\subsection{Gắn nhãn nút điều khiển}
+
+\begin{longtable}{p{0.08\textwidth}p{0.72\textwidth}p{0.12\textwidth}}
+\toprule
+\textbf{Nút} & \textbf{Vai trò trong mã nguồn} & \textbf{Loại}\\
+\midrule
+N1 & Khởi tạo danh sách \code{violations}. & Tuần tự\\
+N2 & Kiểm tra \code{draft.items().isEmpty()}. & Quyết định\\
+N3 & Thêm violation field \code{items} và trả về kết quả. & Kết thúc\\
+N4 & Vòng lặp qua từng \code{SalesRequestEditItemDraft}. & Quyết định\\
+N5 & Lấy \code{merchandise}. & Tuần tự\\
+N6 & Kiểm tra \code{merchandise == null}. & Quyết định\\
+N7 & Thêm violation field \code{merchandise} do chưa chọn mặt hàng. & Tuần tự\\
+N8 & Kiểm tra \code{selectionPolicy.isDuplicateSelection(...)}. & Quyết định\\
+N9 & Thêm violation field \code{merchandise} do trùng mặt hàng. & Tuần tự\\
+N10 & Lấy \code{quantity}. & Tuần tự\\
+N11 & Kiểm tra \code{quantity == null || quantity <= 0}. & Quyết định\\
+N12 & Thêm violation field \code{quantity}. & Tuần tự\\
+N13 & Lấy \code{desiredDate}. & Tuần tự\\
+N14 & Kiểm tra \code{desiredDate == null || desiredDate < today}. & Quyết định\\
+N15 & Thêm violation field \code{desiredDate}. & Tuần tự\\
+N16 & Trả về \code{SalesRequestEditValidationResult}. & Kết thúc\\
+\bottomrule
+\end{longtable}
+
+\subsection{Các đường đi độc lập}
+
+\begin{longtable}{
+    >{\raggedright\arraybackslash}p{0.08\textwidth}
+    >{\raggedright\arraybackslash}p{0.43\textwidth}
+    >{\raggedright\arraybackslash}p{0.39\textwidth}
+}
+\toprule
+\textbf{Mã} & \textbf{Chuỗi nút} & \textbf{Điều kiện kích hoạt}\\
+\midrule
+P1
+&
+N1--N2--N3
+&
+\code{items=[]}, phương thức trả về lỗi \code{items} sớm.
+\\
+
+P2
+&
+N1--N2--N4--N5--N6--N8--N10--N11--N13--N14--N16
+&
+Một item hợp lệ, không có violation.
+\\
+
+P3
+&
+N1--N2--N4--N5--N6--N7--N10--N11--N12--N13--N14--N15--N16
+&
+\code{merchandise=null}, \code{quantity=null}, \code{desiredDate=null}.
+\\
+
+P4
+&
+N1--N2--N4--N5--N6--N8--N9--N10--N11--N12--N13--N14--N15--N16
+&
+Mặt hàng bị trùng, \code{quantity=0}, \code{desiredDate < today}.
+\\
+\bottomrule
+\end{longtable}
+
+\subsubsection*{Kết luận độ phủ C1}
+
+\begin{longtable}{p{0.30\textwidth}p{0.28\textwidth}p{0.28\textwidth}}
+\toprule
+\textbf{Điều kiện} & \textbf{Nhánh đúng} & \textbf{Nhánh sai}\\
+\midrule
+\code{items.isEmpty()} & WB-01 & WB-02 / WB-03 / WB-04\\
+\code{merchandise == null} & WB-03 & WB-02 / WB-04\\
+\code{isDuplicateSelection(...)} & WB-04 & WB-02\\
+\code{quantity == null} & WB-03 & WB-02 / WB-04\\
+\code{quantity <= 0} & WB-04 & WB-02\\
+\code{desiredDate == null} & WB-03 & WB-02 / WB-04\\
+\code{desiredDate < today} & WB-04 & WB-02\\
+\bottomrule
+\end{longtable}
+
+Bộ test hộp trắng đi qua đầy đủ nhánh đúng và nhánh sai của các điều kiện trong phương thức \code{validate(...)}. Do đó độ phủ nhánh C1 đạt:
+\[
+\text{C1} = \frac{14}{14} \times 100\% = 100\%.
+\]
+
+\subsection{Danh sách test case hộp trắng}
+
+\begin{longtable}{p{0.10\textwidth}p{0.10\textwidth}p{0.34\textwidth}p{0.25\textwidth}p{0.13\textwidth}}
+\toprule
+\textbf{Mã TC} & \textbf{Đường} & \textbf{Tên test JUnit} & \textbf{Dữ liệu kiểm thử} & \textbf{Kết quả}\\
+\midrule
+WB-01 & P1 & \mcode{validate\_shouldCoverEmptyItemsBranch} & \code{items=[]} & Lỗi \code{items}\\
+WB-02 & P2 & \mcode{validate\_shouldCoverValidBranches} & Một item hợp lệ & Hợp lệ\\
+WB-03 & P3 & \mcode{validate\_shouldCoverNullBranchesAndInvalidSubmission} & \code{merchandise=null}, \code{quantity=null}, \code{desiredDate=null} & Có lỗi\\
+WB-04 & P4 & \mcode{validate\_shouldCoverDuplicateAndNonNullInvalidBranches} & Trùng \code{merchandise}, \code{quantity=0}, \code{desiredDate<today} & Có lỗi\\
+\bottomrule
+\end{longtable}
+
+\section{Cài đặt kiểm thử tự động bằng JUnit}
+
+Các class kiểm thử tự động:
+\begin{tcolorbox}[colback=softgray,colframe=linegray,sharp corners]
+\begin{minipage}{0.92\textwidth}\ttfamily\small
+SalesRequestEditValidatorBlackBoxTest\\
+SalesRequestEditValidatorWhiteBoxC1Test
+\end{minipage}
+\end{tcolorbox}
+
+Các test case dùng JUnit 5, tự chuẩn bị dữ liệu đầu vào, không phụ thuộc database hoặc giao diện. Mỗi test gọi trực tiếp \code{validate(...)} hoặc \code{validateForSubmission(...)} và so sánh kết quả thực tế với kết quả mong đợi bằng các assertion như \code{assertTrue(...)}, \code{assertFalse(...)}, \code{assertThrows(...)} và \code{assertDoesNotThrow(...)}.
+
+\section{Kết quả thực thi kiểm thử}
+
+Lệnh chạy kiểm thử:
+\begin{lstlisting}[language=bash]
+./mvnw -Dtest=SalesRequestEditValidatorBlackBoxTest,SalesRequestEditValidatorWhiteBoxC1Test -Dsurefire.useFile=false test
+\end{lstlisting}
+
+Tổng kết khi chạy test suite:
+\begin{tcolorbox}[colback=softgreen,colframe=green!50!black,sharp corners]
+Số test chạy: 13 \quad | \quad Thất bại: 0 \quad | \quad Lỗi: 0 \quad | \quad Bỏ qua: 0\\
+Kết quả: \textbf{ĐẠT}. Bộ test gồm 9 test case bảng quyết định và 4 test case hộp trắng C1, đạt 100\% độ phủ nhánh C1 cho phương thức \code{validate(...)}.
+\end{tcolorbox}
+
+\section{Kết luận}
+
+Báo cáo đã áp dụng lần lượt hai kỹ thuật kiểm thử cho phương thức \code{validate(...)} trong lớp \code{SalesRequestEditValidator}:
+\begin{itemize}[leftmargin=1.1cm]
+  \item Bảng quyết định giúp kiểm tra các quy tắc nghiệp vụ quan trọng: danh sách rỗng, thiếu mặt hàng, số lượng không hợp lệ, ngày nhận không hợp lệ và trường hợp hợp lệ.
+  \item Luồng điều khiển giúp bổ sung các trường hợp cấu trúc như return sớm, nhánh thiếu mặt hàng, nhánh trùng mặt hàng phòng vệ, nhánh số lượng và nhánh ngày nhận.
+  \item Các test bổ sung cho \code{validateForSubmission(...)} giúp xác nhận hành vi submit hợp lệ và submit không hợp lệ.
+\end{itemize}
+
+Vì vậy, bộ test cuối cùng vừa đảm bảo ý nghĩa nghiệp vụ, vừa đảm bảo bao phủ cấu trúc điều khiển của phương thức \code{validate(...)}.
+
+\end{document}

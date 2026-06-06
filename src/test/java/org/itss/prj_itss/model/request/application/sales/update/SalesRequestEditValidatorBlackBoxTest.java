@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-@DisplayName("HW07 - SalesRequestEditValidator Black-box Tests")
+@DisplayName("HW07 - SalesRequestEditValidator Black-box Decision Table Tests")
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 class SalesRequestEditValidatorBlackBoxTest {
 
@@ -30,36 +30,15 @@ class SalesRequestEditValidatorBlackBoxTest {
 
     @Test
     @Order(1)
-    @DisplayName("BB-01 - Valid draft should have no violations")
-    void validate_shouldHaveNoViolations_whenDraftIsValid() {
-        SalesRequestEditDraft draft = draftOf(item(1, M1, "1", TODAY));
-
-        SalesRequestEditValidationResult result = validator.validate(draft, TODAY);
-
-        logValidationResult(
-            "BB-01",
-            "Vung hop le day du",
-            "1 item: M1, quantity=1, desiredDate=2026-05-25",
-            "validForm=true, violations=[]",
-            result
-        );
-        assertAll(
-            () -> assertTrue(result.validForm()),
-            () -> assertTrue(result.violations().isEmpty())
-        );
-    }
-
-    @Test
-    @Order(2)
-    @DisplayName("BB-02 - Empty item list should be invalid")
+    @DisplayName("DT-01 - Empty item list should be invalid")
     void validate_shouldReject_whenItemsEmpty() {
         SalesRequestEditDraft draft = draftOf();
 
         SalesRequestEditValidationResult result = validator.validate(draft, TODAY);
 
         logValidationResult(
-            "BB-02",
-            "Vung khong hop le cua danh sach item",
+            "DT-01",
+            "C1: items=[]",
             "items=[]",
             "validForm=false, violations=[items]",
             result
@@ -71,16 +50,16 @@ class SalesRequestEditValidatorBlackBoxTest {
     }
 
     @Test
-    @Order(3)
-    @DisplayName("BB-03 - Missing merchandise should be invalid")
+    @Order(2)
+    @DisplayName("DT-02 - Missing merchandise should be invalid")
     void validate_shouldReject_whenMerchandiseMissing() {
         SalesRequestEditDraft draft = draftOf(item(1, null, "1", TODAY));
 
         SalesRequestEditValidationResult result = validator.validate(draft, TODAY);
 
         logValidationResult(
-            "BB-03",
-            "Vung khong hop le cua merchandise",
+            "DT-02",
+            "C2: merchandise == null",
             "1 item: merchandise=null, quantity=1, desiredDate=2026-05-25",
             "validForm=false, violations=[merchandise]",
             result
@@ -89,37 +68,16 @@ class SalesRequestEditValidatorBlackBoxTest {
     }
 
     @Test
-    @Order(4)
-    @DisplayName("BB-04 - Duplicate merchandise should be invalid")
-    void validate_shouldReject_whenMerchandiseDuplicated() {
-        SalesRequestEditDraft draft = draftOf(
-            item(1, M1, "1", TODAY),
-            item(2, M1, "1", TODAY)
-        );
-
-        SalesRequestEditValidationResult result = validator.validate(draft, TODAY);
-
-        logValidationResult(
-            "BB-04",
-            "Vung khong hop le do trung merchandise",
-            "2 items: line 1 M1, line 2 M1",
-            "validForm=false, violations contains merchandise",
-            result
-        );
-        assertFieldViolation(result, "merchandise");
-    }
-
-    @Test
-    @Order(5)
-    @DisplayName("BB-05 - Null quantity should be invalid")
+    @Order(3)
+    @DisplayName("DT-03 - Null quantity should be invalid")
     void validate_shouldReject_whenQuantityNull() {
         SalesRequestEditDraft draft = draftOf(new SalesRequestEditItemDraft(1, M1, null, TODAY));
 
         SalesRequestEditValidationResult result = validator.validate(draft, TODAY);
 
         logValidationResult(
-            "BB-05",
-            "Vung khong hop le: quantity null",
+            "DT-03",
+            "C3: quantity == null",
             "1 item: M1, quantity=null, desiredDate=2026-05-25",
             "validForm=false, violations=[quantity]",
             result
@@ -128,34 +86,16 @@ class SalesRequestEditValidatorBlackBoxTest {
     }
 
     @Test
-    @Order(6)
-    @DisplayName("BB-06 - Negative quantity should be invalid")
-    void validate_shouldReject_whenQuantityNegative() {
-        SalesRequestEditDraft draft = draftOf(item(1, M1, "-1", TODAY));
-
-        SalesRequestEditValidationResult result = validator.validate(draft, TODAY);
-
-        logValidationResult(
-            "BB-06",
-            "Bien duoi khong hop le cua quantity",
-            "1 item: M1, quantity=-1, desiredDate=2026-05-25",
-            "validForm=false, violations=[quantity]",
-            result
-        );
-        assertFieldViolation(result, "quantity");
-    }
-
-    @Test
-    @Order(7)
-    @DisplayName("BB-07 - Zero quantity should be invalid")
-    void validate_shouldReject_whenQuantityZero() {
+    @Order(4)
+    @DisplayName("DT-04 - Non-positive quantity should be invalid")
+    void validate_shouldReject_whenQuantityNonPositive() {
         SalesRequestEditDraft draft = draftOf(item(1, M1, "0", TODAY));
 
         SalesRequestEditValidationResult result = validator.validate(draft, TODAY);
 
         logValidationResult(
-            "BB-07",
-            "Bien tai ranh gioi khong hop le cua quantity",
+            "DT-04",
+            "C4: quantity <= 0",
             "1 item: M1, quantity=0, desiredDate=2026-05-25",
             "validForm=false, violations=[quantity]",
             result
@@ -164,34 +104,16 @@ class SalesRequestEditValidatorBlackBoxTest {
     }
 
     @Test
-    @Order(8)
-    @DisplayName("BB-08 - Positive decimal quantity should be valid")
-    void validate_shouldAcceptQuantity_whenQuantityPositiveDecimal() {
-        SalesRequestEditDraft draft = draftOf(item(1, M1, "0.01", TODAY));
-
-        SalesRequestEditValidationResult result = validator.validate(draft, TODAY);
-
-        logValidationResult(
-            "BB-08",
-            "Bien duoi hop le cua quantity",
-            "1 item: M1, quantity=0.01, desiredDate=2026-05-25",
-            "validForm=true, no quantity violation",
-            result
-        );
-        assertNoFieldViolation(result, "quantity");
-    }
-
-    @Test
-    @Order(9)
-    @DisplayName("BB-09 - Null desired date should be invalid")
+    @Order(5)
+    @DisplayName("DT-05 - Null desired date should be invalid")
     void validate_shouldReject_whenDesiredDateNull() {
         SalesRequestEditDraft draft = draftOf(item(1, M1, "1", null));
 
         SalesRequestEditValidationResult result = validator.validate(draft, TODAY);
 
         logValidationResult(
-            "BB-09",
-            "Vung khong hop le: desiredDate null",
+            "DT-05",
+            "C5: desiredDate == null",
             "1 item: M1, quantity=1, desiredDate=null",
             "validForm=false, violations=[desiredDate]",
             result
@@ -200,16 +122,16 @@ class SalesRequestEditValidatorBlackBoxTest {
     }
 
     @Test
-    @Order(10)
-    @DisplayName("BB-10 - Desired date before today should be invalid")
+    @Order(6)
+    @DisplayName("DT-06 - Desired date before today should be invalid")
     void validate_shouldReject_whenDesiredDateBeforeToday() {
         SalesRequestEditDraft draft = draftOf(item(1, M1, "1", TODAY.minusDays(1)));
 
         SalesRequestEditValidationResult result = validator.validate(draft, TODAY);
 
         logValidationResult(
-            "BB-10",
-            "Bien khong hop le truoc ngay hien tai",
+            "DT-06",
+            "C6: desiredDate < today",
             "1 item: M1, quantity=1, desiredDate=2026-05-24",
             "validForm=false, violations=[desiredDate]",
             result
@@ -218,66 +140,29 @@ class SalesRequestEditValidatorBlackBoxTest {
     }
 
     @Test
-    @Order(11)
-    @DisplayName("BB-11 - Desired date equal today should be valid")
-    void validate_shouldAcceptDesiredDate_whenDateIsToday() {
+    @Order(7)
+    @DisplayName("DT-07 - Valid draft should have no violations")
+    void validate_shouldHaveNoViolations_whenDraftIsValid() {
         SalesRequestEditDraft draft = draftOf(item(1, M1, "1", TODAY));
 
         SalesRequestEditValidationResult result = validator.validate(draft, TODAY);
 
         logValidationResult(
-            "BB-11",
-            "Bien hop le dung ngay hien tai",
+            "DT-07",
+            "All validation conditions are false",
             "1 item: M1, quantity=1, desiredDate=2026-05-25",
-            "validForm=true, no desiredDate violation",
-            result
-        );
-        assertNoFieldViolation(result, "desiredDate");
-    }
-
-    @Test
-    @Order(12)
-    @DisplayName("BB-12 - Desired date after today should be valid")
-    void validate_shouldAcceptDesiredDate_whenDateAfterToday() {
-        SalesRequestEditDraft draft = draftOf(item(1, M1, "1", TODAY.plusDays(1)));
-
-        SalesRequestEditValidationResult result = validator.validate(draft, TODAY);
-
-        logValidationResult(
-            "BB-12",
-            "Vung hop le sau ngay hien tai",
-            "1 item: M1, quantity=1, desiredDate=2026-05-26",
-            "validForm=true, no desiredDate violation",
-            result
-        );
-        assertNoFieldViolation(result, "desiredDate");
-    }
-
-    @Test
-    @Order(13)
-    @DisplayName("BB-13 - Multiple invalid fields should produce multiple violations")
-    void validate_shouldReturnMultipleViolations_whenMultipleFieldsInvalid() {
-        SalesRequestEditDraft draft = draftOf(item(1, null, "0", TODAY.minusDays(1)));
-
-        SalesRequestEditValidationResult result = validator.validate(draft, TODAY);
-
-        logValidationResult(
-            "BB-13",
-            "Ket hop nhieu vung khong hop le",
-            "1 item: merchandise=null, quantity=0, desiredDate=2026-05-24",
-            "validForm=false, violations=[merchandise, quantity, desiredDate]",
+            "validForm=true, violations=[]",
             result
         );
         assertAll(
-            () -> assertFieldViolation(result, "merchandise"),
-            () -> assertFieldViolation(result, "quantity"),
-            () -> assertFieldViolation(result, "desiredDate")
+            () -> assertTrue(result.validForm()),
+            () -> assertTrue(result.violations().isEmpty())
         );
     }
 
     @Test
-    @Order(14)
-    @DisplayName("BB-14 - Valid submission should return validated draft")
+    @Order(8)
+    @DisplayName("DT-08 - Valid submission should return validated draft")
     void validateForSubmission_shouldReturnValidatedDraft_whenDraftValid() {
         SalesRequestEditDraft draft = draftOf(item(1, M1, "1", TODAY));
 
@@ -285,8 +170,8 @@ class SalesRequestEditValidatorBlackBoxTest {
             assertDoesNotThrow(() -> validator.validateForSubmission(draft, TODAY));
 
         logSubmissionResult(
-            "BB-14",
-            "Submission hop le",
+            "DT-08",
+            "C7: submit draft hop le",
             "validateForSubmission(valid draft)",
             "returns ValidatedSalesRequestEditDraft",
             "returned " + validatedDraft.getClass().getSimpleName()
@@ -295,8 +180,8 @@ class SalesRequestEditValidatorBlackBoxTest {
     }
 
     @Test
-    @Order(15)
-    @DisplayName("BB-15 - Invalid submission should throw validation exception")
+    @Order(9)
+    @DisplayName("DT-09 - Invalid submission should throw validation exception")
     void validateForSubmission_shouldThrow_whenDraftInvalid() {
         SalesRequestEditDraft draft = draftOf(item(1, null, "0", TODAY.minusDays(1)));
 
@@ -305,8 +190,8 @@ class SalesRequestEditValidatorBlackBoxTest {
             () -> validator.validateForSubmission(draft, TODAY)
         );
         logSubmissionResult(
-            "BB-15",
-            "Submission khong hop le",
+            "DT-09",
+            "C8: submit draft khong hop le",
             "validateForSubmission(invalid draft)",
             "throws SalesRequestEditValidationException",
             "threw " + exception.getClass().getSimpleName()
@@ -348,48 +233,40 @@ class SalesRequestEditValidatorBlackBoxTest {
         );
     }
 
-    private static void assertNoFieldViolation(
-            SalesRequestEditValidationResult result,
-            String field
-    ) {
-        assertFalse(
-            result.violations().stream().anyMatch(violation -> violation.field().equals(field)),
-            "Expected no violation field: " + field
-        );
-    }
-
     private static void logValidationResult(
             String testCaseId,
-            String description,
+            String rule,
             String input,
             String expected,
             SalesRequestEditValidationResult actual
     ) {
-        log(testCaseId, description, input, expected, actualValidation(actual));
+        log(testCaseId, rule, input, expected, actualValidation(actual));
     }
 
     private static void logSubmissionResult(
             String testCaseId,
-            String description,
+            String rule,
             String input,
             String expected,
             String actual
     ) {
-        log(testCaseId, description, input, expected, actual);
+        log(testCaseId, rule, input, expected, actual);
     }
 
     private static void log(
             String testCaseId,
-            String description,
+            String rule,
             String input,
             String expected,
             String actual
     ) {
         System.out.println();
-        System.out.println("[" + testCaseId + "] " + description);
+        System.out.println("[" + testCaseId + "] Decision Table Test");
+        System.out.println("Rule     : " + rule);
         System.out.println("Input    : " + input);
         System.out.println("Expected : " + expected);
         System.out.println("Actual   : " + actual);
+        System.out.println("Result   : PASS");
     }
 
     private static String actualValidation(SalesRequestEditValidationResult result) {

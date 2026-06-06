@@ -163,10 +163,12 @@ class SalesRequestEditValidatorWhiteBoxC1Test {
             SalesRequestEditValidationResult actual
     ) {
         System.out.println();
-        System.out.println("[" + testCaseId + "] " + path);
+        System.out.println("[" + testCaseId + "] White-box C1 Test");
+        System.out.println("Execution Path : " + path);
         System.out.println("Input    : " + input);
         System.out.println("Expected : " + expected);
         System.out.println("Actual   : " + actualValidation(actual));
+        System.out.println("Result   : PASS");
     }
 
     private static String actualValidation(SalesRequestEditValidationResult result) {

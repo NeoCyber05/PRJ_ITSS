@@ -11,11 +11,7 @@ import org.itss.prj_itss.model.request.application.lock.RequestLockUseCase;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditUseCase;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidator;
 import org.itss.prj_itss.model.request.domain.lock.LockOwner;
-import org.itss.prj_itss.view.sales.request.update.SalesRequestEditActionHandler;
-import org.itss.prj_itss.view.sales.request.update.SalesRequestEditView;
-import org.itss.prj_itss.view.sales.request.update.SalesRequestEditScreenStarter;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
@@ -24,7 +20,7 @@ import java.util.function.Supplier;
 public final class SalesRequestEditController implements SalesRequestEditActionHandler, SalesRequestEditScreenStarter {
 
     private final SalesRequestEditSession session;
-    private SalesRequestEditView view;
+    private SalesRequestEditViewPort view;
 
     public SalesRequestEditController(
             SalesRequestEditUseCase useCase,
@@ -39,7 +35,7 @@ public final class SalesRequestEditController implements SalesRequestEditActionH
     }
 
     public boolean start(
-            SalesRequestEditView view,
+            SalesRequestEditViewPort view,
             SalesRequestEditDialogInput input,
             SalesRequestDialogListener listener
     ) {
@@ -69,12 +65,20 @@ public final class SalesRequestEditController implements SalesRequestEditActionH
     }
 
     public void deleteItemRequested(int lineId) {
-        session.handleDeleteItem(lineId);
+        SalesRequestEditSession.DeleteResult result = session.handleDeleteItem(lineId);
+        if (!result.deleted()) {
+            view.showAlertError(result.message());
+            return;
+        }
         render();
     }
 
     public void deleteItemsRequested(List<Integer> lineIds) {
-        session.handleDeleteItems(lineIds);
+        SalesRequestEditSession.DeleteResult result = session.handleDeleteItems(lineIds);
+        if (!result.deleted()) {
+            view.showAlertError(result.message());
+            return;
+        }
         render();
     }
 
@@ -83,8 +87,8 @@ public final class SalesRequestEditController implements SalesRequestEditActionH
         render();
     }
 
-    public void quantityChanged(int lineId, BigDecimal quantity) {
-        session.handleQuantityChanged(lineId, quantity);
+    public void quantityChanged(int lineId, String rawQuantity) {
+        session.handleQuantityChanged(lineId, rawQuantity);
         render();
     }
 

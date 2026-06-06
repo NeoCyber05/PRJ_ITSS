@@ -52,7 +52,7 @@ public record SalesRequestEditViewState(
     }
 
     private static Item itemFrom(SalesRequestEditItemDraft item) {
-        return new Item(item.lineId(), item.merchandise(), item.quantity(), item.desiredDate());
+        return new Item(item.lineId(), item.merchandise(), item.quantity(), item.rawQuantity(), item.desiredDate());
     }
 
     private static FieldViolation violationFrom(SalesRequestEditFieldViolation violation) {
@@ -63,6 +63,7 @@ public record SalesRequestEditViewState(
             int lineId,
             MerchandiseOption merchandise,
             BigDecimal quantity,
+            String rawQuantity,
             LocalDate desiredDate
     ) {
     }

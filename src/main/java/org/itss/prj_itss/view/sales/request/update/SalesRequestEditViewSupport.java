@@ -1,6 +1,8 @@
 package org.itss.prj_itss.view.sales.request.update;
 
 import javafx.scene.Node;
+import javafx.scene.control.Control;
+import javafx.scene.control.Tooltip;
 import javafx.scene.shape.SVGPath;
 
 import java.math.BigDecimal;
@@ -28,6 +30,12 @@ final class SalesRequestEditViewSupport {
 
     static void applyInputStyle(Node node, boolean invalid) {
         node.setStyle(invalid ? "-fx-border-color: #EF4444;" : "");
+    }
+
+    static void applyValidationFeedback(Control control, String message) {
+        boolean invalid = message != null && !message.isBlank();
+        applyInputStyle(control, invalid);
+        control.setTooltip(invalid ? new Tooltip(message) : null);
     }
 
     static SVGPath trashIcon() {

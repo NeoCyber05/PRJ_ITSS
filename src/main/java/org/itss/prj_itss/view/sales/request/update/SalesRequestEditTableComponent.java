@@ -7,8 +7,10 @@ import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
+import javafx.scene.control.Control;
 import javafx.scene.control.DateCell;
 import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
@@ -18,12 +20,13 @@ import javafx.scene.control.TableColumn;
 import javafx.scene.control.TableRow;
 import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
+import javafx.scene.control.Tooltip;
 import javafx.scene.control.cell.CheckBoxTableCell;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditViewState;
 import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
-import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -53,8 +56,7 @@ final class SalesRequestEditTableComponent {
     private final FilteredList<SalesRequestEditItemRow> filteredItems = new FilteredList<>(allItems, row -> true);
 
     private SalesRequestEditTableActions actions;
-    private SalesRequestEditViewState.Validation validationResult =
-        new SalesRequestEditViewState.Validation(List.of());
+    private SalesRequestEditViewState.Validation validationResult = new SalesRequestEditViewState.Validation(List.of());
     private Map<Integer, List<MerchandiseOption>> availableOptionsByLineId = Map.of();
 
     SalesRequestEditTableComponent(
@@ -69,8 +71,7 @@ final class SalesRequestEditTableComponent {
             TableColumn<SalesRequestEditItemRow, SalesRequestEditItemRow> desiredDateColumn,
             TableColumn<SalesRequestEditItemRow, SalesRequestEditItemRow> actionColumn,
             Label itemCountLabel,
-            HBox paginationBox
-    ) {
+            HBox paginationBox) {
         this.bulkDeleteButton = bulkDeleteButton;
         this.selectedCountLabel = selectedCountLabel;
         this.itemsTable = itemsTable;
@@ -94,8 +95,7 @@ final class SalesRequestEditTableComponent {
     void renderItems(
             List<SalesRequestEditViewState.Item> items,
             Map<Integer, List<MerchandiseOption>> availableOptionsByLineId,
-            String searchText
-    ) {
+            String searchText) {
         this.availableOptionsByLineId = copyOptionsByLineId(availableOptionsByLineId);
         allItems.setAll(items.stream().map(SalesRequestEditItemRow::new).toList());
         applySearchFilter(searchText);
@@ -117,7 +117,7 @@ final class SalesRequestEditTableComponent {
                 return true;
             }
             return SalesRequestEditViewSupport.contains(merchandise.code(), lower)
-                || SalesRequestEditViewSupport.contains(merchandise.name(), lower);
+                    || SalesRequestEditViewSupport.contains(merchandise.name(), lower);
         });
         paginator.keepCurrentPageValid(filteredItems.size());
         refreshPage();
@@ -150,7 +150,7 @@ final class SalesRequestEditTableComponent {
 
     private void setupTable() {
         itemsTable.setEditable(true);
-        itemsTable.setFixedCellSize(48);
+        itemsTable.setFixedCellSize(74);
         itemsTable.getSelectionModel().setSelectionMode(SelectionMode.MULTIPLE);
         itemsTable.setItems(pageItems);
 
@@ -208,12 +208,19 @@ final class SalesRequestEditTableComponent {
 
                 if (row.merchandise() != null) {
                     Label label = new Label(row.merchandise().code());
-                    label.setStyle("-fx-text-fill: #1F2937; -fx-font-weight: bold;");
+                    String validationMessage = violationMessage(row.lineId(), "merchandise");
+                    label.setStyle(validationMessage == null
+                            ? "-fx-text-fill: #1F2937; -fx-font-weight: bold;"
+                            : "-fx-text-fill: #DC2626; -fx-font-weight: bold;");
+                    label.setTooltip(validationMessage == null ? null : new Tooltip(validationMessage));
                     setGraphic(label);
                     return;
                 }
 
                 ComboBox<MerchandiseOption> comboBox = createMerchandiseComboBox(true, row);
+                SalesRequestEditViewSupport.applyValidationFeedback(
+                        comboBox,
+                        violationMessage(row.lineId(), "merchandise"));
                 setGraphic(comboBox);
             }
 
@@ -237,12 +244,17 @@ final class SalesRequestEditTableComponent {
 
                 if (row.merchandise() != null) {
                     Label label = new Label(row.merchandise().name());
-                    label.setStyle("-fx-text-fill: #4B5563;");
+                    String validationMessage = violationMessage(row.lineId(), "merchandise");
+                    label.setStyle(validationMessage == null ? "-fx-text-fill: #4B5563;" : "-fx-text-fill: #DC2626;");
+                    label.setTooltip(validationMessage == null ? null : new Tooltip(validationMessage));
                     setGraphic(label);
                     return;
                 }
 
                 ComboBox<MerchandiseOption> comboBox = createMerchandiseComboBox(false, row);
+                SalesRequestEditViewSupport.applyValidationFeedback(
+                        comboBox,
+                        violationMessage(row.lineId(), "merchandise"));
                 setGraphic(comboBox);
             }
 
@@ -261,21 +273,10 @@ final class SalesRequestEditTableComponent {
         quantityColumn.setCellFactory(column -> new TableCell<>() {
             private final TextField textField = new TextField();
             private SalesRequestEditItemRow currentRow;
-            private boolean internalUpdate;
 
             {
                 textField.setPrefWidth(100);
                 textField.setAlignment(Pos.CENTER_LEFT);
-                textField.textProperty().addListener((obs, oldValue, newValue) -> {
-                    if (internalUpdate) {
-                        return;
-                    }
-                    if (!newValue.matches("\\d*(\\.\\d*)?")) {
-                        internalUpdate = true;
-                        textField.setText(oldValue);
-                        internalUpdate = false;
-                    }
-                });
                 textField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
                     if (!isFocused && currentRow != null) {
                         commitValue();
@@ -292,14 +293,15 @@ final class SalesRequestEditTableComponent {
                 if (currentRow == null) {
                     return;
                 }
-                BigDecimal quantity = SalesRequestEditViewSupport.parseQuantity(textField.getText());
-                BigDecimal oldQuantity = currentRow.quantity();
-                if (Objects.equals(oldQuantity, quantity)) {
+                String rawQuantity = textField.getText();
+                if (Objects.equals(currentRow.rawQuantity(), rawQuantity)) {
                     return;
                 }
+                BigDecimal quantity = SalesRequestEditViewSupport.parseQuantity(rawQuantity);
+                currentRow.setRawQuantity(rawQuantity);
                 currentRow.setQuantity(quantity);
                 if (actions != null) {
-                    actions.quantityChanged().accept(currentRow.lineId(), quantity);
+                    actions.quantityChanged().accept(currentRow.lineId(), rawQuantity);
                 }
             }
 
@@ -311,11 +313,10 @@ final class SalesRequestEditTableComponent {
                     setGraphic(null);
                     return;
                 }
-                internalUpdate = true;
-                textField.setText(row.quantity() != null ? OrderingFormatters.formatQuantity(row.quantity()) : "");
-                internalUpdate = false;
-                SalesRequestEditViewSupport.applyInputStyle(textField, hasViolation(row.lineId(), "quantity"));
-                setGraphic(textField);
+                textField.setText(row.rawQuantity());
+                String validationMessage = quantityValidationMessage(row);
+                SalesRequestEditViewSupport.applyValidationFeedback(textField, validationMessage);
+                setGraphic(inputWithValidationMessage(textField, validationMessage));
             }
         });
     }
@@ -329,6 +330,7 @@ final class SalesRequestEditTableComponent {
 
             {
                 datePicker.setPrefWidth(165);
+                datePicker.setEditable(false);
                 datePicker.valueProperty().addListener((obs, oldValue, newValue) -> {
                     if (internalUpdate || currentRow == null) {
                         return;
@@ -343,17 +345,23 @@ final class SalesRequestEditTableComponent {
                     public void updateItem(LocalDate date, boolean empty) {
                         super.updateItem(date, empty);
                         if (empty || date == null) {
+                            setDisable(false);
+                            setTooltip(null);
+                            setStyle("");
                             return;
                         }
-                        LocalDate today = LocalDate.now();
-                        if (date.isBefore(today)) {
+                        setDisable(false);
+                        if (isBlockedDesiredDate(date)) {
                             setDisable(true);
-                            setStyle("-fx-background-color: #f3f4f6; -fx-text-fill: #9ca3af; -fx-border-color: transparent;");
+                            setTooltip(new Tooltip("Chỉ được chọn ngày sau hôm nay."));
+                            setStyle(
+                                    "-fx-background-color: #F3F4F6; -fx-text-fill: #9CA3AF; -fx-border-color: transparent;");
                         } else if (datePicker.getValue() != null && date.equals(datePicker.getValue())) {
-                            setStyle("-fx-background-color: #bfdbfe; -fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-border-color: transparent;");
-                        } else if (date.equals(today)) {
-                            setStyle("-fx-border-color: transparent;");
+                            setTooltip(null);
+                            setStyle(
+                                    "-fx-background-color: #bfdbfe; -fx-text-fill: #1e3a8a; -fx-font-weight: bold; -fx-border-color: transparent;");
                         } else {
+                            setTooltip(null);
                             setStyle("");
                         }
                     }
@@ -371,8 +379,9 @@ final class SalesRequestEditTableComponent {
                 internalUpdate = true;
                 datePicker.setValue(row.desiredDate());
                 internalUpdate = false;
-                SalesRequestEditViewSupport.applyInputStyle(datePicker, hasViolation(row.lineId(), "desiredDate"));
-                setGraphic(datePicker);
+                String validationMessage = desiredDateValidationMessage(row);
+                SalesRequestEditViewSupport.applyValidationFeedback(datePicker, validationMessage);
+                setGraphic(inputWithValidationMessage(datePicker, validationMessage));
             }
         });
     }
@@ -406,31 +415,28 @@ final class SalesRequestEditTableComponent {
 
     private ComboBox<MerchandiseOption> createMerchandiseComboBox(
             boolean useCode,
-            SalesRequestEditItemRow row
-    ) {
+            SalesRequestEditItemRow row) {
         return SalesRequestEditMerchandiseComboBoxFactory.create(
-            useCode,
-            availableOptionsByLineId.getOrDefault(row.lineId(), List.of()),
-            selected -> merchandiseChanged(row, selected)
-        );
+                useCode,
+                availableOptionsByLineId.getOrDefault(row.lineId(), List.of()),
+                selected -> merchandiseChanged(row, selected));
     }
 
     private Map<Integer, List<MerchandiseOption>> copyOptionsByLineId(
-            Map<Integer, List<MerchandiseOption>> optionsByLineId
-    ) {
+            Map<Integer, List<MerchandiseOption>> optionsByLineId) {
         return optionsByLineId.entrySet().stream()
-            .collect(Collectors.toUnmodifiableMap(
-                Map.Entry::getKey,
-                entry -> List.copyOf(entry.getValue())
-            ));
+                .collect(Collectors.toUnmodifiableMap(
+                        Map.Entry::getKey,
+                        entry -> List.copyOf(entry.getValue())));
     }
 
     private void refreshPage() {
         SalesRequestPaginationModel model = paginator.model(filteredItems.size());
         pageItems.setAll(filteredItems.subList(model.fromIndex(), model.toIndex()));
         itemCountLabel.setText(filteredItems.isEmpty()
-            ? "Không có mặt hàng"
-            : "Hiển thị " + (model.fromIndex() + 1) + " - " + model.toIndex() + " / " + filteredItems.size() + " mặt hàng");
+                ? "Không có mặt hàng"
+                : "Hiển thị " + (model.fromIndex() + 1) + " - " + model.toIndex() + " / " + filteredItems.size()
+                        + " mặt hàng");
         renderPaginationButtons(model);
     }
 
@@ -484,9 +490,9 @@ final class SalesRequestEditTableComponent {
             return;
         }
         List<Integer> lineIds = allItems.stream()
-            .filter(SalesRequestEditItemRow::selected)
-            .map(SalesRequestEditItemRow::lineId)
-            .toList();
+                .filter(SalesRequestEditItemRow::selected)
+                .map(SalesRequestEditItemRow::lineId)
+                .toList();
         actions.deleteItems().accept(lineIds);
     }
 
@@ -499,13 +505,60 @@ final class SalesRequestEditTableComponent {
 
     private SalesRequestEditItemRow findRow(int lineId) {
         return allItems.stream()
-            .filter(row -> row.lineId() == lineId)
-            .findFirst()
-            .orElse(null);
+                .filter(row -> row.lineId() == lineId)
+                .findFirst()
+                .orElse(null);
     }
 
-    private boolean hasViolation(int lineId, String field) {
-        return validationResult.hasViolation(lineId, field);
+    private String violationMessage(int lineId, String field) {
+        return validationResult.violations().stream()
+                .filter(violation -> violation.lineId() == lineId && violation.field().equals(field))
+                .map(SalesRequestEditViewState.FieldViolation::message)
+                .findFirst()
+                .orElse(null);
+    }
+
+    private String quantityValidationMessage(SalesRequestEditItemRow row) {
+        String message = violationMessage(row.lineId(), "quantity");
+        if (message == null) {
+            return null;
+        }
+        if (row.rawQuantity() == null || row.rawQuantity().isBlank()) {
+            return "Nhập số lượng.";
+        }
+        return "Số lượng > 0.";
+    }
+
+    private String desiredDateValidationMessage(SalesRequestEditItemRow row) {
+        String message = violationMessage(row.lineId(), "desiredDate");
+        if (message == null) {
+            return null;
+        }
+        if (row.desiredDate() == null) {
+            return "Chọn ngày nhận.";
+        }
+        if (isBlockedDesiredDate(row.desiredDate())) {
+            return "Chọn sau hôm nay.";
+        }
+        return message;
+    }
+
+    private Node inputWithValidationMessage(Control input, String message) {
+        if (message == null || message.isBlank()) {
+            return input;
+        }
+        Label messageLabel = new Label(message);
+        messageLabel.setWrapText(true);
+        messageLabel.setMaxWidth(input.getPrefWidth());
+        messageLabel.setStyle("-fx-text-fill: #DC2626; -fx-font-size: 10px; -fx-font-weight: bold;");
+
+        VBox box = new VBox(2, input, messageLabel);
+        box.setAlignment(Pos.CENTER_LEFT);
+        return box;
+    }
+
+    private boolean isBlockedDesiredDate(LocalDate date) {
+        return !date.isAfter(LocalDate.now());
     }
 
     private String unitOf(MerchandiseOption merchandise) {
@@ -515,8 +568,8 @@ final class SalesRequestEditTableComponent {
     private Button pageButton(String text, boolean active) {
         Button button = new Button(text);
         button.setStyle(active
-            ? "-fx-background-color: #253D2C; -fx-text-fill: white; -fx-background-radius: 6; -fx-min-width: 30; -fx-min-height: 30; -fx-cursor: hand;"
-            : "-fx-background-color: #F3F4F6; -fx-text-fill: #374151; -fx-background-radius: 6; -fx-min-width: 30; -fx-min-height: 30; -fx-cursor: hand;");
+                ? "-fx-background-color: #253D2C; -fx-text-fill: white; -fx-background-radius: 6; -fx-min-width: 30; -fx-min-height: 30; -fx-cursor: hand;"
+                : "-fx-background-color: #F3F4F6; -fx-text-fill: #374151; -fx-background-radius: 6; -fx-min-width: 30; -fx-min-height: 30; -fx-cursor: hand;");
         return button;
     }
 }

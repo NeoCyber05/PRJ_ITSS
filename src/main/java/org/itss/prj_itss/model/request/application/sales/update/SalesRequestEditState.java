@@ -54,16 +54,18 @@ public final class SalesRequestEditState {
             item.lineId(),
             merchandise,
             item.quantity(),
-            item.desiredDate()
+            item.desiredDate(),
+            item.rawQuantity()
         ));
     }
 
-    public void changeQuantity(int lineId, BigDecimal quantity) {
+    public void changeQuantity(int lineId, String rawQuantity) {
         replace(lineId, item -> new SalesRequestEditItemDraft(
             item.lineId(),
             item.merchandise(),
-            quantity,
-            item.desiredDate()
+            parseQuantity(rawQuantity),
+            item.desiredDate(),
+            rawQuantity
         ));
     }
 
@@ -72,8 +74,20 @@ public final class SalesRequestEditState {
             item.lineId(),
             item.merchandise(),
             item.quantity(),
-            desiredDate
+            desiredDate,
+            item.rawQuantity()
         ));
+    }
+
+    private BigDecimal parseQuantity(String rawQuantity) {
+        if (rawQuantity == null || rawQuantity.isBlank()) {
+            return null;
+        }
+        try {
+            return new BigDecimal(rawQuantity.trim());
+        } catch (NumberFormatException exception) {
+            return null;
+        }
     }
 
     private void replace(int lineId, ItemReplacement replacement) {

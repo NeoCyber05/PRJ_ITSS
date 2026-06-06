@@ -16,13 +16,15 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.stage.Window;
 import javafx.util.Duration;
+import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditActionHandler;
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditViewState;
+import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditViewPort;
 import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 
 import java.util.List;
 
-public final class SalesRequestEditView implements ViewLifecycle {
+public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEditViewPort {
 
     private SalesRequestEditActionHandler actionHandler;
     private Runnable closeHandler;

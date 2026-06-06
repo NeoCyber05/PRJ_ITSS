@@ -20,7 +20,6 @@ import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEdit
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidationResult;
 import java.util.function.Supplier;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -30,6 +29,8 @@ import java.util.Objects;
 import java.util.Set;
 
 public final class SalesRequestEditSession {
+
+    private static final String LAST_ITEM_DELETE_MESSAGE = "Yêu cầu đặt hàng cần có tối thiểu 1 sản phẩm.";
 
     private final SalesRequestEditUseCase useCase;
     private final RequestLockUseCase lockUseCase;
@@ -53,8 +54,7 @@ public final class SalesRequestEditSession {
 
     public StartResult start(
             SalesRequestEditDialogInput input,
-            SalesRequestDialogListener listener
-    ) {
+            SalesRequestDialogListener listener) {
         Objects.requireNonNull(input, "input");
         LockOwner owner = lockOwnerSupplier.get();
         LockResult lockResult;
@@ -105,35 +105,43 @@ public final class SalesRequestEditSession {
 
     public SalesRequestEditViewState buildViewModel() {
         SalesRequestEditDraft draft = currentDraft();
-        SalesRequestEditValidationResult validationResult = useCase.validateDraft(draft, LocalDate.now());
+        SalesRequestEditValidationResult validationResult = new SalesRequestEditValidationResult(List.of());
         return SalesRequestEditViewState.from(
-            draft,
-            availableOptionsByLineId(draft),
-            validationResult
-        );
+                draft,
+                availableOptionsByLineId(draft),
+                validationResult);
     }
 
     public void handleAddItem() {
         state.addBlankItem();
     }
 
-    public void handleDeleteItem(int lineId) {
+    public DeleteResult handleDeleteItem(int lineId) {
+        if (itemCount() <= 1 && hasItem(lineId)) {
+            return DeleteResult.blocked(LAST_ITEM_DELETE_MESSAGE);
+        }
         state.removeItem(lineId);
+        return DeleteResult.success();
     }
 
-    public void handleDeleteItems(List<Integer> lineIds) {
+    public DeleteResult handleDeleteItems(List<Integer> lineIds) {
         if (lineIds == null || lineIds.isEmpty()) {
-            return;
+            return DeleteResult.success();
         }
-        state.removeItems(new LinkedHashSet<>(lineIds));
+        Set<Integer> requestedLineIds = new LinkedHashSet<>(lineIds);
+        if (itemCountAfterRemoving(requestedLineIds) < 1) {
+            return DeleteResult.blocked(LAST_ITEM_DELETE_MESSAGE);
+        }
+        state.removeItems(requestedLineIds);
+        return DeleteResult.success();
     }
 
     public void handleMerchandiseChanged(int lineId, Integer merchandiseId) {
         state.changeMerchandise(lineId, findMerchandiseOption(merchandiseId));
     }
 
-    public void handleQuantityChanged(int lineId, BigDecimal quantity) {
-        state.changeQuantity(lineId, quantity);
+    public void handleQuantityChanged(int lineId, String rawQuantity) {
+        state.changeQuantity(lineId, rawQuantity);
     }
 
     public void handleDesiredDateChanged(int lineId, LocalDate desiredDate) {
@@ -187,23 +195,37 @@ public final class SalesRequestEditSession {
         return state.snapshot();
     }
 
+    private int itemCount() {
+        return currentDraft().items().size();
+    }
+
+    private boolean hasItem(int lineId) {
+        return currentDraft().items().stream()
+                .anyMatch(item -> item.lineId() == lineId);
+    }
+
+    private int itemCountAfterRemoving(Set<Integer> lineIds) {
+        return (int) currentDraft().items().stream()
+                .filter(item -> !lineIds.contains(item.lineId()))
+                .count();
+    }
+
     private MerchandiseOption findMerchandiseOption(Integer merchandiseId) {
         if (merchandiseId == null) {
             return null;
         }
         return merchandiseOptions.stream()
-            .filter(option -> option.id() == merchandiseId)
-            .findFirst()
-            .orElse(null);
+                .filter(option -> option.id() == merchandiseId)
+                .findFirst()
+                .orElse(null);
     }
 
     private Map<Integer, List<MerchandiseOption>> availableOptionsByLineId(SalesRequestEditDraft draft) {
         Map<Integer, List<MerchandiseOption>> optionsByLineId = new LinkedHashMap<>();
         for (SalesRequestEditItemDraft item : draft.items()) {
             optionsByLineId.put(
-                item.lineId(),
-                useCase.availableOptions(item.lineId(), draft, merchandiseOptions)
-            );
+                    item.lineId(),
+                    useCase.availableOptions(item.lineId(), draft, merchandiseOptions));
         }
         return optionsByLineId;
     }
@@ -219,14 +241,23 @@ public final class SalesRequestEditSession {
     public record SaveResult(
             boolean saved,
             String message,
-            SalesRequestEditValidationResult validationResult
-    ) {
+            SalesRequestEditValidationResult validationResult) {
         public static SaveResult saved(String message) {
             return new SaveResult(true, message, null);
         }
 
         public static SaveResult invalid(SalesRequestEditValidationResult validationResult) {
             return new SaveResult(false, null, validationResult);
+        }
+    }
+
+    public record DeleteResult(boolean deleted, String message) {
+        public static DeleteResult success() {
+            return new DeleteResult(true, null);
+        }
+
+        public static DeleteResult blocked(String message) {
+            return new DeleteResult(false, message);
         }
     }
 

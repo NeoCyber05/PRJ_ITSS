@@ -1,6 +1,5 @@
-package org.itss.prj_itss.view.sales.request.update;
+package org.itss.prj_itss.controller.sales.request.update;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -14,7 +13,7 @@ public interface SalesRequestEditActionHandler {
 
     void merchandiseChanged(int lineId, Integer merchandiseId);
 
-    void quantityChanged(int lineId, BigDecimal quantity);
+    void quantityChanged(int lineId, String rawQuantity);
 
     void desiredDateChanged(int lineId, LocalDate desiredDate);
 
