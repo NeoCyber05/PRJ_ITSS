@@ -65,12 +65,20 @@ public final class SalesRequestEditController implements SalesRequestEditActionH
     }
 
     public void deleteItemRequested(int lineId) {
-        session.handleDeleteItem(lineId);
+        SalesRequestEditSession.DeleteResult result = session.handleDeleteItem(lineId);
+        if (!result.deleted()) {
+            view.showAlertError(result.message());
+            return;
+        }
         render();
     }
 
     public void deleteItemsRequested(List<Integer> lineIds) {
-        session.handleDeleteItems(lineIds);
+        SalesRequestEditSession.DeleteResult result = session.handleDeleteItems(lineIds);
+        if (!result.deleted()) {
+            view.showAlertError(result.message());
+            return;
+        }
         render();
     }
 

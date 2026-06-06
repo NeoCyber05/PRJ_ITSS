@@ -30,6 +30,8 @@ import java.util.Set;
 
 public final class SalesRequestEditSession {
 
+    private static final String LAST_ITEM_DELETE_MESSAGE = "Yêu cầu đặt hàng cần có tối thiểu 1 sản phẩm.";
+
     private final SalesRequestEditUseCase useCase;
     private final RequestLockUseCase lockUseCase;
     private final Supplier<LockOwner> lockOwnerSupplier;
@@ -114,15 +116,24 @@ public final class SalesRequestEditSession {
         state.addBlankItem();
     }
 
-    public void handleDeleteItem(int lineId) {
+    public DeleteResult handleDeleteItem(int lineId) {
+        if (itemCount() <= 1 && hasItem(lineId)) {
+            return DeleteResult.blocked(LAST_ITEM_DELETE_MESSAGE);
+        }
         state.removeItem(lineId);
+        return DeleteResult.success();
     }
 
-    public void handleDeleteItems(List<Integer> lineIds) {
+    public DeleteResult handleDeleteItems(List<Integer> lineIds) {
         if (lineIds == null || lineIds.isEmpty()) {
-            return;
+            return DeleteResult.success();
         }
-        state.removeItems(new LinkedHashSet<>(lineIds));
+        Set<Integer> requestedLineIds = new LinkedHashSet<>(lineIds);
+        if (itemCountAfterRemoving(requestedLineIds) < 1) {
+            return DeleteResult.blocked(LAST_ITEM_DELETE_MESSAGE);
+        }
+        state.removeItems(requestedLineIds);
+        return DeleteResult.success();
     }
 
     public void handleMerchandiseChanged(int lineId, Integer merchandiseId) {
@@ -184,6 +195,21 @@ public final class SalesRequestEditSession {
         return state.snapshot();
     }
 
+    private int itemCount() {
+        return currentDraft().items().size();
+    }
+
+    private boolean hasItem(int lineId) {
+        return currentDraft().items().stream()
+                .anyMatch(item -> item.lineId() == lineId);
+    }
+
+    private int itemCountAfterRemoving(Set<Integer> lineIds) {
+        return (int) currentDraft().items().stream()
+                .filter(item -> !lineIds.contains(item.lineId()))
+                .count();
+    }
+
     private MerchandiseOption findMerchandiseOption(Integer merchandiseId) {
         if (merchandiseId == null) {
             return null;
@@ -222,6 +248,16 @@ public final class SalesRequestEditSession {
 
         public static SaveResult invalid(SalesRequestEditValidationResult validationResult) {
             return new SaveResult(false, null, validationResult);
+        }
+    }
+
+    public record DeleteResult(boolean deleted, String message) {
+        public static DeleteResult success() {
+            return new DeleteResult(true, null);
+        }
+
+        public static DeleteResult blocked(String message) {
+            return new DeleteResult(false, message);
         }
     }
 
