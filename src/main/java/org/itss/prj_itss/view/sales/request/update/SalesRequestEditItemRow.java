@@ -17,12 +17,14 @@ public final class SalesRequestEditItemRow {
     private final ObjectProperty<BigDecimal> quantity = new SimpleObjectProperty<>();
     private final ObjectProperty<LocalDate> desiredDate = new SimpleObjectProperty<>();
     private final BooleanProperty selected = new SimpleBooleanProperty(false);
+    private String rawQuantity = "";
 
     public SalesRequestEditItemRow(SalesRequestEditViewState.Item item) {
         this.lineId = item.lineId();
         this.merchandise.set(item.merchandise());
         this.quantity.set(item.quantity());
         this.desiredDate.set(item.desiredDate());
+        this.rawQuantity = item.rawQuantity();
     }
 
     public int lineId() {
@@ -51,6 +53,14 @@ public final class SalesRequestEditItemRow {
 
     public void setQuantity(BigDecimal value) {
         quantity.set(value);
+    }
+
+    public String rawQuantity() {
+        return rawQuantity;
+    }
+
+    public void setRawQuantity(String rawQuantity) {
+        this.rawQuantity = rawQuantity == null ? "" : rawQuantity;
     }
 
     public LocalDate desiredDate() {

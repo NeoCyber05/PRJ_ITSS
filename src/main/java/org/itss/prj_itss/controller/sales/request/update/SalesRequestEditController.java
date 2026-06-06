@@ -10,7 +10,6 @@ import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEdit
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditUseCase;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidator;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
@@ -68,8 +67,8 @@ public final class SalesRequestEditController implements SalesRequestEditActionH
         render();
     }
 
-    public void quantityChanged(int lineId, BigDecimal quantity) {
-        session.handleQuantityChanged(lineId, quantity);
+    public void quantityChanged(int lineId, String rawQuantity) {
+        session.handleQuantityChanged(lineId, rawQuantity);
         render();
     }
 

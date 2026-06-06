@@ -29,7 +29,8 @@ public final class SalesRequestEditMapper {
                 lineId++,
                 row.merchandise(),
                 parseQuantity(row.quantity()),
-                parseDate(row.desiredDate())
+                parseDate(row.desiredDate()),
+                row.quantity()
             ));
         }
         state.replaceItems(items);

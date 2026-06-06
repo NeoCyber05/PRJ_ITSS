@@ -15,7 +15,6 @@ import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEdit
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidationException;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidationResult;
 
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
@@ -38,8 +37,7 @@ public final class SalesRequestEditSession {
 
     public StartResult start(
             SalesRequestEditDialogInput input,
-            SalesRequestDialogListener listener
-    ) {
+            SalesRequestDialogListener listener) {
         Objects.requireNonNull(input, "input");
         SalesRequestEditData data;
         try {
@@ -69,12 +67,11 @@ public final class SalesRequestEditSession {
 
     public SalesRequestEditViewState buildViewModel() {
         SalesRequestEditDraft draft = currentDraft();
-        SalesRequestEditValidationResult validationResult = useCase.validateDraft(draft, LocalDate.now());
+        SalesRequestEditValidationResult validationResult = new SalesRequestEditValidationResult(List.of());
         return SalesRequestEditViewState.from(
-            draft,
-            availableOptionsByLineId(draft),
-            validationResult
-        );
+                draft,
+                availableOptionsByLineId(draft),
+                validationResult);
     }
 
     public void handleAddItem() {
@@ -96,8 +93,8 @@ public final class SalesRequestEditSession {
         state.changeMerchandise(lineId, findMerchandiseOption(merchandiseId));
     }
 
-    public void handleQuantityChanged(int lineId, BigDecimal quantity) {
-        state.changeQuantity(lineId, quantity);
+    public void handleQuantityChanged(int lineId, String rawQuantity) {
+        state.changeQuantity(lineId, rawQuantity);
     }
 
     public void handleDesiredDateChanged(int lineId, LocalDate desiredDate) {
@@ -133,18 +130,17 @@ public final class SalesRequestEditSession {
             return null;
         }
         return merchandiseOptions.stream()
-            .filter(option -> option.id() == merchandiseId)
-            .findFirst()
-            .orElse(null);
+                .filter(option -> option.id() == merchandiseId)
+                .findFirst()
+                .orElse(null);
     }
 
     private Map<Integer, List<MerchandiseOption>> availableOptionsByLineId(SalesRequestEditDraft draft) {
         Map<Integer, List<MerchandiseOption>> optionsByLineId = new LinkedHashMap<>();
         for (SalesRequestEditItemDraft item : draft.items()) {
             optionsByLineId.put(
-                item.lineId(),
-                useCase.availableOptions(item.lineId(), draft, merchandiseOptions)
-            );
+                    item.lineId(),
+                    useCase.availableOptions(item.lineId(), draft, merchandiseOptions));
         }
         return optionsByLineId;
     }
@@ -158,8 +154,7 @@ public final class SalesRequestEditSession {
     public record SaveResult(
             boolean saved,
             String message,
-            SalesRequestEditValidationResult validationResult
-    ) {
+            SalesRequestEditValidationResult validationResult) {
         public static SaveResult saved(String message) {
             return new SaveResult(true, message, null);
         }

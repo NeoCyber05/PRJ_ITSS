@@ -14,8 +14,7 @@ final class ValidationMessageDispatcher {
     ValidationMessageDispatcher(
             Label errorLabel,
             Button updateButton,
-            TableView<SalesRequestEditItemRow> itemsTable
-    ) {
+            TableView<SalesRequestEditItemRow> itemsTable) {
         this.errorLabel = errorLabel;
         this.updateButton = updateButton;
         this.itemsTable = itemsTable;
