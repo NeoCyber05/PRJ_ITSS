@@ -19,6 +19,8 @@ import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcSalesReque
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcReceivedRequestsRepository;
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcDashboardRequestRepository;
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcProcessingRequestRepository;
+import org.itss.prj_itss.model.request.infrastructure.persistence.lock.JdbcRequestLockRepository;
+import org.itss.prj_itss.model.request.application.lock.RequestLockUseCase;
 import org.itss.prj_itss.model.site.SiteModule;
 import org.itss.prj_itss.model.request.domain.processing.allocation.validator.DefaultAllocationValidator;
 import org.itss.prj_itss.model.request.domain.processing.suggestion.DefaultAllocationSuggester;
@@ -38,6 +40,7 @@ public final class RequestModule {
     private final SalesRequestQueryService salesRequestQueryService;
     private final SalesRequestCommandService salesRequestCommandService;
     private final CreateSalesRequestService createSalesRequestService;
+    private final RequestLockUseCase requestLockUseCase;
 
     public RequestModule(
         ConnectionProvider connectionProvider,
@@ -72,6 +75,9 @@ public final class RequestModule {
         this.salesRequestQueryService = new SalesRequestQueryService(jdbcSalesRequestQueryRepository, merchandiseModule.merchandiseUseCase(), siteModule.inventoryRepository());
         this.salesRequestCommandService = new SalesRequestCommandService(jdbcSalesRequestCommandRepository);
         this.createSalesRequestService = new CreateSalesRequestService(jdbcSalesRequestCommandRepository, siteModule.inventoryRepository());
+        this.requestLockUseCase = new RequestLockUseCase(
+            new JdbcRequestLockRepository(connectionProvider)
+        );
     }
 
     public DashboardRequestPort dashboardRequestPort() {
@@ -104,5 +110,9 @@ public final class RequestModule {
 
     public org.itss.prj_itss.model.request.application.processing.ProcessingRequestPort requestRepository() {
         return jdbcProcessingRequestRepository;
+    }
+
+    public RequestLockUseCase requestLockUseCase() {
+        return requestLockUseCase;
     }
 }

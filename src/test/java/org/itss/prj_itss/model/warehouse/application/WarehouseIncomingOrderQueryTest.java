@@ -3,7 +3,6 @@ package org.itss.prj_itss.model.warehouse.application;
 import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
 import org.itss.prj_itss.model.merchandise.application.port.MerchandiseRepository;
 import org.itss.prj_itss.model.merchandise.domain.Merchandise;
-import org.itss.prj_itss.model.order.application.OrderUseCase;
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
@@ -17,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -31,15 +31,18 @@ class WarehouseIncomingOrderQueryTest {
         FakeSiteRepository siteRepo = new FakeSiteRepository();
         FakeMerchandiseRepository merchandiseRepo = new FakeMerchandiseRepository();
 
-        orderRepo.orders.add(new Order(1, 10, 5, LocalDateTime.of(2026, 6, 1, 10, 0), OrderStatus.SHIPPING.displayValue()));
-        orderRepo.orders.add(new Order(2, 11, 6, LocalDateTime.of(2026, 6, 2, 10, 0), OrderStatus.SHIPPING.displayValue()));
-        orderRepo.orders.add(new Order(3, 12, 5, LocalDateTime.of(2026, 6, 3, 10, 0), OrderStatus.PENDING_CONFIRMATION.displayValue()));
+        orderRepo.orders
+                .add(new Order(1, 10, 5, LocalDateTime.of(2026, 6, 1, 10, 0), OrderStatus.SHIPPING.displayValue()));
+        orderRepo.orders
+                .add(new Order(2, 11, 6, LocalDateTime.of(2026, 6, 2, 10, 0), OrderStatus.SHIPPING.displayValue()));
+        orderRepo.orders.add(new Order(3, 12, 5, LocalDateTime.of(2026, 6, 3, 10, 0),
+                OrderStatus.PENDING_CONFIRMATION.displayValue()));
 
         siteRepo.sites.put(5, new Site(5, "TOKYO", "Tokyo", "", 10, 2));
         siteRepo.sites.put(6, new Site(6, "OSAKA", "Osaka", "", 8, 3));
 
         WarehouseIncomingOrderQuery query = new WarehouseIncomingOrderQuery(
-            new OrderUseCase(orderRepo),
+            orderRepo,
             new SiteUseCase(siteRepo, siteRepo),
             new MerchandiseUseCase(merchandiseRepo)
         );
@@ -51,6 +54,7 @@ class WarehouseIncomingOrderQueryTest {
         assertEquals(1, rows.get(1).orderId());
         assertEquals("DH-2026-002", rows.get(0).orderCode());
         assertEquals("Tokyo", rows.get(1).siteName());
+        assertEquals(0, orderRepo.findItemsByOrderIdCalls);
     }
 
     @Test
@@ -66,7 +70,7 @@ class WarehouseIncomingOrderQueryTest {
         merchandiseRepo.merchandise.put(7, new Merchandise(7, "M-01", "Tea", "box"));
 
         WarehouseIncomingOrderQuery query = new WarehouseIncomingOrderQuery(
-            new OrderUseCase(orderRepo),
+            orderRepo,
             new SiteUseCase(siteRepo, siteRepo),
             new MerchandiseUseCase(merchandiseRepo)
         );
@@ -84,13 +88,44 @@ class WarehouseIncomingOrderQueryTest {
     }
 
     @Test
+    void findIncomingDetailLoadsMerchandiseInOneBulkLookup() {
+        FakeOrderRepository orderRepo = new FakeOrderRepository();
+        FakeSiteRepository siteRepo = new FakeSiteRepository();
+        FakeMerchandiseRepository merchandiseRepo = new FakeMerchandiseRepository();
+
+        orderRepo.orders.add(new Order(1, 10, 5, LocalDateTime.now(), OrderStatus.SHIPPING.displayValue()));
+        orderRepo.items.put(1, List.of(
+            new OrderMerchandise(1, 7, BigDecimal.valueOf(12), "air"),
+            new OrderMerchandise(1, 8, BigDecimal.valueOf(5), "ship")
+        ));
+
+        siteRepo.sites.put(5, new Site(5, "TOKYO", "Tokyo", "", 10, 2));
+        merchandiseRepo.merchandise.put(7, new Merchandise(7, "M-01", "Tea", "box"));
+        merchandiseRepo.merchandise.put(8, new Merchandise(8, "M-02", "Rice", "kg"));
+
+        WarehouseIncomingOrderQuery query = new WarehouseIncomingOrderQuery(
+            orderRepo,
+            new SiteUseCase(siteRepo, siteRepo),
+            new MerchandiseUseCase(merchandiseRepo)
+        );
+
+        IncomingOrderDetail detail = query.findIncomingDetail(1);
+
+        assertNotNull(detail);
+        assertEquals(List.of(7, 8), merchandiseRepo.requestedBulkIds);
+        assertEquals(1, merchandiseRepo.bulkFindByIdsCalls);
+        assertEquals(0, merchandiseRepo.findByIdCalls);
+        assertEquals("M-02", detail.items().get(1).merchandiseCode());
+    }
+
+    @Test
     void findIncomingDetailReturnsNullForMissingOrder() {
         FakeOrderRepository orderRepo = new FakeOrderRepository();
         FakeSiteRepository siteRepo = new FakeSiteRepository();
         FakeMerchandiseRepository merchandiseRepo = new FakeMerchandiseRepository();
 
         WarehouseIncomingOrderQuery query = new WarehouseIncomingOrderQuery(
-            new OrderUseCase(orderRepo),
+            orderRepo,
             new SiteUseCase(siteRepo, siteRepo),
             new MerchandiseUseCase(merchandiseRepo)
         );
@@ -101,6 +136,7 @@ class WarehouseIncomingOrderQueryTest {
     static final class FakeOrderRepository implements OrderRepository {
         final List<Order> orders = new ArrayList<>();
         final Map<Integer, List<OrderMerchandise>> items = new LinkedHashMap<>();
+        int findItemsByOrderIdCalls;
 
         @Override
         public List<Order> findAll() {
@@ -110,8 +146,8 @@ class WarehouseIncomingOrderQueryTest {
         @Override
         public List<Order> findByStatus(String status) {
             return orders.stream()
-                .filter(o -> status.equalsIgnoreCase(o.getStatus()))
-                .toList();
+                    .filter(o -> status.equalsIgnoreCase(o.getStatus()))
+                    .toList();
         }
 
         @Override
@@ -121,7 +157,17 @@ class WarehouseIncomingOrderQueryTest {
 
         @Override
         public List<OrderMerchandise> findItemsByOrderId(int orderId) {
+            findItemsByOrderIdCalls++;
             return items.getOrDefault(orderId, List.of());
+        }
+
+        @Override
+        public java.util.Map<Integer, Integer> countItemsGroupedByOrderId() {
+            java.util.Map<Integer, Integer> counts = new LinkedHashMap<>();
+            for (java.util.Map.Entry<Integer, List<OrderMerchandise>> entry : items.entrySet()) {
+                counts.put(entry.getKey(), entry.getValue().size());
+            }
+            return counts;
         }
 
         @Override
@@ -192,10 +238,18 @@ class WarehouseIncomingOrderQueryTest {
         public int countMerchandiseAtSite(int siteId) {
             return 0;
         }
+
+        @Override
+        public Map<Integer, Integer> countMerchandiseGroupedBySiteId() {
+            return Map.of();
+        }
     }
 
     static final class FakeMerchandiseRepository implements MerchandiseRepository {
         final Map<Integer, Merchandise> merchandise = new LinkedHashMap<>();
+        int findByIdCalls;
+        int bulkFindByIdsCalls;
+        List<Integer> requestedBulkIds = List.of();
 
         @Override
         public List<Merchandise> findAll() {
@@ -209,7 +263,23 @@ class WarehouseIncomingOrderQueryTest {
 
         @Override
         public Merchandise findById(int id) {
+            findByIdCalls++;
             return merchandise.get(id);
+        }
+
+        @Override
+        public Map<Integer, Merchandise> findByIds(Collection<Integer> ids) {
+            bulkFindByIdsCalls++;
+            requestedBulkIds = List.copyOf(ids);
+
+            Map<Integer, Merchandise> result = new LinkedHashMap<>();
+            for (Integer id : ids) {
+                Merchandise value = merchandise.get(id);
+                if (value != null) {
+                    result.put(id, value);
+                }
+            }
+            return result;
         }
 
         @Override

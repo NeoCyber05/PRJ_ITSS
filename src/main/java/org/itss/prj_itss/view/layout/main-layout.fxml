@@ -15,7 +15,7 @@
             fx:controller="org.itss.prj_itss.view.layout.MainLayoutView"
             styleClass="app-shell">
     <left>
-        <VBox fx:id="shellSidebar" spacing="24" styleClass="shell-sidebar" minWidth="56">
+        <VBox fx:id="shellSidebar" spacing="24" styleClass="shell-sidebar" minWidth="4">
             <padding>
                 <Insets top="28" right="16" bottom="22" left="16"/>
             </padding>

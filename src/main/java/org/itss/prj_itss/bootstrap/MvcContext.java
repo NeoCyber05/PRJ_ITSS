@@ -7,6 +7,9 @@ import org.itss.prj_itss.controller.home.HomeControllerModule;
 import org.itss.prj_itss.controller.navigation.Navigator;
 import org.itss.prj_itss.controller.navigation.SimpleNavigator;
 import org.itss.prj_itss.controller.ordering.order.OrderControllerModule;
+import org.itss.prj_itss.controller.ordering.order.management.OrderManagementController;
+import org.itss.prj_itss.controller.ordering.order.detail.OrderDetailController;
+import org.itss.prj_itss.controller.ordering.order.cancellation.OrderCancellationProcessingController;
 import org.itss.prj_itss.controller.ordering.request.RequestControllerModule;
 import org.itss.prj_itss.controller.ordering.site.SiteControllerModule;
 import org.itss.prj_itss.controller.sales.merchandise.SalesMerchandiseControllerModule;
@@ -16,6 +19,7 @@ import org.itss.prj_itss.model.auth.AuthModule;
 import org.itss.prj_itss.model.auth.application.AuthenticationService;
 import org.itss.prj_itss.model.auth.domain.AuthenticatedUser;
 import org.itss.prj_itss.model.merchandise.MerchandiseModule;
+import org.itss.prj_itss.model.request.domain.lock.LockOwner;
 import org.itss.prj_itss.model.dashboard.DashboardModule;
 import org.itss.prj_itss.model.order.OrderModule;
 import org.itss.prj_itss.model.request.RequestModule;
@@ -31,9 +35,9 @@ import org.itss.prj_itss.controller.admin.account.AdminControllerModule;
 import org.itss.prj_itss.view.admin.account.AccountManagementView;
 import org.itss.prj_itss.view.auth.RoleWorkspaceView;
 import org.itss.prj_itss.view.home.HomeView;
-import org.itss.prj_itss.view.ordering.order.OrderCancellationView;
-import org.itss.prj_itss.view.ordering.order.OrderDetailView;
-import org.itss.prj_itss.view.ordering.order.OrderManagementView;
+import org.itss.prj_itss.view.ordering.order.cancellation.OrderCancellationLayoutView;
+import org.itss.prj_itss.view.ordering.order.detail.OrderDetailView;
+import org.itss.prj_itss.view.ordering.order.management.OrderManagementView;
 import org.itss.prj_itss.view.ordering.request.ReceivedRequestsView;
 import org.itss.prj_itss.view.ordering.request.RequestDetailContext;
 import org.itss.prj_itss.view.ordering.request.process.layout.RequestProcessingLayoutView;
@@ -53,6 +57,7 @@ public final class MvcContext {
     private static final String REQUEST_PROCESSING_PREFIX = "request-processing:";
     private static final String SALES_REQUEST_UPDATE_PREFIX = "sales-request-update:";
     private static final String SALES_REQUEST_DETAIL_PREFIX = "sales-request-detail:";
+    private static final String WAREHOUSE_CONFIRM_ARRIVAL_PREFIX = "warehouse-order-confirm-arrival:";
 
     private final TransactionManager transactionManager = new TransactionManager();
     private final ConnectionProvider connectionProvider = new DatabaseConnectionProvider(transactionManager);
@@ -97,9 +102,9 @@ public final class MvcContext {
     private final OrderControllerModule orderControllers =
         new OrderControllerModule(orderModule, siteModule, merchandiseModule);
     private final RequestControllerModule requestControllers =
-        new RequestControllerModule(requestModule, orderModule);
+        new RequestControllerModule(requestModule, orderModule, this::currentLockOwner);
     private final SalesRequestControllerModule salesRequestControllers =
-        new SalesRequestControllerModule(requestModule);
+        new SalesRequestControllerModule(requestModule, this::currentLockOwner);
     private final SalesMerchandiseControllerModule salesMerchandiseControllers =
         new SalesMerchandiseControllerModule(merchandiseModule);
     private final WarehouseControllerModule warehouseControllers =
@@ -135,7 +140,7 @@ public final class MvcContext {
         ),
         RouteRegistry.fxml(
             "orders",
-            "/org/itss/prj_itss/view/ordering/order/order-management-view.fxml",
+            "/org/itss/prj_itss/view/ordering/order/management/order-management-view.fxml",
             (viewId, viewInstance, navigator) ->
                 ((OrderManagementView) viewInstance).init(navigator, orderControllers.orderManagementController())
         ),
@@ -203,12 +208,13 @@ public final class MvcContext {
             (viewId, viewInstance, navigator) ->
                 ((WarehouseIncomingOrdersView) viewInstance).init(navigator, warehouseControllers.warehouseIncomingOrderController())
         ),
-        RouteRegistry.fxml(
-            "warehouse-order-confirm-arrival",
-            "/org/itss/prj_itss/view/warehouse/confirm-order-arrival-view.fxml",
-            (viewId, viewInstance, navigator) ->
-                ((ConfirmOrderArrivalView) viewInstance)
-                    .setController(warehouseControllers.confirmOrderArrivalController())
+        RouteRegistry.dynamic(
+            viewId -> "warehouse-order-confirm-arrival".equals(viewId)
+                || viewId.startsWith(WAREHOUSE_CONFIRM_ARRIVAL_PREFIX),
+            viewId -> viewId,
+            viewId -> "warehouse-order-confirm-arrival",
+            false,
+            this::loadWarehouseConfirmArrivalView
         ),
         RouteRegistry.fxml(
             "account-management",
@@ -238,6 +244,12 @@ public final class MvcContext {
             }
         )
     ));
+
+    private LockOwner currentLockOwner() {
+        var user = currentAuthenticatedUser();
+        if (user == null) throw new IllegalStateException("No authenticated user");
+        return new LockOwner(user.username(), user.role().getName(), user.displayName());
+    }
 
     public void warmUpDatabaseConnection() {
         try {
@@ -334,6 +346,24 @@ public final class MvcContext {
         );
     }
 
+    private LoadedView loadWarehouseConfirmArrivalView(String viewId, Navigator navigator) throws Exception {
+        int orderId = viewId.startsWith(WAREHOUSE_CONFIRM_ARRIVAL_PREFIX)
+            ? parsePositiveInt(viewId.substring(WAREHOUSE_CONFIRM_ARRIVAL_PREFIX.length()), 0)
+            : 0;
+        return RouteRegistry.loadFxml(
+            "/org/itss/prj_itss/view/warehouse/confirm-order-arrival-view.fxml",
+            viewId,
+            navigator,
+            (requestedViewId, viewInstance, routeNavigator) -> {
+                ConfirmOrderArrivalView view = (ConfirmOrderArrivalView) viewInstance;
+                view.setController(warehouseControllers.confirmOrderArrivalController());
+                if (orderId > 0) {
+                    view.showOrderById(orderId);
+                }
+            }
+        );
+    }
+
     private void configureSalesRequestList(String viewId, Object viewInstance, Navigator navigator) {
         ((SalesRequestListView) viewInstance).init(
             navigator,
@@ -360,11 +390,11 @@ public final class MvcContext {
     private LoadedView loadOrderCancellationView(String viewId, Navigator navigator) throws Exception {
         int orderId = parsePositiveInt(viewId.substring("ordering-order-handle-cancellation:".length()), 1);
         return RouteRegistry.loadFxml(
-            "/org/itss/prj_itss/view/ordering/order/handle-order-cancellation-view.fxml",
+            "/org/itss/prj_itss/view/ordering/order/cancellation/order-cancellation-layout-view.fxml",
             viewId,
             navigator,
             (requestedViewId, viewInstance, routeNavigator) -> {
-                OrderCancellationView view = (OrderCancellationView) viewInstance;
+                OrderCancellationLayoutView view = (OrderCancellationLayoutView) viewInstance;
                 view.init(routeNavigator, orderControllers.newCancellationProcessingController());
                 view.setCancelledOrderId(orderId);
             }

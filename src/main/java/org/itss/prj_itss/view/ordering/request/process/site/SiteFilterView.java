@@ -8,7 +8,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingSiteState;
 import org.itss.prj_itss.controller.ordering.request.process.site.SiteFilterController;
 
 import java.io.IOException;
@@ -56,7 +56,7 @@ public final class SiteFilterView {
     private boolean expanded;
     private Runnable onFiltersChanged = () -> {};
 
-    public static SiteFilterView load(List<ProcessingSiteView> allSites, Runnable onFiltersChanged) {
+    public static SiteFilterView load(List<ProcessingSiteState> allSites, Runnable onFiltersChanged) {
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
                 SiteFilterView.class.getResource(VIEW_RESOURCE),
@@ -99,7 +99,7 @@ public final class SiteFilterView {
         });
     }
 
-    private void init(List<ProcessingSiteView> allSites, Runnable onFiltersChanged) {
+    private void init(List<ProcessingSiteState> allSites, Runnable onFiltersChanged) {
         controller.init(allSites);
         this.onFiltersChanged = onFiltersChanged == null ? () -> {} : onFiltersChanged;
         expanded = false;
@@ -115,7 +115,7 @@ public final class SiteFilterView {
         notifyFiltersChanged();
     }
 
-    private void onSelectionToggled(ProcessingSiteView site) {
+    private void onSelectionToggled(ProcessingSiteState site) {
         if (controller.isSelected(site)) {
             controller.deselectSite(site);
         } else {
@@ -125,7 +125,7 @@ public final class SiteFilterView {
         notifyFiltersChanged();
     }
 
-    private void onExclude(ProcessingSiteView site) {
+    private void onExclude(ProcessingSiteState site) {
         controller.excludeSite(site);
         renderUi();
         notifyFiltersChanged();
@@ -146,7 +146,7 @@ public final class SiteFilterView {
 
         siteListContainer.getChildren().clear();
         Set<Integer> selected = controller.selectedSiteIds();
-        for (ProcessingSiteView site : controller.visibleSites()) {
+        for (ProcessingSiteState site : controller.visibleSites()) {
             boolean isSelected = controller.isSelected(site);
             boolean dimmed = !selected.isEmpty() && !isSelected;
             siteListContainer.getChildren().add(SiteFilterCardView.load(
@@ -172,7 +172,7 @@ public final class SiteFilterView {
             return;
         }
 
-        for (ProcessingSiteView site : controller.selectedSites()) {
+        for (ProcessingSiteState site : controller.selectedSites()) {
             Label tag = new Label("● " + siteName(site) + "  ✕");
             tag.getStyleClass().addAll("site-filter-tag", "site-filter-priority-tag");
             tag.setOnMouseClicked(event -> {
@@ -197,7 +197,7 @@ public final class SiteFilterView {
             return;
         }
 
-        for (ProcessingSiteView site : controller.excludedSites()) {
+        for (ProcessingSiteState site : controller.excludedSites()) {
             Label tag = new Label("✕ " + siteName(site) + "  ✕");
             tag.getStyleClass().addAll("site-filter-tag", "site-filter-exclude-tag");
             tag.setOnMouseClicked(event -> {
@@ -246,7 +246,7 @@ public final class SiteFilterView {
         onFiltersChanged.run();
     }
 
-    private static String siteName(ProcessingSiteView site) {
+    private static String siteName(ProcessingSiteState site) {
         return site.name() == null ? "" : site.name();
     }
 }

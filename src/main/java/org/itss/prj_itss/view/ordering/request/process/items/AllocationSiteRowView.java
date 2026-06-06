@@ -8,9 +8,9 @@ import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
-import org.itss.prj_itss.view.ordering.request.process.state.RequestProcessingViewModel;
+import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeCommand;
+import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeResult;
+import org.itss.prj_itss.controller.ordering.request.process.state.RequestProcessingState;
 
 import java.io.IOException;
 import java.util.Objects;
@@ -39,13 +39,13 @@ public final class AllocationSiteRowView {
     @FXML
     private Label warningLabel;
 
-    private RequestProcessingViewModel.AllocationSiteRowViewModel siteRow;
-    private Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged;
+    private RequestProcessingState.AllocationSiteRowState siteRow;
+    private Function<AllocationChangeCommand, AllocationChangeResult> onAllocationInputChanged;
     private Runnable onRowChanged;
 
     public static VBox load(
-        RequestProcessingViewModel.AllocationSiteRowViewModel siteRow,
-        Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged,
+        RequestProcessingState.AllocationSiteRowState siteRow,
+        Function<AllocationChangeCommand, AllocationChangeResult> onAllocationInputChanged,
         Runnable onRowChanged
     ) {
         try {
@@ -63,8 +63,8 @@ public final class AllocationSiteRowView {
     }
 
     private void init(
-        RequestProcessingViewModel.AllocationSiteRowViewModel siteRow,
-        Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged,
+        RequestProcessingState.AllocationSiteRowState siteRow,
+        Function<AllocationChangeCommand, AllocationChangeResult> onAllocationInputChanged,
         Runnable onRowChanged
     ) {
         this.siteRow = Objects.requireNonNull(siteRow, "siteRow");
@@ -90,7 +90,7 @@ public final class AllocationSiteRowView {
     }
 
     private void applyAllocationChange() {
-        AllocationChangeResultView result = onAllocationInputChanged.apply(new AllocationChangeCommand(
+        AllocationChangeResult result = onAllocationInputChanged.apply(new AllocationChangeCommand(
             siteRow.itemMerchandiseId(),
             siteRow.siteId(),
             quantityField.getText(),
@@ -109,7 +109,7 @@ public final class AllocationSiteRowView {
         onRowChanged.run();
     }
 
-    private String warningMessage(AllocationChangeResultView result) {
+    private String warningMessage(AllocationChangeResult result) {
         String errorType = result.errorType();
         return switch (errorType) {
             case "EXCEEDS_STOCK" -> "Vượt tồn kho của site (" + result.stock() + ").";

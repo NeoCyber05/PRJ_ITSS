@@ -40,4 +40,8 @@ public final class SiteUseCase {
     public int countMerchandiseAtSite(int siteId) {
         return inventoryRepository.countMerchandiseAtSite(siteId);
     }
+
+    public Map<Integer, Integer> countMerchandiseGroupedBySiteId() {
+        return inventoryRepository.countMerchandiseGroupedBySiteId();
+    }
 }

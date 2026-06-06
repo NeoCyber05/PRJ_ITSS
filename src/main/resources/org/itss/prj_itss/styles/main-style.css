@@ -27,9 +27,6 @@
 
 .shell-sidebar {
     -fx-background-color: linear-gradient(to bottom, #0F172A, #111C34 56%, #0F2740);
-    -fx-min-width: 300;
-    -fx-max-width: 300;
-    -fx-pref-width: 300;
     -fx-border-color: transparent #1E293B transparent transparent;
     -fx-border-width: 0 1 0 0;
     -fx-effect: dropshadow(gaussian, rgba(15,23,42,0.18), 24, 0, 8, 0);
@@ -618,6 +615,13 @@
     -fx-font-size: 13px;
 }
 
+.table-view.no-horizontal-scroll-table .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-pref-height: 0;
+    -fx-max-height: 0;
+    -fx-padding: 0;
+}
+
 .btn-primary {
     -fx-background-color: linear-gradient(to right, #0F766E, #14B8A6);
     -fx-text-fill: white;
@@ -1128,12 +1132,79 @@
 }
 
 .allocation-site-order-card {
-    -fx-background-color: #FCFEFD;
-    -fx-background-radius: 12;
-    -fx-border-radius: 12;
-    -fx-border-color: #E5ECE7;
+    -fx-background-color: #FAFDFA;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: #D8E8DD;
     -fx-border-width: 1;
+    -fx-padding: 10 12;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.04), 6, 0, 0, 1);
 }
+
+.allocation-plan-decision-summary {
+    -fx-font-size: 12px;
+    -fx-text-fill: #475569;
+}
+
+.allocation-plan-site-header {
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #1A2E22;
+}
+
+.allocation-plan-line {
+    -fx-font-size: 12px;
+    -fx-text-fill: #5E6F66;
+}
+
+/* ── Suggest line row styles ── */
+.suggest-line-row {
+    -fx-background-color: white;
+    -fx-background-radius: 8;
+    -fx-border-radius: 8;
+    -fx-border-color: #EDF3EE;
+    -fx-border-width: 1;
+    -fx-padding: 6 10;
+}
+
+.suggest-line-code {
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+    -fx-text-fill: #2E6F40;
+}
+
+.suggest-line-name {
+    -fx-font-size: 12px;
+    -fx-text-fill: #1A2E22;
+}
+
+.suggest-line-qty-badge {
+    -fx-background-color: #EEF4FF;
+    -fx-text-fill: #2456C2;
+    -fx-background-radius: 999;
+    -fx-padding: 3 10;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.suggest-line-days-badge {
+    -fx-background-color: #E8F5E9;
+    -fx-text-fill: #2E7D32;
+    -fx-background-radius: 999;
+    -fx-padding: 3 10;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
+.suggest-line-transport-badge {
+    -fx-background-color: #FFF8E1;
+    -fx-text-fill: #B45309;
+    -fx-background-radius: 999;
+    -fx-padding: 3 10;
+    -fx-font-size: 11px;
+    -fx-font-weight: bold;
+}
+
 
 .allocation-metric-tag {
     -fx-background-radius: 999;
@@ -1948,7 +2019,7 @@
 }
 
 .confirm-content {
-    -fx-padding: 0 0 16 0;
+    -fx-padding: 0;
 }
 
 .confirm-content-scroll {
@@ -1963,6 +2034,18 @@
     -fx-border-color: #E5ECF4;
     -fx-border-width: 1;
     -fx-padding: 16 18;
+}
+
+.confirm-summary-card {
+    -fx-padding: 10 14;
+}
+
+.confirm-items-card {
+    -fx-padding: 10 14;
+}
+
+.confirm-note-card {
+    -fx-padding: 10 14;
 }
 
 .confirm-section-title {
@@ -1992,7 +2075,7 @@
     -fx-background-color: white;
     -fx-border-color: #E5ECF4 transparent transparent transparent;
     -fx-border-width: 1 0 0 0;
-    -fx-padding: 16 0 0 0;
+    -fx-padding: 10 0 0 0;
 }
 
 .text-field.inspection-input,
@@ -2847,5 +2930,17 @@
 /* Dialog styling */
 .sw-dialog {
     -fx-background-color: white;
+}
+
+/* Hủy thanh cuộn trên TableView */
+.no-vertical-scrollbar .scroll-bar:vertical,
+.no-vertical-scrollbar .scroll-bar:horizontal {
+    -fx-opacity: 0;
+    -fx-pref-width: 0;
+    -fx-min-width: 0;
+    -fx-max-width: 0;
+    -fx-pref-height: 0;
+    -fx-min-height: 0;
+    -fx-max-height: 0;
 }
 

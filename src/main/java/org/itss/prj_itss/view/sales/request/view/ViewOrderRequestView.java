@@ -42,9 +42,6 @@ public final class ViewOrderRequestView implements ViewLifecycle {
     private HBox statusBadge;
 
     @FXML
-    private TextArea noteArea;
-
-    @FXML
     private TableView<RequestDetailItemRow> itemsTable;
 
     @FXML
@@ -175,19 +172,7 @@ public final class ViewOrderRequestView implements ViewLifecycle {
         statusBadge.getChildren().setAll(StatusBadgeFactory.statusBadge(view.status(), StatusBadgeFactory.StatusKind.REQUEST));
 
         items.setAll(view.items());
-        noteArea.setText(view.note() != null ? view.note() : "");
-        noteArea.setEditable(false);
-        noteArea.setStyle(
-            "-fx-opacity: 1;" +
-            "-fx-control-inner-background: transparent;" +
-            "-fx-background-color: transparent;" +
-            "-fx-border-color: transparent;" +
-            "-fx-text-fill: #333;" +
-            "-fx-font-size: 14px;" +
-            "-fx-padding: 0;"
-        );
     }
-
 
     private void goBack() {
         if (stage != null) {

@@ -6,7 +6,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingSiteState;
 
 import java.io.IOException;
 import java.util.List;
@@ -40,17 +40,17 @@ public final class SiteFilterCardView {
     @FXML
     private Button excludeButton;
 
-    private ProcessingSiteView site;
+    private ProcessingSiteState site;
     private boolean selected;
-    private Consumer<ProcessingSiteView> onSelectionToggle = ignored -> {};
-    private Consumer<ProcessingSiteView> onExclude = ignored -> {};
+    private Consumer<ProcessingSiteState> onSelectionToggle = ignored -> {};
+    private Consumer<ProcessingSiteState> onExclude = ignored -> {};
 
     public static HBox load(
-        ProcessingSiteView site,
+        ProcessingSiteState site,
         boolean selected,
         boolean dimmed,
-        Consumer<ProcessingSiteView> onSelectionToggle,
-        Consumer<ProcessingSiteView> onExclude
+        Consumer<ProcessingSiteState> onSelectionToggle,
+        Consumer<ProcessingSiteState> onExclude
     ) {
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
@@ -78,11 +78,11 @@ public final class SiteFilterCardView {
 
     private void init(
         HBox root,
-        ProcessingSiteView site,
+        ProcessingSiteState site,
         boolean selected,
         boolean dimmed,
-        Consumer<ProcessingSiteView> onSelectionToggle,
-        Consumer<ProcessingSiteView> onExclude
+        Consumer<ProcessingSiteState> onSelectionToggle,
+        Consumer<ProcessingSiteState> onExclude
     ) {
         this.site = Objects.requireNonNull(site, "site");
         this.selected = selected;
@@ -104,18 +104,24 @@ public final class SiteFilterCardView {
         setStateClass(nameLabel, SITE_NAME_STATE_CLASSES,
             selected ? "site-filter-site-name-priority" : "site-filter-site-name-normal");
 
-        codeLabel.setText(siteCode(site) + " | Tàu: " + site.shipDays() + " ngày | Bay: " + site.airDays() + " ngày");
+        codeLabel.setText(siteCode(site)
+            + " | Tàu: " + deliveryDaysLabel(site.shipDays())
+            + " | Bay: " + deliveryDaysLabel(site.airDays()));
 
         priorityButton.setText(selected ? "Bỏ chọn" : "Chọn");
         priorityButton.getStyleClass().removeAll("site-filter-priority-button", "site-filter-unprioritize-button");
         priorityButton.getStyleClass().add(selected ? "site-filter-unprioritize-button" : "site-filter-priority-button");
     }
 
-    private static String siteName(ProcessingSiteView site) {
+    private static String siteName(ProcessingSiteState site) {
         return site.name() == null ? "" : site.name();
     }
 
-    private static String siteCode(ProcessingSiteView site) {
+    private static String siteCode(ProcessingSiteState site) {
         return site.siteCode() == null ? "" : site.siteCode();
+    }
+
+    private static String deliveryDaysLabel(Integer days) {
+        return days == null ? "Không khả dụng" : days + " ngày";
     }
 }

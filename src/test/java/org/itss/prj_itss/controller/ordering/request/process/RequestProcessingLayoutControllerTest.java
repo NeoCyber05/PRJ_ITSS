@@ -9,19 +9,25 @@ import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.request.domain.request.RequestMerchandise;
 import org.itss.prj_itss.model.request.domain.request.RequestStatus;
 import org.itss.prj_itss.model.site.domain.Site;
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingItemView;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;
+import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeCommand;
+import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeResult;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingItemState;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingSiteState;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
-import org.itss.prj_itss.view.ordering.request.process.state.RequestProcessingViewModel;
-import org.itss.prj_itss.view.ordering.request.process.state.SuggestedPlanView;
+import org.itss.prj_itss.controller.ordering.request.process.state.RequestProcessingState;
+import org.itss.prj_itss.controller.ordering.request.process.state.SuggestedPlanState;
 import org.itss.prj_itss.model.request.infrastructure.persistence.JdbcRequestProcessingGateway;
 import org.itss.prj_itss.model.site.application.port.InventoryRepository;
 import org.itss.prj_itss.model.merchandise.application.port.MerchandiseRepository;
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
 import org.itss.prj_itss.model.request.application.processing.ProcessingRequestPort;
 import org.itss.prj_itss.model.site.application.port.SiteRepository;
+import org.itss.prj_itss.model.request.domain.lock.LockOwner;
+import org.itss.prj_itss.model.request.domain.lock.LockResult;
+import org.itss.prj_itss.model.request.domain.lock.RequestLock;
+import org.itss.prj_itss.model.request.application.lock.RequestLockException;
+import org.itss.prj_itss.model.request.application.lock.RequestLockGateway;
+import org.itss.prj_itss.model.request.application.lock.RequestLockUseCase;
 import org.itss.prj_itss.model.request.domain.processing.allocation.validator.DefaultAllocationValidator;
 import org.itss.prj_itss.model.request.domain.processing.suggestion.DefaultAllocationSuggester;
 import org.itss.prj_itss.model.request.domain.processing.allocation.policy.FastDeliveryObjective;
@@ -29,11 +35,16 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -46,7 +57,7 @@ class RequestProcessingLayoutControllerTest {
 
         controller.setRequestId(99);
 
-        RequestProcessingViewModel vm = controller.snapshot();
+        RequestProcessingState vm = controller.snapshot();
         assertEquals(99, vm.requestId());
         assertEquals(1, vm.items().size());
         assertEquals(1, vm.sites().size());
@@ -58,11 +69,11 @@ class RequestProcessingLayoutControllerTest {
     void excludedSiteRemovesMatchingAllocation() {
         RequestProcessingLayoutController controller = controllerWith(defaultScenario());
         controller.setRequestId(99);
-        RequestProcessingViewModel vm = controller.snapshot();
-        ProcessingItemView item = vm.items().get(0);
-        ProcessingSiteView site = vm.sites().get(0);
+        RequestProcessingState vm = controller.snapshot();
+        ProcessingItemState item = vm.items().get(0);
+        ProcessingSiteState site = vm.sites().get(0);
 
-        AllocationChangeResultView result = controller.handleAllocationInputChanged(
+        AllocationChangeResult result = controller.handleAllocationInputChanged(
             new AllocationChangeCommand(item.merchandiseId(), site.id(), "3", "Tàu")
         );
         assertTrue(result.applied());
@@ -77,19 +88,38 @@ class RequestProcessingLayoutControllerTest {
     }
 
     @Test
-    void optimalAndSuggestedPlansApplyAllocations() {
+    void optimalAndSuggestedPlanStatesApplyAllocations() {
         RequestProcessingLayoutController controller = controllerWith(defaultScenario());
         controller.setRequestId(99);
 
         controller.handleOptimizeAllocation();
 
-        RequestProcessingViewModel vm = controller.snapshot();
+        RequestProcessingState vm = controller.snapshot();
         assertEquals(5, vm.allocationItems().get(0).allocated());
 
-        List<SuggestedPlanView> plans = controller.handleShowAllPlans();
+        List<SuggestedPlanState> plans = controller.handleShowAllPlans();
         assertFalse(plans.isEmpty());
+        SuggestedPlanState plan = plans.get(0);
+        SuggestedPlanState.SuggestedSiteState site = plan.siteAllocations().get(0);
+        SuggestedPlanState.SuggestedLineState line = site.lines().get(0);
 
-        controller.applySelectedPlan(plans.get(0).signature());
+        assertAll(
+            () -> assertEquals(2, plan.longestDeliveryDays()),
+            () -> assertEquals(1, plan.siteAllocations().size()),
+            () -> assertEquals("S1", site.siteCode()),
+            () -> assertEquals("Site 1", site.siteName()),
+            () -> assertEquals(5, site.totalQuantity()),
+            () -> assertEquals(1, site.lineCount()),
+            () -> assertEquals(2, site.deliveryDays()),
+            () -> assertEquals("Đường biển", site.transportSummary()),
+            () -> assertEquals("M10", line.itemCode()),
+            () -> assertEquals("Part 10", line.itemName()),
+            () -> assertEquals(5, line.quantity()),
+            () -> assertEquals("Đường biển", line.transportLabel()),
+            () -> assertEquals(2, line.deliveryDays())
+        );
+
+        controller.applySelectedPlan(plan.signature());
 
         vm = controller.snapshot();
         assertEquals(5, vm.allocationItems().get(0).allocated());
@@ -119,13 +149,13 @@ class RequestProcessingLayoutControllerTest {
         scenario.requestItems = List.of(
             new RequestMerchandise(99, 10, BigDecimal.valueOf(5), scenario.desiredDeliveryDate)
         );
-        scenario.sites = List.of(new Site(1, "S1", "Site 1", "", 6, 999));
+        scenario.sites = List.of(new Site(1, "S1", "Site 1", "", 6, null));
 
         RequestProcessingLayoutController controller = controllerWith(scenario);
         controller.setRequestId(99);
-        RequestProcessingViewModel vm = controller.snapshot();
-        ProcessingItemView item = vm.items().get(0);
-        ProcessingSiteView site = vm.sites().get(0);
+        RequestProcessingState vm = controller.snapshot();
+        ProcessingItemState item = vm.items().get(0);
+        ProcessingSiteState site = vm.sites().get(0);
 
         controller.handleAllocationInputChanged(
             new AllocationChangeCommand(item.merchandiseId(), site.id(), "5", "Tàu")
@@ -149,7 +179,9 @@ class RequestProcessingLayoutControllerTest {
             new DefaultAllocationValidator(),
             new DefaultAllocationSuggester(new FastDeliveryObjective())
         );
-        return new RequestProcessingLayoutController(useCase);
+        RequestLockUseCase lockUseCase = new RequestLockUseCase(new AlwaysAllowLockGateway());
+        Supplier<LockOwner> lockOwnerSupplier = () -> new LockOwner("test", "Test", "Test");
+        return new RequestProcessingLayoutController(useCase, lockUseCase, lockOwnerSupplier);
     }
 
     private Scenario defaultScenario() {
@@ -227,6 +259,15 @@ class RequestProcessingLayoutControllerTest {
         public int getTotalStock(int merchandiseId) { return scenario.inventoryBySiteId.values().stream().mapToInt(i -> i.getOrDefault(merchandiseId, 0)).sum(); }
         @Override
         public int countMerchandiseAtSite(int siteId) { return getInventoryBySiteId(siteId).size(); }
+
+        @Override
+        public Map<Integer, Integer> countMerchandiseGroupedBySiteId() {
+            Map<Integer, Integer> counts = new HashMap<>();
+            for (Integer siteId : scenario.inventoryBySiteId.keySet()) {
+                counts.put(siteId, scenario.inventoryBySiteId.get(siteId).size());
+            }
+            return counts;
+        }
     }
 
     private static final class FakeMerchandiseRepository implements MerchandiseRepository {
@@ -248,6 +289,17 @@ class RequestProcessingLayoutControllerTest {
         public boolean update(Merchandise merchandise) { return false; }
         @Override
         public boolean setActive(int merchandiseId, boolean active) { return false; }
+    }
+
+    private static final class AlwaysAllowLockGateway implements RequestLockGateway {
+        @Override
+        public LockResult acquireOrRenew(int requestId, LockOwner owner, int ttlSeconds) {
+            return LockResult.acquired(new RequestLock(requestId, owner.username(), owner.role(), owner.display(), LocalDateTime.now(), LocalDateTime.now().plusSeconds(ttlSeconds)));
+        }
+        @Override
+        public void release(int requestId, String ownerUsername) {}
+        @Override
+        public Map<Integer, RequestLock> findActiveForRequests(Collection<Integer> requestIds) { return Map.of(); }
     }
 
     private static final class FakeOrderRepository implements OrderRepository {

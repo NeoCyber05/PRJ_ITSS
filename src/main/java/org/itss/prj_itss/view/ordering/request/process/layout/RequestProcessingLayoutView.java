@@ -1,14 +1,19 @@
 package org.itss.prj_itss.view.ordering.request.process.layout;
 
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
-import org.itss.prj_itss.view.ordering.request.process.state.RequestProcessingViewModel;
-import org.itss.prj_itss.view.ordering.request.process.state.SuggestedPlanView;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView;
+import org.itss.prj_itss.controller.ordering.request.process.state.LockOutcome;
+import org.itss.prj_itss.controller.ordering.request.process.state.RequestProcessingState;
+import org.itss.prj_itss.controller.ordering.request.process.state.SuggestedPlanState;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingPreviewOrder;
 import org.itss.prj_itss.controller.ordering.request.process.RequestProcessingLayoutController;
 import org.itss.prj_itss.view.ordering.request.process.items.ItemsSectionView;
 import org.itss.prj_itss.view.ordering.request.process.preview.RequestProcessingPreviewDialog;
@@ -25,6 +30,7 @@ public final class RequestProcessingLayoutView {
     private RequestProcessingLayoutController controller;
     private SiteFilterView siteFilterView;
     private Consumer<String> navigateToView = viewId -> {};
+    private Timeline heartbeatTimeline;
 
     @FXML
     private Label requestCodeLabel;
@@ -50,12 +56,49 @@ public final class RequestProcessingLayoutView {
     }
 
     public void setRequestId(int requestId) {
-        controller.setRequestId(requestId);
+        LockOutcome outcome = controller.setRequestId(requestId);
+        if (outcome.blocked()) {
+            showLockError(outcome.blockedMessage());
+            goBack();
+            return;
+        }
         renderProcessingScreen();
+        startHeartbeat();
+    }
+
+    private void showLockError(String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Không thể xử lý");
+        alert.setHeaderText(null);
+        alert.setContentText(message != null ? message : "Yêu cầu đang bị khóa.");
+        alert.showAndWait();
+    }
+
+    private void startHeartbeat() {
+        heartbeatTimeline = new Timeline(
+            new KeyFrame(Duration.seconds(300), e -> {
+                Thread t = new Thread(controller::renewLock, "lock-heartbeat");
+                t.setDaemon(true);
+                t.start();
+            })
+        );
+        heartbeatTimeline.setCycleCount(Animation.INDEFINITE);
+        heartbeatTimeline.play();
+    }
+
+    private void stopHeartbeatAndRelease() {
+        if (heartbeatTimeline != null) {
+            heartbeatTimeline.stop();
+            heartbeatTimeline = null;
+        }
+        Thread t = new Thread(controller::releaseLock, "lock-release");
+        t.setDaemon(true);
+        t.start();
     }
 
     @FXML
     private void goBack() {
+        stopHeartbeatAndRelease();
         navigateToView.accept("received-requests");
     }
 
@@ -70,9 +113,12 @@ public final class RequestProcessingLayoutView {
         showPreviewDialog(result.previewOrders());
     }
 
-    private void showPreviewDialog(List<ProcessingPreviewOrderView> previewOrders) {
+    private void showPreviewDialog(List<ProcessingPreviewOrder> previewOrders) {
         new RequestProcessingPreviewDialog(
-            () -> navigateToView.accept("received-requests"),
+            () -> {
+                stopHeartbeatAndRelease();
+                navigateToView.accept("received-requests");
+            },
             new RequestProcessingPreviewDialogController(controller, previewOrders)
         ).show(itemsTableContainer);
     }
@@ -85,7 +131,7 @@ public final class RequestProcessingLayoutView {
     }
 
     private void renderHeader() {
-        RequestProcessingViewModel vm = controller.snapshot();
+        RequestProcessingState vm = controller.snapshot();
         int totalQuantity = vm.items().stream().mapToInt(item -> item.required()).sum();
         requestCodeLabel.setText("Yêu cầu " + vm.requestCode());
         requestSummaryLabel.setText(
@@ -98,7 +144,7 @@ public final class RequestProcessingLayoutView {
     }
 
     private void renderSiteFilterSection() {
-        RequestProcessingViewModel vm = controller.snapshot();
+        RequestProcessingState vm = controller.snapshot();
         siteFilterView = SiteFilterView.load(vm.sites(), this::handleSiteFilterChanged);
         siteFilterContainer.getChildren().setAll(siteFilterView.root());
     }
@@ -113,7 +159,7 @@ public final class RequestProcessingLayoutView {
     }
 
     private void renderItemsViewSection() {
-        RequestProcessingViewModel vm = controller.snapshot();
+        RequestProcessingState vm = controller.snapshot();
         ItemsSectionView itemsSection = ItemsSectionView.load(
             vm,
             this::handleOptimizeAllocation,
@@ -127,7 +173,10 @@ public final class RequestProcessingLayoutView {
     }
 
     private void handleOptimizeAllocation() {
-        controller.handleOptimizeAllocation();
+        boolean success = controller.handleOptimizeAllocation();
+        if (!success) {
+            showWarningAlert("Thông báo", "Không tìm được phương án đáp ứng đủ số lượng và thời hạn hiện tại.");
+        }
         renderItemsViewSection();
     }
 
@@ -135,7 +184,7 @@ public final class RequestProcessingLayoutView {
         AllSuggestPopupView.show(controller.handleShowAllPlans(), this::applySelectedPlan);
     }
 
-    private void applySelectedPlan(SuggestedPlanView plan) {
+    private void applySelectedPlan(SuggestedPlanState plan) {
         controller.applySelectedPlan(plan.signature());
         renderItemsViewSection();
     }
@@ -154,8 +203,12 @@ public final class RequestProcessingLayoutView {
     }
 
     private void showValidationError(String message) {
+        showWarningAlert("Không hợp lệ", message);
+    }
+
+    private void showWarningAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Không hợp lệ");
+        alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
         styleDialog(alert);

@@ -12,7 +12,7 @@ public final class DashboardModule {
     public DashboardModule(RequestModule requestModule, OrderModule orderModule, SiteModule siteModule) {
         this.dashboardQuery = new DashboardQuery(
             requestModule.dashboardRequestPort(),
-            orderModule.orderUseCase(),
+            orderModule.orderRepository(),
             siteModule.siteUseCase()
         );
     }

@@ -14,7 +14,9 @@ import org.itss.prj_itss.controller.shared.ActionResult;
 import org.itss.prj_itss.controller.shared.ValidationResult;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public class ConfirmOrderArrivalController {
     private final WarehouseReceivingUseCase warehouseReceivingUseCase;
@@ -42,8 +44,16 @@ public class ConfirmOrderArrivalController {
         return siteUseCase.findById(siteId);
     }
 
+    public List<Site> findAllSites() {
+        return siteUseCase.findAll();
+    }
+
     public Merchandise findMerchandiseById(int merchandiseId) {
         return MerchandiseUseCase.findById(merchandiseId);
+    }
+
+    public Map<Integer, Merchandise> findMerchandiseByIds(Collection<Integer> merchandiseIds) {
+        return MerchandiseUseCase.findByIds(merchandiseIds);
     }
 
     public ValidationResult validateInspection(List<InspectionItemDto> items, String overallNote) {
@@ -76,7 +86,7 @@ public class ConfirmOrderArrivalController {
 
         String normalizedNote = overallNote == null ? "" : overallNote.trim();
         if (hasDiscrepancy && normalizedNote.isEmpty()) {
-            errors.add("Vui lòng nhập Ghi chú tổng thể khi có chênh lệch kiểm nhận.");
+            errors.add("Có chênh lệch, hãy viết ghi chú chênh lệch.");
             return new ValidationResult(false, errors);
         }
 

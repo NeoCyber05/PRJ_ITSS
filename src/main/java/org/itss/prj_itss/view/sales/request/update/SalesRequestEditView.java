@@ -1,5 +1,8 @@
 package org.itss.prj_itss.view.sales.request.update;
 
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.scene.Scene;
 import javafx.scene.control.Alert;
@@ -12,6 +15,7 @@ import javafx.scene.control.TableView;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.stage.Window;
+import javafx.util.Duration;
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditActionHandler;
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditViewState;
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditViewPort;
@@ -24,6 +28,7 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
 
     private SalesRequestEditActionHandler actionHandler;
     private Runnable closeHandler;
+    private Timeline heartbeatTimeline;
     private SalesRequestEditHeaderPanel headerPanel;
     private SalesRequestEditSearchFilterBar searchFilterBar;
     private SalesRequestEditTableComponent tableComponent;
@@ -132,6 +137,18 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
         this.closeHandler = closeHandler;
     }
 
+    public void startHeartbeat(Runnable renewTask) {
+        heartbeatTimeline = new Timeline(
+            new KeyFrame(Duration.seconds(300), e -> {
+                Thread t = new Thread(renewTask, "lock-heartbeat");
+                t.setDaemon(true);
+                t.start();
+            })
+        );
+        heartbeatTimeline.setCycleCount(Animation.INDEFINITE);
+        heartbeatTimeline.play();
+    }
+
     public void render(SalesRequestEditViewState viewModel) {
         headerPanel.render(viewModel);
         tableComponent.renderItems(
@@ -165,7 +182,21 @@ public final class SalesRequestEditView implements ViewLifecycle, SalesRequestEd
         validationMessageDispatcher.showError(message);
     }
 
+    public void showAlertError(String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING, message, ButtonType.OK);
+        alert.setHeaderText(null);
+        Window owner = ownerWindow();
+        if (owner != null) {
+            alert.initOwner(owner);
+        }
+        alert.showAndWait();
+    }
+
     public void close() {
+        if (heartbeatTimeline != null) {
+            heartbeatTimeline.stop();
+            heartbeatTimeline = null;
+        }
         if (closeHandler != null) {
             closeHandler.run();
             return;

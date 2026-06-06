@@ -13,7 +13,7 @@ import org.itss.prj_itss.controller.ordering.request.RequestDetailPopupControlle
 import org.itss.prj_itss.model.request.application.international.detail.AllocatedOrderRow;
 import org.itss.prj_itss.model.request.application.international.detail.ReceivedRequestDetailViewModel;
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
-import org.itss.prj_itss.view.ordering.order.OrderDetailView;
+import org.itss.prj_itss.view.ordering.order.detail.OrderDetailView;
 import org.itss.prj_itss.view.ordering.request.RequestDetailContext;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 import org.itss.prj_itss.view.shared.ui.StatusBadgeFactory;
@@ -113,6 +113,12 @@ public final class RequestDetailPopupView implements ViewLifecycle {
                 this.currentSelectedOrder = selectedOrder;
                 this.currentSelectedRow = selectedRow;
                 showOrderDetail(selectedOrder.orderId());
+            },
+            (orderToProcess) -> {
+                if (this.dialog != null) {
+                    this.dialog.close();
+                }
+                context.navigator().showView("ordering-order-handle-cancellation:" + orderToProcess.orderId());
             }
         ));
     }
@@ -154,9 +160,15 @@ public final class RequestDetailPopupView implements ViewLifecycle {
                 statusBox.getChildren().setAll(StatusBadgeFactory.statusBadge(OrderingFormatters.STATUS_CANCELLED, false));
                 
                 HBox actionBox = (HBox) currentSelectedRow.getChildren().get(5);
-                if (actionBox.getChildren().size() > 1) {
-                    actionBox.getChildren().remove(0);
-                }
+                actionBox.getChildren().forEach(node -> {
+                    if ("cancelBtn".equals(node.getId())) {
+                        node.setVisible(false);
+                        node.setManaged(false);
+                    } else if ("processBtn".equals(node.getId())) {
+                        node.setVisible(true);
+                        node.setManaged(true);
+                    }
+                });
             }
         }
     }

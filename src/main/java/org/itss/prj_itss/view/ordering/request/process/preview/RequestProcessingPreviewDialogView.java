@@ -8,7 +8,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingPreviewOrder;
 import org.itss.prj_itss.controller.ordering.request.process.preview.RequestProcessingPreviewDialogController;
 
 import java.util.List;
@@ -47,10 +47,10 @@ public final class RequestProcessingPreviewDialogView {
         sendButton.setOnAction(event -> submit());
     }
 
-    private void render(List<ProcessingPreviewOrderView> previewOrders) {
+    private void render(List<ProcessingPreviewOrder> previewOrders) {
         int totalQuantity = previewOrders.stream()
             .flatMap(order -> order.lines().stream())
-            .mapToInt(ProcessingPreviewOrderView.ProcessingPreviewLineView::quantity)
+            .mapToInt(ProcessingPreviewOrder.ProcessingPreviewLine::quantity)
             .sum();
         int totalLines = previewOrders.stream()
             .mapToInt(order -> order.lines().size())

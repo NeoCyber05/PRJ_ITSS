@@ -2,7 +2,7 @@ package org.itss.prj_itss.model.warehouse.application;
 
 import org.itss.prj_itss.model.merchandise.application.MerchandiseUseCase;
 import org.itss.prj_itss.model.merchandise.domain.Merchandise;
-import org.itss.prj_itss.model.order.application.OrderUseCase;
+import org.itss.prj_itss.model.order.application.port.OrderRepository;
 import org.itss.prj_itss.model.order.domain.Order;
 import org.itss.prj_itss.model.order.domain.OrderMerchandise;
 import org.itss.prj_itss.model.order.domain.OrderStatus;
@@ -12,48 +12,67 @@ import org.itss.prj_itss.model.site.domain.Site;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 public final class WarehouseIncomingOrderQuery {
 
-    private final OrderUseCase orderUseCase;
+    private final OrderRepository orderRepository;
     private final SiteUseCase siteUseCase;
     private final MerchandiseUseCase merchandiseUseCase;
 
     public WarehouseIncomingOrderQuery(
-        OrderUseCase orderUseCase,
+        OrderRepository orderRepository,
         SiteUseCase siteUseCase,
         MerchandiseUseCase merchandiseUseCase
     ) {
-        this.orderUseCase = orderUseCase;
+        this.orderRepository = orderRepository;
         this.siteUseCase = siteUseCase;
         this.merchandiseUseCase = merchandiseUseCase;
     }
 
     public List<IncomingOrderRow> findIncomingRows() {
-        List<Order> orders = orderUseCase.findByStatus(OrderStatus.SHIPPING.displayValue());
+        List<Order> orders = orderRepository.findByStatus(OrderStatus.SHIPPING.displayValue());
+        java.util.Map<Integer, Site> siteMap = siteUseCase.findAll().stream()
+            .collect(java.util.stream.Collectors.toMap(Site::getId, java.util.function.Function.identity(), (a, b) -> a));
+        java.util.Map<Integer, Integer> itemCounts = orderRepository.countItemsGroupedByOrderId();
+
         return orders.stream()
             .sorted(Comparator
                 .comparing(Order::getCreatedAt, Comparator.nullsLast(Comparator.reverseOrder()))
                 .thenComparing(Comparator.comparingInt(Order::getId).reversed()))
-            .map(this::toRow)
+            .map(order -> toRow(order, siteMap, itemCounts))
             .toList();
     }
 
     public IncomingOrderDetail findIncomingDetail(int orderId) {
-        Order order = orderUseCase.findById(orderId);
+        Order order = orderRepository.findById(orderId);
         if (order == null) {
             return null;
         }
-        IncomingOrderRow summary = toRow(order);
-        List<IncomingOrderItemRow> items = orderUseCase.findItemsByOrderId(orderId).stream()
-            .map(this::toItemRow)
+        List<OrderMerchandise> orderItems = orderRepository.findItemsByOrderId(orderId);
+        IncomingOrderRow summary = toRow(order, siteUseCase.findById(order.getSiteId()), orderItems.size());
+        Map<Integer, Merchandise> merchandiseById = merchandiseUseCase.findByIds(
+            orderItems.stream().map(OrderMerchandise::getMerchandiseId).distinct().toList()
+        );
+        List<IncomingOrderItemRow> items = orderItems.stream()
+            .map(item -> toItemRow(item, merchandiseById.get(item.getMerchandiseId())))
             .toList();
         return new IncomingOrderDetail(summary, items);
     }
 
+    private IncomingOrderRow toRow(Order order, java.util.Map<Integer, Site> siteMap, java.util.Map<Integer, Integer> itemCounts) {
+        Site site = siteMap.get(order.getSiteId());
+        int itemCount = itemCounts.getOrDefault(order.getId(), 0);
+        return toRow(order, site, itemCount);
+    }
+
     private IncomingOrderRow toRow(Order order) {
         Site site = siteUseCase.findById(order.getSiteId());
-        int itemCount = orderUseCase.findItemsByOrderId(order.getId()).size();
+        int itemCount = orderRepository.findItemsByOrderId(order.getId()).size();
+        return toRow(order, site, itemCount);
+    }
+
+    private IncomingOrderRow toRow(Order order, Site site, int itemCount) {
         return new IncomingOrderRow(
             order.getId(),
             order.getRequestId(),
@@ -69,8 +88,7 @@ public final class WarehouseIncomingOrderQuery {
         );
     }
 
-    private IncomingOrderItemRow toItemRow(OrderMerchandise item) {
-        Merchandise merchandise = merchandiseUseCase.findById(item.getMerchandiseId());
+    private IncomingOrderItemRow toItemRow(OrderMerchandise item, Merchandise merchandise) {
         return new IncomingOrderItemRow(
             item.getMerchandiseId(),
             merchandise == null ? "N/A" : safeText(merchandise.getCode()),

@@ -8,7 +8,11 @@ import org.itss.prj_itss.model.request.domain.request.RequestStatus;
 import java.sql.*;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class JdbcReceivedRequestsRepository extends JdbcRepositorySupport implements ReceivedRequestsPort {
 
@@ -87,6 +91,67 @@ public class JdbcReceivedRequestsRepository extends JdbcRepositorySupport implem
         } catch (SQLException e) {
             return false;
         }
+    }
+
+    private String placeholders(int count) {
+        return String.join(", ", Collections.nCopies(count, "?"));
+    }
+
+    @Override
+    public Map<Integer, Integer> countItemTypesByRequestIds(Set<Integer> requestIds) {
+        Map<Integer, Integer> counts = new HashMap<>();
+        if (requestIds == null || requestIds.isEmpty()) {
+            return counts;
+        }
+
+        String sql = "SELECT request_id, COUNT(*) AS item_count " +
+                     "FROM request_merchandise " +
+                     "WHERE request_id IN (" + placeholders(requestIds.size()) + ") " +
+                     "GROUP BY request_id";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            int index = 1;
+            for (Integer requestId : requestIds) {
+                ps.setInt(index++, requestId);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    counts.put(rs.getInt("request_id"), rs.getInt("item_count"));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("JdbcReceivedRequestsRepository.countItemTypesByRequestIds: " + e.getMessage());
+        }
+        return counts;
+    }
+
+    @Override
+    public Map<Integer, LocalDate> findEarliestDeliveryDatesByRequestIds(Set<Integer> requestIds) {
+        Map<Integer, LocalDate> dates = new HashMap<>();
+        if (requestIds == null || requestIds.isEmpty()) {
+            return dates;
+        }
+
+        String sql = "SELECT request_id, MIN(desired_delivery_date) AS earliest_delivery_date " +
+                     "FROM request_merchandise " +
+                     "WHERE request_id IN (" + placeholders(requestIds.size()) + ") " +
+                     "GROUP BY request_id";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            int index = 1;
+            for (Integer requestId : requestIds) {
+                ps.setInt(index++, requestId);
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Date date = rs.getDate("earliest_delivery_date");
+                    if (date != null) {
+                        dates.put(rs.getInt("request_id"), date.toLocalDate());
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("JdbcReceivedRequestsRepository.findEarliestDeliveryDatesByRequestIds: " + e.getMessage());
+        }
+        return dates;
     }
 
     private Request mapRequest(ResultSet rs) throws SQLException {

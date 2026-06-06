@@ -35,7 +35,7 @@
                 <TableColumn fx:id="siteNameColumn" text="Tên site" prefWidth="180"/>
                 <TableColumn fx:id="createdAtColumn" text="Ngày tạo" prefWidth="100"/>
                 <TableColumn fx:id="statusColumn" text="Trạng thái" prefWidth="120"/>
-                <TableColumn fx:id="actionColumn" text="Hành động" prefWidth="200"/>
+                <TableColumn fx:id="actionColumn" text="Hành động" prefWidth="220" minWidth="220" maxWidth="220" resizable="false"/>
             </columns>
         </TableView>
     </children>

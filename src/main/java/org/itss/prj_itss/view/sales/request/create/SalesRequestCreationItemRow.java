@@ -9,7 +9,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.HBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.SVGPath;
-import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
+import org.itss.prj_itss.controller.shared.MerchandiseOptionDTO;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -39,7 +39,7 @@ final class SalesRequestCreationItemRow extends HBox {
 
     SalesRequestCreationItemRow(
             int index,
-            Function<String, MerchandiseOption> merchandiseLookup,
+            Function<String, MerchandiseOptionDTO> merchandiseLookup,
             Function<String, List<String>> codeSuggester,
             Function<String, Integer> stockLookup,
             Consumer<SalesRequestCreationItemRow> deleteHandler
@@ -82,7 +82,7 @@ final class SalesRequestCreationItemRow extends HBox {
         updateIndex(index);
     }
 
-    private void configureCodeField(Function<String, MerchandiseOption> merchandiseLookup, Function<String, List<String>> codeSuggester, Function<String, Integer> stockLookup) {
+    private void configureCodeField(Function<String, MerchandiseOptionDTO> merchandiseLookup, Function<String, List<String>> codeSuggester, Function<String, Integer> stockLookup) {
         codeField.setPromptText("VD: MH-001");
         codeField.setPrefWidth(150);
         codeField.setMaxWidth(150);
@@ -116,7 +116,7 @@ final class SalesRequestCreationItemRow extends HBox {
                 return;
             }
 
-            MerchandiseOption merchandise = merchandiseLookup.apply(code);
+            MerchandiseOptionDTO merchandise = merchandiseLookup.apply(code);
             if (merchandise == null) {
                 codeField.setStyle(ERROR_STYLE);
                 unitField.setText("");
@@ -129,7 +129,7 @@ final class SalesRequestCreationItemRow extends HBox {
         });
     }
 
-    private void configureQuantityField(Function<String, MerchandiseOption> merchandiseLookup, Function<String, Integer> stockLookup) {
+    private void configureQuantityField(Function<String, MerchandiseOptionDTO> merchandiseLookup, Function<String, Integer> stockLookup) {
         quantityField.setPromptText("0");
         quantityField.setPrefWidth(100);
         quantityField.setMaxWidth(100);
@@ -139,13 +139,13 @@ final class SalesRequestCreationItemRow extends HBox {
         });
     }
 
-    private void validateQuantity(Function<String, MerchandiseOption> merchandiseLookup, Function<String, Integer> stockLookup) {
+    private void validateQuantity(Function<String, MerchandiseOptionDTO> merchandiseLookup, Function<String, Integer> stockLookup) {
         String code = codeField.getText() == null ? "" : codeField.getText().trim();
         if (code.isEmpty()) {
             quantityField.setStyle(INPUT_STYLE);
             return;
         }
-        MerchandiseOption merchandise = merchandiseLookup.apply(code);
+        MerchandiseOptionDTO merchandise = merchandiseLookup.apply(code);
         if (merchandise == null) {
             quantityField.setStyle(INPUT_STYLE);
             return;
@@ -160,7 +160,12 @@ final class SalesRequestCreationItemRow extends HBox {
                 quantityField.setStyle(INPUT_STYLE);
             }
         } else {
-            quantityField.setStyle(INPUT_STYLE);
+            String text = quantityField.getText();
+            if (text != null && !text.isBlank()) {
+                quantityField.setStyle(ERROR_STYLE);
+            } else {
+                quantityField.setStyle(INPUT_STYLE);
+            }
         }
     }
 
@@ -173,11 +178,47 @@ final class SalesRequestCreationItemRow extends HBox {
     }
 
     private void configureDesiredDatePicker() {
-        desiredDatePicker.setPromptText("dd/mm/yyyy");
+        desiredDatePicker.setPromptText("dd/MM/yyyy");
         desiredDatePicker.setPrefWidth(180);
         desiredDatePicker.setMaxWidth(180);
         desiredDatePicker.setStyle("-fx-background-color: white; -fx-border-color: #CBD5E1; -fx-border-radius: 4;");
         
+        javafx.util.StringConverter<LocalDate> converter = new javafx.util.StringConverter<LocalDate>() {
+            java.time.format.DateTimeFormatter dateFormatter = java.time.format.DateTimeFormatter.ofPattern("dd/MM/yyyy");
+            @Override
+            public String toString(LocalDate date) {
+                if (date != null) {
+                    return dateFormatter.format(date);
+                } else {
+                    return "";
+                }
+            }
+            @Override
+            public LocalDate fromString(String string) {
+                if (string != null && !string.isEmpty()) {
+                    try {
+                        return LocalDate.parse(string, dateFormatter);
+                    } catch (Exception e) {
+                        return null;
+                    }
+                } else {
+                    return null;
+                }
+            }
+        };
+        desiredDatePicker.setConverter(converter);
+
+        // Force commit text on focus loss
+        desiredDatePicker.focusedProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue) {
+                try {
+                    desiredDatePicker.setValue(desiredDatePicker.getConverter().fromString(desiredDatePicker.getEditor().getText()));
+                } catch (Exception e) {
+                    desiredDatePicker.setValue(null);
+                }
+            }
+        });
+
         desiredDatePicker.valueProperty().addListener((observable, oldValue, newValue) -> {
             if (newValue != null && newValue.isBefore(LocalDate.now())) {
                 desiredDatePicker.setStyle(ERROR_STYLE);
@@ -224,7 +265,11 @@ final class SalesRequestCreationItemRow extends HBox {
             return Optional.empty();
         }
         try {
-            BigDecimal quantity = new BigDecimal(rawQuantity.trim());
+            String trimmed = rawQuantity.trim();
+            if (!trimmed.matches("-?\\d+")) {
+                return Optional.empty();
+            }
+            BigDecimal quantity = new BigDecimal(trimmed);
             return quantity.compareTo(BigDecimal.ZERO) > 0 ? Optional.of(quantity) : Optional.empty();
         } catch (NumberFormatException exception) {
             return Optional.empty();

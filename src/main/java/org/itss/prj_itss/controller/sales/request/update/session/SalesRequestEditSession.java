@@ -4,6 +4,10 @@ import org.itss.prj_itss.controller.sales.request.update.SalesRequestDialogListe
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditDialogInput;
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditViewState;
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestSavedEvent;
+import org.itss.prj_itss.model.request.application.lock.RequestLockException;
+import org.itss.prj_itss.model.request.application.lock.RequestLockUseCase;
+import org.itss.prj_itss.model.request.domain.lock.LockOwner;
+import org.itss.prj_itss.model.request.domain.lock.LockResult;
 import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
 import org.itss.prj_itss.model.request.application.sales.shared.RequestFormView;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditData;
@@ -14,6 +18,7 @@ import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEdit
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditUseCase;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidationException;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidationResult;
+import java.util.function.Supplier;
 
 import java.time.LocalDate;
 import java.util.LinkedHashMap;
@@ -26,27 +31,58 @@ import java.util.Set;
 public final class SalesRequestEditSession {
 
     private final SalesRequestEditUseCase useCase;
+    private final RequestLockUseCase lockUseCase;
+    private final Supplier<LockOwner> lockOwnerSupplier;
+    private int lockedRequestId;
+    private String lockedOwnerUsername;
 
     private SalesRequestDialogListener listener;
     private SalesRequestEditState state;
     private List<MerchandiseOption> merchandiseOptions = List.of();
 
-    public SalesRequestEditSession(SalesRequestEditUseCase useCase) {
+    public SalesRequestEditSession(
+            SalesRequestEditUseCase useCase,
+            RequestLockUseCase lockUseCase,
+            Supplier<LockOwner> lockOwnerSupplier
+    ) {
         this.useCase = Objects.requireNonNull(useCase, "useCase");
+        this.lockUseCase = Objects.requireNonNull(lockUseCase, "lockUseCase");
+        this.lockOwnerSupplier = Objects.requireNonNull(lockOwnerSupplier, "lockOwnerSupplier");
     }
 
     public StartResult start(
             SalesRequestEditDialogInput input,
             SalesRequestDialogListener listener) {
         Objects.requireNonNull(input, "input");
+        LockOwner owner = lockOwnerSupplier.get();
+        LockResult lockResult;
+        try {
+            lockResult = lockUseCase.acquire(input.requestId(), owner);
+        } catch (RequestLockException e) {
+            reset();
+            return StartResult.failed("Có lỗi khi kiểm tra khóa yêu cầu.");
+        }
+        if (!lockResult.acquired()) {
+            reset();
+            var holder = lockResult.holder();
+            String msg = holder != null
+                ? "Yêu cầu đang được " + holder.ownerDisplay() + " (" + holder.ownerRole() + ") cập nhật."
+                : "Yêu cầu đang bị khóa bởi người dùng khác.";
+            return StartResult.failed(msg);
+        }
+        this.lockedRequestId = input.requestId();
+        this.lockedOwnerUsername = owner.username();
+
         SalesRequestEditData data;
         try {
             data = useCase.loadEditData(input.requestId());
         } catch (SalesRequestEditException exception) {
+            releaseLockBackground();
             reset();
             return StartResult.failed("Có lỗi xảy ra khi tải yêu cầu cần cập nhật.");
         }
         if (!data.found()) {
+            releaseLockBackground();
             reset();
             return StartResult.failed("Không tìm thấy yêu cầu cần cập nhật.");
         }
@@ -112,13 +148,36 @@ public final class SalesRequestEditSession {
         if (listener != null) {
             listener.onSalesRequestSaved(new SalesRequestSavedEvent(draft.requestId(), draft.requestCode()));
         }
+        releaseLockBackground();
         return SaveResult.saved("Cập nhật yêu cầu đặt hàng thành công");
     }
 
     public void handleCancel() {
+        releaseLockBackground();
         if (listener != null && state != null) {
             listener.onSalesRequestEditCancelled(currentDraft().requestId());
         }
+    }
+
+    public void renewLock() {
+        if (lockedRequestId <= 0 || lockedOwnerUsername == null) return;
+        LockOwner owner = lockOwnerSupplier.get();
+        try {
+            lockUseCase.renew(lockedRequestId, owner);
+        } catch (Exception ignored) {}
+    }
+
+    private void releaseLockBackground() {
+        if (lockedRequestId <= 0 || lockedOwnerUsername == null) return;
+        int id = lockedRequestId;
+        String username = lockedOwnerUsername;
+        lockedRequestId = 0;
+        lockedOwnerUsername = null;
+        Thread t = new Thread(() -> {
+            try { lockUseCase.release(id, username); } catch (Exception ignored) {}
+        }, "lock-release");
+        t.setDaemon(true);
+        t.start();
     }
 
     private SalesRequestEditDraft currentDraft() {
@@ -149,6 +208,8 @@ public final class SalesRequestEditSession {
         listener = null;
         state = null;
         merchandiseOptions = List.of();
+        lockedRequestId = 0;
+        lockedOwnerUsername = null;
     }
 
     public record SaveResult(

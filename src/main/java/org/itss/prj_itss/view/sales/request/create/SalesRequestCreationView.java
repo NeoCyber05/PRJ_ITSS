@@ -7,8 +7,8 @@ import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 import org.itss.prj_itss.controller.sales.request.create.SalesRequestCreationController;
 import org.itss.prj_itss.controller.shared.ActionResult;
-import org.itss.prj_itss.model.request.application.sales.shared.MerchandiseOption;
-import org.itss.prj_itss.model.request.application.sales.shared.SalesRequestItemSubmission;
+import org.itss.prj_itss.controller.shared.MerchandiseOptionDTO;
+import org.itss.prj_itss.controller.shared.SalesRequestItemInput;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 
 import java.util.ArrayList;
@@ -32,10 +32,20 @@ public final class SalesRequestCreationView implements ViewLifecycle {
     public void init(Stage dialog, SalesRequestCreationController controller) {
         this.dialog = dialog;
         this.controller = controller;
+        if (controller != null) {
+            controller.preloadCacheAsync(); // tải cache trong nền, không block UI
+        }
 
         if (itemsScroll != null && itemsContainer != null) {
-            itemsScroll.prefHeightProperty().bind(itemsContainer.heightProperty());
+            itemsScroll.setMinHeight(0);
+            itemsContainer.heightProperty().addListener((obs, oldVal, newVal) -> {
+                javafx.application.Platform.runLater(() -> {
+                    itemsScroll.setPrefHeight(newVal.doubleValue());
+                    itemsScroll.requestLayout();
+                });
+            });
             itemsScroll.setMaxHeight(400);
+            itemsScroll.setPrefHeight(itemsContainer.prefHeight(-1));
         }
 
         closeButton.setOnAction(event -> closePopup());
@@ -56,7 +66,7 @@ public final class SalesRequestCreationView implements ViewLifecycle {
             return;
         }
 
-        List<SalesRequestItemSubmission> items = new ArrayList<>();
+        List<SalesRequestItemInput> items = new ArrayList<>();
         for (SalesRequestCreationItemRow row : itemRows) {
             SalesRequestCreationItemCandidate candidate = row.inputCandidate().orElseThrow();
             if (!candidate.complete()) {
@@ -64,13 +74,13 @@ public final class SalesRequestCreationView implements ViewLifecycle {
                 return;
             }
 
-            MerchandiseOption merchandise = controller.getMerchandiseOptionByCode(candidate.merchandiseCode());
+            MerchandiseOptionDTO merchandise = controller.getMerchandiseOptionByCode(candidate.merchandiseCode());
             if (merchandise == null) {
                 showError("Mã hàng \"" + candidate.merchandiseCode() + "\" không tồn tại trong hệ thống.");
                 return;
             }
 
-            items.add(new SalesRequestItemSubmission(
+            items.add(new SalesRequestItemInput(
                 merchandise.id(),
                 candidate.quantity(),
                 candidate.desiredDate()
@@ -135,7 +145,7 @@ public final class SalesRequestCreationView implements ViewLifecycle {
         }
     }
 
-    private MerchandiseOption findMerchandiseByCode(String code) {
+    private MerchandiseOptionDTO findMerchandiseByCode(String code) {
         if (controller == null || code == null || code.isBlank()) {
             return null;
         }

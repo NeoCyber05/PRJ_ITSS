@@ -1,17 +1,17 @@
 package org.itss.prj_itss.controller.ordering.request.process.site;
 
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;
-import org.itss.prj_itss.view.ordering.request.process.state.SiteFilterModel;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingSiteState;
+import org.itss.prj_itss.controller.ordering.request.process.state.SiteFilterState;
 
 import java.util.List;
 import java.util.Set;
 
 public final class SiteFilterController {
 
-    private final SiteFilterModel model = new SiteFilterModel();
+    private final SiteFilterState model = new SiteFilterState();
     private String keyword = "";
 
-    public void init(List<ProcessingSiteView> allSites) {
+    public void init(List<ProcessingSiteState> allSites) {
         model.setSites(allSites);
         refreshVisibleSites();
     }
@@ -27,17 +27,17 @@ public final class SiteFilterController {
         refreshVisibleSites();
     }
 
-    public void selectSite(ProcessingSiteView site) {
+    public void selectSite(ProcessingSiteState site) {
         model.select(site);
         refreshVisibleSites();
     }
 
-    public void deselectSite(ProcessingSiteView site) {
+    public void deselectSite(ProcessingSiteState site) {
         model.deselect(site);
         refreshVisibleSites();
     }
 
-    public void excludeSite(ProcessingSiteView site) {
+    public void excludeSite(ProcessingSiteState site) {
         model.exclude(site);
         refreshVisibleSites();
     }
@@ -52,19 +52,19 @@ public final class SiteFilterController {
         refreshVisibleSites();
     }
 
-    public List<ProcessingSiteView> allSites() {
+    public List<ProcessingSiteState> allSites() {
         return model.allSites();
     }
 
-    public List<ProcessingSiteView> visibleSites() {
+    public List<ProcessingSiteState> visibleSites() {
         return model.visibleSites();
     }
 
-    public List<ProcessingSiteView> selectedSites() {
+    public List<ProcessingSiteState> selectedSites() {
         return model.selectedSites();
     }
 
-    public List<ProcessingSiteView> excludedSites() {
+    public List<ProcessingSiteState> excludedSites() {
         return model.excludedSites();
     }
 
@@ -76,7 +76,7 @@ public final class SiteFilterController {
         return model.excludedSiteIds();
     }
 
-    public boolean isSelected(ProcessingSiteView site) {
+    public boolean isSelected(ProcessingSiteState site) {
         return model.isSelected(site);
     }
 

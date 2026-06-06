@@ -34,6 +34,9 @@ public final class SalesRequestEditDialog implements SalesRequestEditDialogLaunc
     ) {
         Stage dialog = createDialog(owner);
         BorderPane root = loadRoot(dialog, input, listener);
+        if (root == null) {
+            return;
+        }
         Scene scene = createScene(root);
         applyMainStylesheet(scene);
         dialog.setScene(scene);
@@ -64,7 +67,11 @@ public final class SalesRequestEditDialog implements SalesRequestEditDialogLaunc
             BorderPane root = loader.load();
             SalesRequestEditView view = loader.getController();
             view.setCloseHandler(dialog::close);
-            screenStarter.start(view, input, listener);
+            boolean started = screenStarter.start(view, input, listener);
+            if (!started) {
+                dialog.close();
+                return null;
+            }
             root.setMaxWidth(1000);
             root.setStyle(
                 "-fx-background-color: white;" +

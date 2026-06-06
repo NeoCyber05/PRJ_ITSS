@@ -7,23 +7,34 @@ import org.itss.prj_itss.model.request.application.sales.SalesRequestQueryServic
 import org.itss.prj_itss.model.request.application.sales.SalesRequestCommandService;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditException;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditMapper;
+import org.itss.prj_itss.model.request.application.lock.RequestLockUseCase;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditUseCase;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidator;
+import org.itss.prj_itss.model.request.domain.lock.LockOwner;
 
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 public final class SalesRequestEditController implements SalesRequestEditActionHandler, SalesRequestEditScreenStarter {
 
     private final SalesRequestEditSession session;
     private SalesRequestEditViewPort view;
 
-    public SalesRequestEditController(SalesRequestEditUseCase useCase) {
-        this.session = new SalesRequestEditSession(Objects.requireNonNull(useCase, "useCase"));
+    public SalesRequestEditController(
+            SalesRequestEditUseCase useCase,
+            RequestLockUseCase lockUseCase,
+            Supplier<LockOwner> lockOwnerSupplier
+    ) {
+        this.session = new SalesRequestEditSession(
+            Objects.requireNonNull(useCase, "useCase"),
+            Objects.requireNonNull(lockUseCase, "lockUseCase"),
+            Objects.requireNonNull(lockOwnerSupplier, "lockOwnerSupplier")
+        );
     }
 
-    public void start(
+    public boolean start(
             SalesRequestEditViewPort view,
             SalesRequestEditDialogInput input,
             SalesRequestDialogListener listener
@@ -32,11 +43,12 @@ public final class SalesRequestEditController implements SalesRequestEditActionH
         this.view.setActionHandler(this);
         SalesRequestEditSession.StartResult startResult = session.start(input, listener);
         if (!startResult.started()) {
-            view.showError(startResult.message());
-            view.close();
-            return;
+            view.showAlertError(startResult.message());
+            return false;
         }
         render();
+        view.startHeartbeat(this::renewLock);
+        return true;
     }
 
     public RequestFormView loadRequest(int requestId) {
@@ -101,6 +113,10 @@ public final class SalesRequestEditController implements SalesRequestEditActionH
     public void cancelRequested() {
         session.handleCancel();
         view.close();
+    }
+
+    public void renewLock() {
+        session.renewLock();
     }
 
     private void render() {

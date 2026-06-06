@@ -13,7 +13,9 @@ import org.itss.prj_itss.model.site.application.port.SiteRepository;
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -163,6 +165,39 @@ public class JdbcSiteRepository extends JdbcRepositorySupport implements SiteRep
     }
 
     @Override
+    public Map<Integer, Map<Integer, Integer>> getInventoryBySiteIds(Collection<Integer> siteIds) {
+        Map<Integer, Map<Integer, Integer>> inventories = new LinkedHashMap<>();
+        List<Integer> normalizedSiteIds = normalizeIds(siteIds);
+        if (normalizedSiteIds.isEmpty()) {
+            return inventories;
+        }
+
+        for (Integer siteId : normalizedSiteIds) {
+            inventories.put(siteId, new LinkedHashMap<>());
+        }
+
+        String placeholders = String.join(", ", java.util.Collections.nCopies(normalizedSiteIds.size(), "?"));
+        String sql = "SELECT site_id, merchandise_id, stock_quantity " +
+                     "FROM site_inventory WHERE site_id IN (" + placeholders + ") " +
+                     "ORDER BY site_id, merchandise_id";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            for (int i = 0; i < normalizedSiteIds.size(); i++) {
+                ps.setInt(i + 1, normalizedSiteIds.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    int siteId = rs.getInt("site_id");
+                    inventories.computeIfAbsent(siteId, ignored -> new LinkedHashMap<>())
+                        .put(rs.getInt("merchandise_id"), rs.getInt("stock_quantity"));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SiteRepository.getInventoryBySiteIds: " + e.getMessage());
+        }
+        return inventories;
+    }
+
+    @Override
     public int getStockQuantity(int siteId, int merchandiseId) {
         String sql = "SELECT stock_quantity FROM site_inventory WHERE site_id = ? AND merchandise_id = ?";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -192,6 +227,37 @@ public class JdbcSiteRepository extends JdbcRepositorySupport implements SiteRep
     }
 
     @Override
+    public Map<Integer, Integer> getTotalStockByMerchandiseIds(Collection<Integer> merchandiseIds) {
+        Map<Integer, Integer> stockByMerchandiseId = new LinkedHashMap<>();
+        List<Integer> normalizedMerchandiseIds = normalizeIds(merchandiseIds);
+        if (normalizedMerchandiseIds.isEmpty()) {
+            return stockByMerchandiseId;
+        }
+
+        for (Integer merchandiseId : normalizedMerchandiseIds) {
+            stockByMerchandiseId.put(merchandiseId, 0);
+        }
+
+        String placeholders = String.join(", ", java.util.Collections.nCopies(normalizedMerchandiseIds.size(), "?"));
+        String sql = "SELECT merchandise_id, COALESCE(SUM(stock_quantity), 0) AS total_stock " +
+                     "FROM site_inventory WHERE merchandise_id IN (" + placeholders + ") " +
+                     "GROUP BY merchandise_id";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            for (int i = 0; i < normalizedMerchandiseIds.size(); i++) {
+                ps.setInt(i + 1, normalizedMerchandiseIds.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    stockByMerchandiseId.put(rs.getInt("merchandise_id"), rs.getInt("total_stock"));
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("SiteRepository.getTotalStockByMerchandiseIds: " + e.getMessage());
+        }
+        return stockByMerchandiseId;
+    }
+
+    @Override
     public int countMerchandiseAtSite(int siteId) {
         String sql = "SELECT COUNT(*) FROM site_inventory WHERE site_id = ? AND stock_quantity > 0";
         try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
@@ -203,6 +269,24 @@ public class JdbcSiteRepository extends JdbcRepositorySupport implements SiteRep
             System.err.println("SiteRepository.countMerchandiseAtSite: " + e.getMessage());
         }
         return 0;
+    }
+
+    @Override
+    public Map<Integer, Integer> countMerchandiseGroupedBySiteId() {
+        Map<Integer, Integer> counts = new HashMap<>();
+        String sql = "SELECT site_id, COUNT(*) AS item_count " +
+                     "FROM site_inventory " +
+                     "WHERE stock_quantity > 0 " +
+                     "GROUP BY site_id";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql);
+             ResultSet rs = ps.executeQuery()) {
+            while (rs.next()) {
+                counts.put(rs.getInt("site_id"), rs.getInt("item_count"));
+            }
+        } catch (SQLException e) {
+            System.err.println("SiteRepository.countMerchandiseGroupedBySiteId: " + e.getMessage());
+        }
+        return counts;
     }
 
     // SiteCommandRepository
@@ -311,6 +395,16 @@ public class JdbcSiteRepository extends JdbcRepositorySupport implements SiteRep
         } else {
             ps.setInt(index, value);
         }
+    }
+
+    private List<Integer> normalizeIds(Collection<Integer> ids) {
+        if (ids == null) {
+            return List.of();
+        }
+        return ids.stream()
+            .filter(id -> id != null)
+            .distinct()
+            .toList();
     }
 
     private Site mapSite(ResultSet rs) throws SQLException {

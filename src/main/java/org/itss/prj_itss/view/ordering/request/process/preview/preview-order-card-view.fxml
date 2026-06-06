@@ -39,7 +39,6 @@
                         <Label text="SỐ LƯỢNG" minWidth="110" prefWidth="110" styleClass="request-preview-header-cell"/>
                         <Label text="VẬN CHUYỂN" minWidth="150" prefWidth="150" styleClass="request-preview-header-cell"/>
                         <Label text="DỰ KIẾN NHẬN" minWidth="140" prefWidth="140" styleClass="request-preview-header-cell"/>
-                        <Label text="HẠN NHẬN" minWidth="140" prefWidth="140" styleClass="request-preview-header-cell"/>
                     </children>
                 </HBox>
                 <VBox fx:id="linesBox" spacing="0"/>

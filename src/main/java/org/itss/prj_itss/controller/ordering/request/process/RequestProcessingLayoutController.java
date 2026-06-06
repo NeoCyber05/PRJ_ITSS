@@ -1,43 +1,63 @@
 package org.itss.prj_itss.controller.ordering.request.process;
 
 import org.itss.prj_itss.controller.ordering.request.process.session.RequestProcessingSession;
+import org.itss.prj_itss.model.request.application.lock.RequestLockUseCase;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingException;
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView;
-import org.itss.prj_itss.view.ordering.request.process.state.RequestProcessingViewModel;
-import org.itss.prj_itss.view.ordering.request.process.state.SuggestedPlanView;
+import org.itss.prj_itss.model.request.domain.lock.LockOwner;
+import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeCommand;
+import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeResult;
+import org.itss.prj_itss.controller.ordering.request.process.state.LockOutcome;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingPreviewOrder;
+import org.itss.prj_itss.controller.ordering.request.process.state.RequestProcessingState;
+import org.itss.prj_itss.controller.ordering.request.process.state.SuggestedPlanState;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public final class RequestProcessingLayoutController {
 
     private final RequestProcessingSession session;
 
-    public RequestProcessingLayoutController(RequestProcessingUseCase requestProcessingUseCase) {
-        this.session = new RequestProcessingSession(Objects.requireNonNull(requestProcessingUseCase, "requestProcessingUseCase"));
+    public RequestProcessingLayoutController(
+            RequestProcessingUseCase requestProcessingUseCase,
+            RequestLockUseCase lockUseCase,
+            Supplier<LockOwner> lockOwnerSupplier
+    ) {
+        this.session = new RequestProcessingSession(
+            Objects.requireNonNull(requestProcessingUseCase, "requestProcessingUseCase"),
+            Objects.requireNonNull(lockUseCase, "lockUseCase"),
+            Objects.requireNonNull(lockOwnerSupplier, "lockOwnerSupplier")
+        );
     }
 
-    public void setRequestId(int requestId) {
-        session.start(requestId);
+    public LockOutcome setRequestId(int requestId) {
+        return session.start(requestId);
     }
 
-    public RequestProcessingViewModel snapshot() {
-        return session.buildViewModel();
+    public void renewLock() {
+        session.renewLock();
+    }
+
+    public void releaseLock() {
+        session.releaseLock();
+    }
+
+    public RequestProcessingState snapshot() {
+        return session.buildState();
     }
 
     public void handleSiteFilterChanged(Set<Integer> excludedSiteIds, Set<Integer> selectedSiteIds) {
         session.handleSiteFilterChanged(excludedSiteIds, selectedSiteIds);
     }
 
-    public void handleOptimizeAllocation() {
-        session.handleOptimizeAllocation();
+    public boolean handleOptimizeAllocation() {
+        return session.handleOptimizeAllocation();
     }
 
-    public List<SuggestedPlanView> handleShowAllPlans() {
+    public List<SuggestedPlanState> handleShowAllPlans() {
         return session.handleShowAllPlans();
     }
 
@@ -45,7 +65,7 @@ public final class RequestProcessingLayoutController {
         session.applySelectedPlanBySignature(signature);
     }
 
-    public AllocationChangeResultView handleAllocationInputChanged(AllocationChangeCommand request) {
+    public AllocationChangeResult handleAllocationInputChanged(AllocationChangeCommand request) {
         return session.handleAllocationInputChanged(request);
     }
 
@@ -65,20 +85,20 @@ public final class RequestProcessingLayoutController {
         return session.validateCurrentSubmission();
     }
 
-    public List<ProcessingPreviewOrderView> buildPreviewOrders() {
-        return session.buildPreviewOrderViews();
+    public List<ProcessingPreviewOrder> buildPreviewOrders() {
+        return session.buildPreviewOrders();
     }
 
     public void submitAllocatedOrders() throws RequestProcessingException {
         session.submitAllocatedOrders();
     }
 
-    public record ConfirmResult(String validationMessage, List<ProcessingPreviewOrderView> previewOrders) {
+    public record ConfirmResult(String validationMessage, List<ProcessingPreviewOrder> previewOrders) {
         public static ConfirmResult invalid(String validationMessage) {
             return new ConfirmResult(validationMessage, List.of());
         }
 
-        public static ConfirmResult valid(List<ProcessingPreviewOrderView> previewOrders) {
+        public static ConfirmResult valid(List<ProcessingPreviewOrder> previewOrders) {
             return new ConfirmResult(null, List.copyOf(previewOrders));
         }
 

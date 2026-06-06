@@ -18,7 +18,13 @@ module org.itss.prj_itss {
     opens org.itss.prj_itss.view.auth to javafx.fxml;
     opens org.itss.prj_itss.view.home to javafx.fxml;
     opens org.itss.prj_itss.view.ordering.site to javafx.fxml;
-    opens org.itss.prj_itss.view.ordering.order to javafx.fxml;
+    opens org.itss.prj_itss.view.ordering.order.management to javafx.fxml;
+    opens org.itss.prj_itss.view.ordering.order.detail to javafx.fxml;
+    opens org.itss.prj_itss.view.ordering.order.cancellation to javafx.fxml;
+    opens org.itss.prj_itss.view.ordering.order.cancellation.allocation to javafx.fxml;
+    opens org.itss.prj_itss.view.ordering.order.cancellation.preview to javafx.fxml;
+    opens org.itss.prj_itss.view.ordering.order.cancellation.popup to javafx.fxml;
+    opens org.itss.prj_itss.view.ordering.order.cancellation.suggestion to javafx.fxml;
     opens org.itss.prj_itss.view.ordering.request to javafx.fxml;
     opens org.itss.prj_itss.view.ordering.request.detail to javafx.fxml;
     opens org.itss.prj_itss.view.ordering.request.process.layout to javafx.fxml;

@@ -1,7 +1,12 @@
 package org.itss.prj_itss.controller.ordering.request.process.session;
 
+import org.itss.prj_itss.model.request.application.lock.RequestLockException;
+import org.itss.prj_itss.model.request.application.lock.RequestLockUseCase;
+import org.itss.prj_itss.model.request.domain.lock.LockOwner;
+import org.itss.prj_itss.model.request.domain.lock.LockResult;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingException;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
+import org.itss.prj_itss.model.request.domain.delivery.DeliveryMethod;
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 import org.itss.prj_itss.model.shared.formatting.DeliveryStatusFormatter;
 import org.itss.prj_itss.model.request.domain.processing.allocation.AllocationControl;
@@ -10,14 +15,17 @@ import org.itss.prj_itss.model.request.domain.processing.allocation.AllocationPl
 import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.model.request.domain.processing.RequestProcessingData;
 import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
+import org.itss.prj_itss.model.request.domain.processing.suggestion.OrderLineSuggestion;
+import org.itss.prj_itss.model.request.domain.processing.suggestion.SiteOrderSuggestion;
 import org.itss.prj_itss.model.request.domain.processing.suggestion.SuggestedPlan;
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingItemView;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView;
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingSiteView;
-import org.itss.prj_itss.view.ordering.request.process.state.RequestProcessingViewModel;
-import org.itss.prj_itss.view.ordering.request.process.state.SuggestedPlanView;
+import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeCommand;
+import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeResult;
+import org.itss.prj_itss.controller.ordering.request.process.state.LockOutcome;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingItemState;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingPreviewOrder;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingSiteState;
+import org.itss.prj_itss.controller.ordering.request.process.state.RequestProcessingState;
+import org.itss.prj_itss.controller.ordering.request.process.state.SuggestedPlanState;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -28,10 +36,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public final class RequestProcessingSession {
 
     private final RequestProcessingUseCase requestProcessingUseCase;
+    private final RequestLockUseCase lockUseCase;
+    private final Supplier<LockOwner> lockOwnerSupplier;
+    private String lockedOwnerUsername;
 
     private final List<ItemRequirement> items = new ArrayList<>();
     private final List<SiteStockOption> allSites = new ArrayList<>();
@@ -47,18 +59,40 @@ public final class RequestProcessingSession {
     private AllocationControl allocationControl;
     private List<SuggestedPlan> currentSuggestedPlans = List.of();
 
-    public RequestProcessingSession(RequestProcessingUseCase requestProcessingUseCase) {
+    public RequestProcessingSession(
+            RequestProcessingUseCase requestProcessingUseCase,
+            RequestLockUseCase lockUseCase,
+            Supplier<LockOwner> lockOwnerSupplier
+    ) {
         this.requestProcessingUseCase = Objects.requireNonNull(requestProcessingUseCase, "requestProcessingUseCase");
+        this.lockUseCase = Objects.requireNonNull(lockUseCase, "lockUseCase");
+        this.lockOwnerSupplier = Objects.requireNonNull(lockOwnerSupplier, "lockOwnerSupplier");
     }
 
-    public void start(int requestId) {
+    public LockOutcome start(int requestId) {
         if (requestId <= 0) {
-            return;
+            return LockOutcome.outcomeBlocked("ID yêu cầu không hợp lệ.");
+        }
+        LockOwner owner = lockOwnerSupplier.get();
+        LockResult lockResult;
+        try {
+            lockResult = lockUseCase.acquire(requestId, owner);
+        } catch (RequestLockException e) {
+            return LockOutcome.outcomeBlocked("Có lỗi khi kiểm tra khóa yêu cầu.");
+        }
+        if (!lockResult.acquired()) {
+            var holder = lockResult.holder();
+            String msg = holder != null
+                ? "Yêu cầu đang được " + holder.ownerDisplay() + " (" + holder.ownerRole() + ") cập nhật."
+                : "Yêu cầu đang bị khóa.";
+            return LockOutcome.outcomeBlocked(msg);
         }
         this.requestId = requestId;
+        this.lockedOwnerUsername = owner.username();
         resetProcessingState();
         loadProcessingData();
         rebuildAllocationSection();
+        return LockOutcome.outcomeAcquired();
     }
 
     public int requestId() {
@@ -69,8 +103,8 @@ public final class RequestProcessingSession {
         return OrderingFormatters.formatRequestCode(requestId);
     }
 
-    public RequestProcessingViewModel buildViewModel() {
-        List<RequestProcessingViewModel.AllocationItemViewModel> allocationItems = new ArrayList<>();
+    public RequestProcessingState buildState() {
+        List<RequestProcessingState.AllocationItemState> allocationItems = new ArrayList<>();
         for (int index = 0; index < items.size(); index++) {
             ItemRequirement item = items.get(index);
             int allocated = getAllocated(item.merchandiseId);
@@ -104,14 +138,17 @@ public final class RequestProcessingSession {
                 .sum();
 
             boolean expanded = expandedItemIndex == index;
-            List<RequestProcessingViewModel.AllocationSiteRowViewModel> siteRows = new ArrayList<>();
+            List<RequestProcessingState.AllocationSiteRowState> siteRows = new ArrayList<>();
             if (expanded) {
                 for (SiteStockOption site : allSites) {
                     if (excludedSiteIds.contains(site.id)) continue;
                     if (site.stock.getOrDefault(item.merchandiseId, 0) <= 0) continue;
                     AllocationControl.AllocationSiteRowState stateRow = allocationControl.siteRowState(item, site);
-                    var deliveryView = DeliveryStatusFormatter.format(stateRow.deliveryStatus().dayDelta(), stateRow.deliveryStatus().available());
-                    siteRows.add(new RequestProcessingViewModel.AllocationSiteRowViewModel(
+                    var deliveryStatus = DeliveryStatusFormatter.format(
+                        stateRow.deliveryStatus().dayDelta(),
+                        stateRow.deliveryStatus().available()
+                    );
+                    siteRows.add(new RequestProcessingState.AllocationSiteRowState(
                         item.merchandiseId,
                         site.id,
                         stateRow.siteName(),
@@ -121,13 +158,13 @@ public final class RequestProcessingSession {
                         stateRow.selectedTransportLabel(),
                         stateRow.transportLabels(),
                         stateRow.transportDisabled(),
-                        deliveryView.text(),
-                        deliveryView.styleClass()
+                        deliveryStatus.text(),
+                        deliveryStatus.styleClass()
                     ));
                 }
             }
 
-            allocationItems.add(new RequestProcessingViewModel.AllocationItemViewModel(
+            allocationItems.add(new RequestProcessingState.AllocationItemState(
                 item.merchandiseId,
                 item.code,
                 item.name,
@@ -141,25 +178,25 @@ public final class RequestProcessingSession {
             ));
         }
 
-        List<ProcessingItemView> itemViews = items.stream()
-            .map(i -> new ProcessingItemView(i.merchandiseId, i.code, i.name, i.required))
+        List<ProcessingItemState> itemStates = items.stream()
+            .map(i -> new ProcessingItemState(i.merchandiseId, i.code, i.name, i.required))
             .toList();
 
-        List<ProcessingSiteView> siteViews = allSites.stream()
-            .map(s -> new ProcessingSiteView(s.id, s.siteCode, s.name, s.description, s.shipDays, s.airDays, s.stock))
+        List<ProcessingSiteState> siteStates = allSites.stream()
+            .map(s -> new ProcessingSiteState(s.id, s.siteCode, s.name, s.description, s.shipDays, s.airDays, s.stock))
             .toList();
 
-        Map<Integer, String> desiredDateViews = new LinkedHashMap<>();
-        desiredDeliveryDates.forEach((k, v) -> desiredDateViews.put(k, OrderingFormatters.formatDate(v)));
+        Map<Integer, String> desiredDeliveryDateTexts = new LinkedHashMap<>();
+        desiredDeliveryDates.forEach((k, v) -> desiredDeliveryDateTexts.put(k, OrderingFormatters.formatDate(v)));
 
-        return new RequestProcessingViewModel(
+        return new RequestProcessingState(
             requestId,
             requestCode(),
             OrderingFormatters.formatDate(earliestDeliveryDate),
             deadlineDays,
-            itemViews,
-            siteViews,
-            desiredDateViews,
+            itemStates,
+            siteStates,
+            desiredDeliveryDateTexts,
             allocationItems
         );
     }
@@ -171,21 +208,61 @@ public final class RequestProcessingSession {
         rebuildAllocationSection();
     }
 
-    public void handleOptimizeAllocation() {
-        allocationControl.applyOptimalAllocation();
+    public boolean handleOptimizeAllocation() {
+        return allocationControl.applyOptimalAllocation();
     }
 
-    public List<SuggestedPlanView> handleShowAllPlans() {
+    public List<SuggestedPlanState> handleShowAllPlans() {
         currentSuggestedPlans = allocationControl.buildSuggestedPlans();
         return currentSuggestedPlans.stream()
-            .map(p -> new SuggestedPlanView(
-                p.signature(),
-                p.totalQuantity(),
-                p.totalLineCount(),
-                p.siteCount(),
-                p.totalDeliveryDays()
-            ))
+            .map(this::toSuggestedPlanState)
             .toList();
+    }
+
+    private SuggestedPlanState toSuggestedPlanState(SuggestedPlan plan) {
+        List<SuggestedPlanState.SuggestedSiteState> siteAllocations = plan.siteOrders().stream()
+            .map(this::toSuggestedSiteState)
+            .toList();
+        int longestDeliveryDays = siteAllocations.stream()
+            .mapToInt(SuggestedPlanState.SuggestedSiteState::deliveryDays)
+            .max()
+            .orElse(0);
+        return new SuggestedPlanState(
+            plan.signature(),
+            plan.totalQuantity(),
+            plan.totalLineCount(),
+            plan.siteCount(),
+            plan.totalDeliveryDays(),
+            longestDeliveryDays,
+            siteAllocations
+        );
+    }
+
+    private SuggestedPlanState.SuggestedSiteState toSuggestedSiteState(SiteOrderSuggestion siteOrder) {
+        SiteStockOption site = siteOrder.site();
+        List<SuggestedPlanState.SuggestedLineState> lines = siteOrder.lines().stream()
+            .map(this::toSuggestedLineState)
+            .toList();
+        return new SuggestedPlanState.SuggestedSiteState(
+            safeText(site.siteCode),
+            safeText(site.name),
+            siteOrder.totalQuantity(),
+            lines.size(),
+            siteOrder.deliveryDays(),
+            safeText(siteOrder.transportSummary()),
+            lines
+        );
+    }
+
+    private SuggestedPlanState.SuggestedLineState toSuggestedLineState(OrderLineSuggestion line) {
+        ItemRequirement item = line.item();
+        return new SuggestedPlanState.SuggestedLineState(
+            safeText(item.code),
+            safeText(item.name),
+            line.quantity(),
+            DeliveryMethod.displayLabelOf(line.transport()),
+            line.deliveryDays()
+        );
     }
 
     public void applySelectedPlanBySignature(String signature) {
@@ -195,7 +272,7 @@ public final class RequestProcessingSession {
             .ifPresent(allocationControl::applySelectedPlan);
     }
 
-    public AllocationChangeResultView handleAllocationInputChanged(AllocationChangeCommand command) {
+    public AllocationChangeResult handleAllocationInputChanged(AllocationChangeCommand command) {
         ItemRequirement item = items.stream()
             .filter(i -> i.merchandiseId == command.itemMerchandiseId())
             .findFirst()
@@ -205,16 +282,16 @@ public final class RequestProcessingSession {
             .findFirst()
             .orElse(null);
         if (item == null || site == null) {
-            var deliveryView = DeliveryStatusFormatter.format(0, false);
-            return new AllocationChangeResultView(
+            var deliveryStatus = DeliveryStatusFormatter.format(0, false);
+            return new AllocationChangeResult(
                 false,
                 "INVALID",
                 0,
                 0,
                 0,
                 false,
-                deliveryView.text(),
-                deliveryView.styleClass()
+                deliveryStatus.text(),
+                deliveryStatus.styleClass()
             );
         }
 
@@ -230,16 +307,19 @@ public final class RequestProcessingSession {
                 case NONE -> null;
             };
 
-        var deliveryView = DeliveryStatusFormatter.format(result.deliveryStatus().dayDelta(), result.deliveryStatus().available());
-        return new AllocationChangeResultView(
+        var deliveryStatus = DeliveryStatusFormatter.format(
+            result.deliveryStatus().dayDelta(),
+            result.deliveryStatus().available()
+        );
+        return new AllocationChangeResult(
             result.applied(),
             errorType,
             result.stock(),
             result.deliveryStatus().deliveryDays(),
             result.deliveryStatus().dayDelta(),
             result.deliveryStatus().available(),
-            deliveryView.text(),
-            deliveryView.styleClass()
+            deliveryStatus.text(),
+            deliveryStatus.styleClass()
         );
     }
 
@@ -252,7 +332,7 @@ public final class RequestProcessingSession {
         if (validationMessage != null) {
             return ConfirmResult.invalid(validationMessage);
         }
-        return ConfirmResult.valid(buildPreviewOrderViews());
+        return ConfirmResult.valid(buildPreviewOrders());
     }
 
     public String validateCurrentSubmission() {
@@ -264,12 +344,12 @@ public final class RequestProcessingSession {
         );
     }
 
-    public List<ProcessingPreviewOrderView> buildPreviewOrderViews() {
+    public List<ProcessingPreviewOrder> buildPreviewOrders() {
         var previewOrders = requestProcessingUseCase.buildPreviewOrders(items, allSites, allocations, desiredDeliveryDates);
-        return previewOrders.stream().map(po -> new ProcessingPreviewOrderView(
+        return previewOrders.stream().map(po -> new ProcessingPreviewOrder(
             po.site().name,
             po.site().siteCode,
-            po.lines().stream().map(line -> new ProcessingPreviewOrderView.ProcessingPreviewLineView(
+            po.lines().stream().map(line -> new ProcessingPreviewOrder.ProcessingPreviewLine(
                 line.item().code,
                 line.item().name,
                 line.quantity(),
@@ -304,6 +384,24 @@ public final class RequestProcessingSession {
         return expandedItemIndex;
     }
 
+    public void renewLock() {
+        if (requestId <= 0 || lockedOwnerUsername == null) return;
+        LockOwner owner = lockOwnerSupplier.get();
+        try {
+            lockUseCase.renew(requestId, owner);
+        } catch (Exception ignored) {}
+    }
+
+    public void releaseLock() {
+        if (requestId <= 0 || lockedOwnerUsername == null) return;
+        int id = requestId;
+        String username = lockedOwnerUsername;
+        lockedOwnerUsername = null;
+        try {
+            lockUseCase.release(id, username);
+        } catch (Exception ignored) {}
+    }
+
     private void resetProcessingState() {
         items.clear();
         allSites.clear();
@@ -316,6 +414,7 @@ public final class RequestProcessingSession {
         expandedItemIndex = -1;
         allocationControl = null;
         currentSuggestedPlans = List.of();
+        lockedOwnerUsername = null;
     }
 
     private void loadProcessingData() {
@@ -355,18 +454,20 @@ public final class RequestProcessingSession {
             .sum();
     }
 
-
+    private static String safeText(String value) {
+        return value == null ? "" : value;
+    }
 
     private Set<Integer> copyIds(Set<Integer> ids) {
         return ids == null ? new LinkedHashSet<>() : new LinkedHashSet<>(ids);
     }
 
-    public record ConfirmResult(String validationMessage, List<ProcessingPreviewOrderView> previewOrders) {
+    public record ConfirmResult(String validationMessage, List<ProcessingPreviewOrder> previewOrders) {
         public static ConfirmResult invalid(String validationMessage) {
             return new ConfirmResult(validationMessage, List.of());
         }
 
-        public static ConfirmResult valid(List<ProcessingPreviewOrderView> previewOrders) {
+        public static ConfirmResult valid(List<ProcessingPreviewOrder> previewOrders) {
             return new ConfirmResult(null, List.copyOf(previewOrders));
         }
 

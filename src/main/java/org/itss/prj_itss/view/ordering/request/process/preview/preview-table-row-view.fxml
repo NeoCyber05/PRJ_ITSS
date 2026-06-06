@@ -22,7 +22,5 @@
         <HBox fx:id="transportBox" alignment="CENTER_LEFT" minWidth="150" prefWidth="150"/>
         <Label fx:id="estimatedCell" wrapText="true" minWidth="140" prefWidth="140"
                styleClass="request-preview-value-cell"/>
-        <Label fx:id="desiredCell" wrapText="true" minWidth="140" prefWidth="140"
-               styleClass="request-preview-value-cell"/>
     </children>
 </HBox>

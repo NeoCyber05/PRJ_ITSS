@@ -12,6 +12,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Objects;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public final class AllocatedOrderTableView {
 
@@ -24,7 +25,8 @@ public final class AllocatedOrderTableView {
     public static VBox load(
         List<AllocatedOrderRow> orders,
         RequestDetailPopupController controller,
-        BiConsumer<AllocatedOrderRow, HBox> onOrderSelected
+        BiConsumer<AllocatedOrderRow, HBox> onOrderSelected,
+        Consumer<AllocatedOrderRow> onProcessOrder
     ) {
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
@@ -33,7 +35,7 @@ public final class AllocatedOrderTableView {
             ));
             VBox root = loader.load();
             AllocatedOrderTableView controllerInstance = loader.getController();
-            controllerInstance.init(orders, controller, onOrderSelected);
+            controllerInstance.init(orders, controller, onOrderSelected, onProcessOrder);
             return root;
         } catch (IOException exception) {
             throw new IllegalStateException("Cannot load allocated order table view", exception);
@@ -43,7 +45,8 @@ public final class AllocatedOrderTableView {
     private void init(
         List<AllocatedOrderRow> orders,
         RequestDetailPopupController controller,
-        BiConsumer<AllocatedOrderRow, HBox> onOrderSelected
+        BiConsumer<AllocatedOrderRow, HBox> onOrderSelected,
+        Consumer<AllocatedOrderRow> onProcessOrder
     ) {
         rowsContainer.getChildren().clear();
         if (orders.isEmpty()) {
@@ -54,7 +57,7 @@ public final class AllocatedOrderTableView {
         }
 
         for (AllocatedOrderRow order : orders) {
-            rowsContainer.getChildren().add(AllocatedOrderRowView.load(order, controller, onOrderSelected));
+            rowsContainer.getChildren().add(AllocatedOrderRowView.load(order, controller, onOrderSelected, onProcessOrder));
         }
     }
 }

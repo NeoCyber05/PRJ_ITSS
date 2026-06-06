@@ -6,9 +6,9 @@ import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
 
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeCommand;
-import org.itss.prj_itss.view.ordering.request.process.state.AllocationChangeResultView;
-import org.itss.prj_itss.view.ordering.request.process.state.RequestProcessingViewModel;
+import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeCommand;
+import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeResult;
+import org.itss.prj_itss.controller.ordering.request.process.state.RequestProcessingState;
 
 import java.io.IOException;
 import java.util.List;
@@ -43,20 +43,20 @@ public final class AllocationItemEditorView {
     @FXML
     private Label emptyLabel;
 
-    private RequestProcessingViewModel.AllocationItemViewModel item;
+    private RequestProcessingState.AllocationItemState item;
     private int itemIndex;
-    private List<RequestProcessingViewModel.AllocationSiteRowViewModel> siteRows;
-    private Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged;
+    private List<RequestProcessingState.AllocationSiteRowState> siteRows;
+    private Function<AllocationChangeCommand, AllocationChangeResult> onAllocationInputChanged;
     private IntConsumer onItemAllocationChanged = index -> {};
 
     public AllocationItemEditorView() {
     }
 
     public static VBox load(
-        RequestProcessingViewModel.AllocationItemViewModel item,
+        RequestProcessingState.AllocationItemState item,
         int itemIndex,
-        List<RequestProcessingViewModel.AllocationSiteRowViewModel> siteRows,
-        Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged,
+        List<RequestProcessingState.AllocationSiteRowState> siteRows,
+        Function<AllocationChangeCommand, AllocationChangeResult> onAllocationInputChanged,
         IntConsumer onItemAllocationChanged
     ) {
         try {
@@ -80,10 +80,10 @@ public final class AllocationItemEditorView {
     }
 
     private void init(
-        RequestProcessingViewModel.AllocationItemViewModel item,
+        RequestProcessingState.AllocationItemState item,
         int itemIndex,
-        List<RequestProcessingViewModel.AllocationSiteRowViewModel> siteRows,
-        Function<AllocationChangeCommand, AllocationChangeResultView> onAllocationInputChanged,
+        List<RequestProcessingState.AllocationSiteRowState> siteRows,
+        Function<AllocationChangeCommand, AllocationChangeResult> onAllocationInputChanged,
         IntConsumer onItemAllocationChanged
     ) {
         this.item = item;
@@ -107,7 +107,7 @@ public final class AllocationItemEditorView {
         };
 
         boolean hasRows = false;
-        for (RequestProcessingViewModel.AllocationSiteRowViewModel siteRow : siteRows) {
+        for (RequestProcessingState.AllocationSiteRowState siteRow : siteRows) {
             if (siteRow.stock() <= 0) {
                 continue;
             }

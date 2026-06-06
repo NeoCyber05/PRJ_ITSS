@@ -60,7 +60,6 @@ public final class SiteManagementView implements ViewLifecycle {
     public void init(Navigator navigator, SiteManagementController controller) {
         this.navigator = navigator;
         this.controller = controller;
-        reload();
     }
 
     @Override

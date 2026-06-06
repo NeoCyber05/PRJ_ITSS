@@ -5,7 +5,7 @@ import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import javafx.scene.layout.HBox;
 
-import org.itss.prj_itss.view.ordering.request.process.state.ProcessingPreviewOrderView;
+import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingPreviewOrder;
 import org.itss.prj_itss.view.shared.ui.StatusBadgeFactory;
 
 import java.io.IOException;
@@ -26,10 +26,8 @@ public final class PreviewTableRowView {
     private HBox transportBox;
     @FXML
     private Label estimatedCell;
-    @FXML
-    private Label desiredCell;
 
-    public static HBox load(ProcessingPreviewOrderView.ProcessingPreviewLineView line) {
+    public static HBox load(ProcessingPreviewOrder.ProcessingPreviewLine line) {
         try {
             FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
                 PreviewTableRowView.class.getResource(VIEW_RESOURCE),
@@ -44,12 +42,11 @@ public final class PreviewTableRowView {
         }
     }
 
-    private void init(ProcessingPreviewOrderView.ProcessingPreviewLineView line) {
+    private void init(ProcessingPreviewOrder.ProcessingPreviewLine line) {
         codeCell.setText(line.merchandiseCode());
         nameCell.setText(line.merchandiseName());
         quantityCell.setText(String.valueOf(line.quantity()));
         transportBox.getChildren().setAll(StatusBadgeFactory.transportBadge(line.transport()));
         estimatedCell.setText(line.estimatedDate() != null ? line.estimatedDate() : "N/A");
-        desiredCell.setText(line.desiredDate() != null ? line.desiredDate() : "N/A");
     }
 }

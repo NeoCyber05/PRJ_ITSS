@@ -17,22 +17,29 @@ public final class ReceivedRequestDetailApplicationService {
     }
 
     public ReceivedRequestDetailViewModel load(String requestCode) {
-        int requestId = OrderingFormatters.parseEntityId(requestCode, 1);
-        
-        ReceivedRequestDetailQueryPort.RequestSummary summary = queryPort.findRequestSummary(requestId);
-        if (summary == null) {
-            return emptyViewModel(requestId, requestCode);
+        if (requestCode == null || requestCode.isBlank()) { // (1)
+            return emptyViewModel(0, ""); // (2)
         }
 
-        List<ReceivedRequestDetailItemRow> itemRows = queryPort.findRequestItems(requestId).stream()
+        int requestId = OrderingFormatters.parseEntityId(requestCode, 0); // (3)
+        if (requestId <= 0) { // (4)
+            return emptyViewModel(0, requestCode); // (5)
+        }
+
+        ReceivedRequestDetailQueryPort.RequestSummary summary = queryPort.findRequestSummary(requestId); // (6)
+        if (summary == null) { // (7)
+            return emptyViewModel(requestId, requestCode); // (8)
+        }
+
+        List<ReceivedRequestDetailItemRow> itemRows = queryPort.findRequestItems(requestId).stream() // (9)
             .map(this::toItemRow)
             .toList();
 
-        List<AllocatedOrderRow> orderRows = queryPort.findAllocatedOrders(requestId).stream()
+        List<AllocatedOrderRow> orderRows = queryPort.findAllocatedOrders(requestId).stream() // (10)
             .map(this::toOrderRow)
             .toList();
 
-        return new ReceivedRequestDetailViewModel(
+        return new ReceivedRequestDetailViewModel( // (11)
             summary.id(),
             OrderingFormatters.formatRequestCode(summary.id()),
             OrderingFormatters.formatDateOrEmpty(summary.createdAt()),

@@ -6,6 +6,8 @@ public interface SalesRequestEditViewPort {
 
     void setActionHandler(SalesRequestEditActionHandler actionHandler);
 
+    void startHeartbeat(Runnable renewTask);
+
     void render(SalesRequestEditViewState viewModel);
 
     void renderValidation(SalesRequestEditViewState.Validation validationResult);
@@ -15,6 +17,8 @@ public interface SalesRequestEditViewPort {
     void showSuccess(String message);
 
     void showError(String message);
+
+    void showAlertError(String message);
 
     void close();
 }
