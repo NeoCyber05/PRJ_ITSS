@@ -12,6 +12,7 @@ import org.itss.prj_itss.model.site.domain.Site;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 
 public final class WarehouseIncomingOrderQuery {
 
@@ -48,9 +49,13 @@ public final class WarehouseIncomingOrderQuery {
         if (order == null) {
             return null;
         }
-        IncomingOrderRow summary = toRow(order);
-        List<IncomingOrderItemRow> items = orderRepository.findItemsByOrderId(orderId).stream()
-            .map(this::toItemRow)
+        List<OrderMerchandise> orderItems = orderRepository.findItemsByOrderId(orderId);
+        IncomingOrderRow summary = toRow(order, siteUseCase.findById(order.getSiteId()), orderItems.size());
+        Map<Integer, Merchandise> merchandiseById = merchandiseUseCase.findByIds(
+            orderItems.stream().map(OrderMerchandise::getMerchandiseId).distinct().toList()
+        );
+        List<IncomingOrderItemRow> items = orderItems.stream()
+            .map(item -> toItemRow(item, merchandiseById.get(item.getMerchandiseId())))
             .toList();
         return new IncomingOrderDetail(summary, items);
     }
@@ -58,24 +63,16 @@ public final class WarehouseIncomingOrderQuery {
     private IncomingOrderRow toRow(Order order, java.util.Map<Integer, Site> siteMap, java.util.Map<Integer, Integer> itemCounts) {
         Site site = siteMap.get(order.getSiteId());
         int itemCount = itemCounts.getOrDefault(order.getId(), 0);
-        return new IncomingOrderRow(
-            order.getId(),
-            order.getRequestId(),
-            order.getSiteId(),
-            OrderingFormatters.formatOrderCode(order.getId()),
-            OrderingFormatters.formatRequestCode(order.getRequestId()),
-            site == null ? "N/A" : safeText(site.getSiteCode()),
-            site == null ? "Site #" + order.getSiteId() : safeText(site.getName()),
-            OrderingFormatters.formatDateOrEmpty(order.getCreatedAt()),
-            order.getStatus(),
-            OrderingFormatters.orderStatusText(order.getStatus()),
-            itemCount
-        );
+        return toRow(order, site, itemCount);
     }
 
     private IncomingOrderRow toRow(Order order) {
         Site site = siteUseCase.findById(order.getSiteId());
         int itemCount = orderRepository.findItemsByOrderId(order.getId()).size();
+        return toRow(order, site, itemCount);
+    }
+
+    private IncomingOrderRow toRow(Order order, Site site, int itemCount) {
         return new IncomingOrderRow(
             order.getId(),
             order.getRequestId(),
@@ -91,8 +88,7 @@ public final class WarehouseIncomingOrderQuery {
         );
     }
 
-    private IncomingOrderItemRow toItemRow(OrderMerchandise item) {
-        Merchandise merchandise = merchandiseUseCase.findById(item.getMerchandiseId());
+    private IncomingOrderItemRow toItemRow(OrderMerchandise item, Merchandise merchandise) {
         return new IncomingOrderItemRow(
             item.getMerchandiseId(),
             merchandise == null ? "N/A" : safeText(merchandise.getCode()),

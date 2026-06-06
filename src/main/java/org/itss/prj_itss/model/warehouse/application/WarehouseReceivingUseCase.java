@@ -124,6 +124,10 @@ public final class WarehouseReceivingUseCase {
             discrepancyNote = buildDiscrepancyNote(itemInputs, orderItemsByMerchandiseId, normalizedOverallNote);
         }
 
+        Map<Integer, Merchandise> merchandiseById = merchandiseService.findByIds(
+            itemInputs.stream().map(InspectionItemInput::merchandiseId).distinct().toList()
+        );
+
         AuthenticatedUser authenticatedUser = authenticatedUserSupplier == null ? null : authenticatedUserSupplier.get();
         String finalDiscrepancyNote = discrepancyNote;
         boolean finalHasDiscrepancy = hasDiscrepancy;
@@ -146,7 +150,7 @@ public final class WarehouseReceivingUseCase {
 
                 for (InspectionItemInput input : itemInputs) {
                     OrderMerchandise orderItem = orderItemsByMerchandiseId.get(input.merchandiseId());
-                    Merchandise merchandise = merchandiseService.findById(input.merchandiseId());
+                    Merchandise merchandise = merchandiseById.get(input.merchandiseId());
                     if (merchandise == null) {
                         throw new TransactionException("Không tìm thấy thông tin mặt hàng để lưu snapshot DB kho.");
                     }

@@ -26,8 +26,6 @@ public final class PreviewTableRowView {
     private HBox transportBox;
     @FXML
     private Label estimatedCell;
-    @FXML
-    private Label desiredCell;
 
     public static HBox load(ProcessingPreviewOrder.ProcessingPreviewLine line) {
         try {
@@ -50,6 +48,5 @@ public final class PreviewTableRowView {
         quantityCell.setText(String.valueOf(line.quantity()));
         transportBox.getChildren().setAll(StatusBadgeFactory.transportBadge(line.transport()));
         estimatedCell.setText(line.estimatedDate() != null ? line.estimatedDate() : "N/A");
-        desiredCell.setText(line.desiredDate() != null ? line.desiredDate() : "N/A");
     }
 }

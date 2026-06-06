@@ -12,7 +12,9 @@ import org.junit.jupiter.api.DisplayName;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -43,12 +45,30 @@ public class CreateSalesRequestServiceTest {
 
     private static class StubInventoryRepository implements InventoryRepository {
         public int callCount = 0;
+        public int singleStockCallCount = 0;
+        public int bulkStockCallCount = 0;
         public int returnStock = 0;
+        public List<Integer> requestedBulkIds = List.of();
+        public Map<Integer, Integer> stockByMerchandiseId = new LinkedHashMap<>();
 
         @Override
         public int getTotalStock(int merchandiseId) {
             this.callCount++;
+            this.singleStockCallCount++;
             return returnStock;
+        }
+
+        @Override
+        public Map<Integer, Integer> getTotalStockByMerchandiseIds(Collection<Integer> merchandiseIds) {
+            this.callCount++;
+            this.bulkStockCallCount++;
+            this.requestedBulkIds = List.copyOf(merchandiseIds);
+
+            Map<Integer, Integer> result = new LinkedHashMap<>();
+            for (Integer merchandiseId : merchandiseIds) {
+                result.put(merchandiseId, stockByMerchandiseId.getOrDefault(merchandiseId, returnStock));
+            }
+            return result;
         }
 
         @Override
@@ -243,6 +263,25 @@ public class CreateSalesRequestServiceTest {
         // Assert
         assertEquals(4, result);
         assertEquals(1, inventoryRepository.callCount);
+        assertEquals(1, commandPort.callCount);
+    }
+
+    @Test
+    @DisplayName("TC_07: kiểm tra tồn kho nhiều mặt hàng bằng một bulk query")
+    public void testCreateRequest_MultipleItems_UsesBulkStockLookup() throws Exception {
+        List<SalesRequestItemSubmission> items = List.of(
+            new SalesRequestItemSubmission(100, new BigDecimal("5"), LocalDate.now().plusDays(5)),
+            new SalesRequestItemSubmission(101, new BigDecimal("8"), LocalDate.now().plusDays(6))
+        );
+        inventoryRepository.stockByMerchandiseId.put(100, 10);
+        inventoryRepository.stockByMerchandiseId.put(101, 12);
+
+        int result = service.createRequest(items, "Bulk stock lookup");
+
+        assertEquals(1, result);
+        assertEquals(List.of(100, 101), inventoryRepository.requestedBulkIds);
+        assertEquals(1, inventoryRepository.bulkStockCallCount);
+        assertEquals(0, inventoryRepository.singleStockCallCount);
         assertEquals(1, commandPort.callCount);
     }
 }

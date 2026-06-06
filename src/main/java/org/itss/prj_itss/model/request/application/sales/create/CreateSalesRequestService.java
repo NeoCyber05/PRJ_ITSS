@@ -6,6 +6,7 @@ import org.itss.prj_itss.model.request.domain.request.Request;
 import org.itss.prj_itss.model.site.application.port.InventoryRepository;
 
 import java.util.List;
+import java.util.Map;
 
 public class CreateSalesRequestService implements CreateSalesRequestUseCase {
 
@@ -24,7 +25,19 @@ public class CreateSalesRequestService implements CreateSalesRequestUseCase {
             if (item.quantityOrdered().compareTo(java.math.BigDecimal.ZERO) <= 0) {
                 throw new IllegalArgumentException("Số lượng đặt hàng phải lớn hơn 0.");
             }
-            int stock = inventoryRepository.getTotalStock(item.merchandiseId());
+        }
+
+        Map<Integer, Integer> stockByMerchandiseId = Map.of();
+        if (!items.isEmpty()) {
+            List<Integer> merchandiseIds = items.stream()
+                .map(SalesRequestItemSubmission::merchandiseId)
+                .distinct()
+                .toList();
+            stockByMerchandiseId = inventoryRepository.getTotalStockByMerchandiseIds(merchandiseIds);
+        }
+
+        for (SalesRequestItemSubmission item : items) {
+            int stock = stockByMerchandiseId.getOrDefault(item.merchandiseId(), 0);
             if (item.quantityOrdered().compareTo(new java.math.BigDecimal(stock)) > 0) {
                 throw new IllegalArgumentException("Số lượng đặt hàng vượt quá tồn kho hiện tại.");
             }

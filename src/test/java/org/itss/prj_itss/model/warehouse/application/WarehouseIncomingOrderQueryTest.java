@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -84,6 +85,37 @@ class WarehouseIncomingOrderQueryTest {
         assertEquals("box", detail.items().get(0).unit());
         assertEquals("12", detail.items().get(0).orderedQuantity());
         assertEquals("Hàng không", detail.items().get(0).deliveryMethod());
+    }
+
+    @Test
+    void findIncomingDetailLoadsMerchandiseInOneBulkLookup() {
+        FakeOrderRepository orderRepo = new FakeOrderRepository();
+        FakeSiteRepository siteRepo = new FakeSiteRepository();
+        FakeMerchandiseRepository merchandiseRepo = new FakeMerchandiseRepository();
+
+        orderRepo.orders.add(new Order(1, 10, 5, LocalDateTime.now(), OrderStatus.SHIPPING.displayValue()));
+        orderRepo.items.put(1, List.of(
+            new OrderMerchandise(1, 7, BigDecimal.valueOf(12), "air"),
+            new OrderMerchandise(1, 8, BigDecimal.valueOf(5), "ship")
+        ));
+
+        siteRepo.sites.put(5, new Site(5, "TOKYO", "Tokyo", "", 10, 2));
+        merchandiseRepo.merchandise.put(7, new Merchandise(7, "M-01", "Tea", "box"));
+        merchandiseRepo.merchandise.put(8, new Merchandise(8, "M-02", "Rice", "kg"));
+
+        WarehouseIncomingOrderQuery query = new WarehouseIncomingOrderQuery(
+            orderRepo,
+            new SiteUseCase(siteRepo, siteRepo),
+            new MerchandiseUseCase(merchandiseRepo)
+        );
+
+        IncomingOrderDetail detail = query.findIncomingDetail(1);
+
+        assertNotNull(detail);
+        assertEquals(List.of(7, 8), merchandiseRepo.requestedBulkIds);
+        assertEquals(1, merchandiseRepo.bulkFindByIdsCalls);
+        assertEquals(0, merchandiseRepo.findByIdCalls);
+        assertEquals("M-02", detail.items().get(1).merchandiseCode());
     }
 
     @Test
@@ -215,6 +247,9 @@ class WarehouseIncomingOrderQueryTest {
 
     static final class FakeMerchandiseRepository implements MerchandiseRepository {
         final Map<Integer, Merchandise> merchandise = new LinkedHashMap<>();
+        int findByIdCalls;
+        int bulkFindByIdsCalls;
+        List<Integer> requestedBulkIds = List.of();
 
         @Override
         public List<Merchandise> findAll() {
@@ -228,7 +263,23 @@ class WarehouseIncomingOrderQueryTest {
 
         @Override
         public Merchandise findById(int id) {
+            findByIdCalls++;
             return merchandise.get(id);
+        }
+
+        @Override
+        public Map<Integer, Merchandise> findByIds(Collection<Integer> ids) {
+            bulkFindByIdsCalls++;
+            requestedBulkIds = List.copyOf(ids);
+
+            Map<Integer, Merchandise> result = new LinkedHashMap<>();
+            for (Integer id : ids) {
+                Merchandise value = merchandise.get(id);
+                if (value != null) {
+                    result.put(id, value);
+                }
+            }
+            return result;
         }
 
         @Override

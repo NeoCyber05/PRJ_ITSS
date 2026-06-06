@@ -91,7 +91,11 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
             .distinct()
             .toList();
         List<SiteStockOption> sites = new ArrayList<>();
-        for (Site site : siteRepository.findAvailableForMerchandiseIds(requestedMerchandiseIds)) {
+        List<Site> availableSites = siteRepository.findAvailableForMerchandiseIds(requestedMerchandiseIds);
+        Map<Integer, Map<Integer, Integer>> inventoriesBySiteId = inventoryRepository.getInventoryBySiteIds(
+            availableSites.stream().map(Site::getId).toList()
+        );
+        for (Site site : availableSites) {
             sites.add(new SiteStockOption(
                 site.getId(),
                 site.getSiteCode(),
@@ -99,7 +103,7 @@ public final class JdbcRequestProcessingGateway implements RequestProcessingGate
                 site.getDescription(),
                 site.getShipDeliveryDays(),
                 site.getAirDeliveryDays(),
-                inventoryRepository.getInventoryBySiteId(site.getId())
+                inventoriesBySiteId.getOrDefault(site.getId(), Map.of())
             ));
         }
 

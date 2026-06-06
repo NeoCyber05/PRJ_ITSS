@@ -269,9 +269,9 @@ public class MainLayoutView implements Navigator {
         boolean adminRole    = role.isAdminRole();
         boolean warehouseRole= role.isWarehouseRole();
 
-        // Home button: hidden for site role (site uses direct nav instead)
-        homeButton.setVisible(!siteRole);
-        homeButton.setManaged(!siteRole);
+        // Home button: hidden for site role (site uses direct nav instead) and sales role
+        homeButton.setVisible(!siteRole && !salesRole);
+        homeButton.setManaged(!siteRole && !salesRole);
 
         ordersNavContainer.setVisible(orderingRole);
         ordersNavContainer.setManaged(orderingRole);

@@ -22,6 +22,7 @@ import org.junit.jupiter.api.Test;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -70,6 +71,46 @@ class JdbcRequestProcessingGatewayTest {
         assertEquals(List.of(10, 11), siteRepository.requestedMerchandiseIds);
         assertEquals(1, data.sites().size());
         assertEquals(1, data.sites().get(0).id);
+    }
+
+    @Test
+    void loadProcessingDataLoadsSiteInventoriesInOneBulkLookup() {
+        RecordingSiteRepository siteRepository = new RecordingSiteRepository(List.of(
+            new Site(1, "S1", "Site 1", "", 2, 1),
+            new Site(2, "S2", "Site 2", "", 3, 2)
+        ));
+        RecordingInventoryRepository inventoryRepository = new RecordingInventoryRepository();
+        inventoryRepository.inventoriesBySiteId.put(1, Map.of(10, 5));
+        inventoryRepository.inventoriesBySiteId.put(2, Map.of(10, 4));
+
+        JdbcRequestProcessingGateway gateway = new JdbcRequestProcessingGateway(
+            new RecordingProcessingRequestPort() {
+                @Override
+                public List<RequestMerchandise> findItemsByRequestId(int requestId) {
+                    return List.of(
+                        new RequestMerchandise(requestId, 10, BigDecimal.valueOf(2), LocalDate.now().plusDays(7))
+                    );
+                }
+            },
+            new FakeOrderRepository(),
+            siteRepository,
+            inventoryRepository,
+            new EmptyMerchandiseRepository() {
+                @Override
+                public List<Merchandise> findAll() {
+                    return List.of(new Merchandise(10, "M10", "Item 10", "pcs"));
+                }
+            },
+            new RecordingTransactionRunner()
+        );
+
+        RequestProcessingData data = gateway.loadProcessingData(99);
+
+        assertEquals(List.of(1, 2), inventoryRepository.requestedBulkSiteIds);
+        assertEquals(1, inventoryRepository.bulkInventoryCallCount);
+        assertEquals(0, inventoryRepository.singleInventoryCallCount);
+        assertEquals(Map.of(10, 5), data.sites().get(0).stock);
+        assertEquals(Map.of(10, 4), data.sites().get(1).stock);
     }
 
     @Test
@@ -296,6 +337,31 @@ class JdbcRequestProcessingGatewayTest {
         @Override
         public Map<Integer, Integer> countMerchandiseGroupedBySiteId() {
             return Map.of();
+        }
+    }
+
+    private static final class RecordingInventoryRepository extends EmptyInventoryRepository {
+        private final Map<Integer, Map<Integer, Integer>> inventoriesBySiteId = new LinkedHashMap<>();
+        private int singleInventoryCallCount;
+        private int bulkInventoryCallCount;
+        private List<Integer> requestedBulkSiteIds = List.of();
+
+        @Override
+        public Map<Integer, Integer> getInventoryBySiteId(int siteId) {
+            singleInventoryCallCount++;
+            return inventoriesBySiteId.getOrDefault(siteId, Map.of());
+        }
+
+        @Override
+        public Map<Integer, Map<Integer, Integer>> getInventoryBySiteIds(Collection<Integer> siteIds) {
+            bulkInventoryCallCount++;
+            requestedBulkSiteIds = List.copyOf(siteIds);
+
+            Map<Integer, Map<Integer, Integer>> result = new LinkedHashMap<>();
+            for (Integer siteId : siteIds) {
+                result.put(siteId, inventoriesBySiteId.getOrDefault(siteId, Map.of()));
+            }
+            return result;
         }
     }
 

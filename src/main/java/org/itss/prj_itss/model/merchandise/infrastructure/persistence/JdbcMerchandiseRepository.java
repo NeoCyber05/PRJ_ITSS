@@ -7,7 +7,10 @@ import org.itss.prj_itss.model.merchandise.application.port.MerchandiseRepositor
 
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 public class JdbcMerchandiseRepository extends JdbcRepositorySupport implements MerchandiseRepository {
 
@@ -53,6 +56,32 @@ public class JdbcMerchandiseRepository extends JdbcRepositorySupport implements 
             System.err.println("MerchandiseRepository.findById: " + e.getMessage());
         }
         return null;
+    }
+
+    @Override
+    public Map<Integer, Merchandise> findByIds(Collection<Integer> ids) {
+        Map<Integer, Merchandise> merchandiseById = new LinkedHashMap<>();
+        List<Integer> normalizedIds = normalizeIds(ids);
+        if (normalizedIds.isEmpty()) {
+            return merchandiseById;
+        }
+
+        String placeholders = String.join(", ", java.util.Collections.nCopies(normalizedIds.size(), "?"));
+        String sql = "SELECT id, code, name, unit, is_active FROM merchandise WHERE id IN (" + placeholders + ")";
+        try (PreparedStatement ps = getConnection().prepareStatement(sql)) {
+            for (int i = 0; i < normalizedIds.size(); i++) {
+                ps.setInt(i + 1, normalizedIds.get(i));
+            }
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) {
+                    Merchandise merchandise = mapMerchandise(rs);
+                    merchandiseById.put(merchandise.getId(), merchandise);
+                }
+            }
+        } catch (SQLException e) {
+            System.err.println("MerchandiseRepository.findByIds: " + e.getMessage());
+        }
+        return merchandiseById;
     }
 
     @Override
@@ -134,5 +163,15 @@ public class JdbcMerchandiseRepository extends JdbcRepositorySupport implements 
         m.setUnit(rs.getString("unit"));
         m.setActive(rs.getBoolean("is_active"));
         return m;
+    }
+
+    private List<Integer> normalizeIds(Collection<Integer> ids) {
+        if (ids == null) {
+            return List.of();
+        }
+        return ids.stream()
+            .filter(id -> id != null)
+            .distinct()
+            .toList();
     }
 }

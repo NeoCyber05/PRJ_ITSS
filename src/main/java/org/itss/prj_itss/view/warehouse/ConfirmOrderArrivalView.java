@@ -44,6 +44,7 @@ import org.itss.prj_itss.view.shared.ViewLifecycle;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public final class ConfirmOrderArrivalView implements ViewLifecycle {
 
@@ -498,9 +499,10 @@ public final class ConfirmOrderArrivalView implements ViewLifecycle {
 
     private List<InspectionItemRow> buildInspectionRows(List<OrderMerchandise> items) {
         List<InspectionItemRow> rows = new ArrayList<>();
+        Map<Integer, Merchandise> merchandiseById = findMerchandiseByItemIds(items);
         int index = 1;
         for (OrderMerchandise item : items) {
-            Merchandise merchandise = controller != null ? controller.findMerchandiseById(item.getMerchandiseId()) : null;
+            Merchandise merchandise = merchandiseById.get(item.getMerchandiseId());
             int orderedQuantity = item.getQuantity() == null ? 0 : item.getQuantity().intValue();
             rows.add(new InspectionItemRow(
                 index++,
@@ -550,9 +552,10 @@ public final class ConfirmOrderArrivalView implements ViewLifecycle {
         if (controller == null) {
             return List.of();
         }
+        Map<Integer, Merchandise> merchandiseById = findMerchandiseByItemIds(items);
         return items.stream()
             .map(item -> {
-                Merchandise merchandise = controller.findMerchandiseById(item.getMerchandiseId());
+                Merchandise merchandise = merchandiseById.get(item.getMerchandiseId());
                 return new IncomingOrderItemRow(
                     item.getMerchandiseId(),
                     merchandise == null ? "N/A" : safeText(merchandise.getCode()),
@@ -563,6 +566,15 @@ public final class ConfirmOrderArrivalView implements ViewLifecycle {
                 );
             })
             .toList();
+    }
+
+    private Map<Integer, Merchandise> findMerchandiseByItemIds(List<OrderMerchandise> items) {
+        if (controller == null) {
+            return Map.of();
+        }
+        return controller.findMerchandiseByIds(
+            items.stream().map(OrderMerchandise::getMerchandiseId).distinct().toList()
+        );
     }
 
     private OrderRow toOrderRow(Order order, java.util.Map<Integer, Site> siteMap) {

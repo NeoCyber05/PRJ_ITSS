@@ -121,7 +121,11 @@ public final class JdbcCancelledOrderProcessingGateway implements CancelledOrder
 
             List<Integer> merchandiseIds = items.stream().map(i -> i.merchandiseId).distinct().toList();
             List<SiteStockOption> sites = new ArrayList<>();
-            for (Site site : siteRepository.findAvailableForMerchandiseIds(merchandiseIds)) {
+            List<Site> availableSites = siteRepository.findAvailableForMerchandiseIds(merchandiseIds);
+            Map<Integer, Map<Integer, Integer>> inventoriesBySiteId = inventoryRepository.getInventoryBySiteIds(
+                availableSites.stream().map(Site::getId).toList()
+            );
+            for (Site site : availableSites) {
                 sites.add(new SiteStockOption(
                     site.getId(),
                     site.getSiteCode(),
@@ -129,7 +133,7 @@ public final class JdbcCancelledOrderProcessingGateway implements CancelledOrder
                     site.getDescription(),
                     site.getShipDeliveryDays(),
                     site.getAirDeliveryDays(),
-                    inventoryRepository.getInventoryBySiteId(site.getId())
+                    inventoriesBySiteId.getOrDefault(site.getId(), Map.of())
                 ));
             }
 

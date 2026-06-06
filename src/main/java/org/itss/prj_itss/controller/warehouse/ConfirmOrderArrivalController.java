@@ -14,7 +14,9 @@ import org.itss.prj_itss.controller.shared.ActionResult;
 import org.itss.prj_itss.controller.shared.ValidationResult;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public class ConfirmOrderArrivalController {
     private final WarehouseReceivingUseCase warehouseReceivingUseCase;
@@ -48,6 +50,10 @@ public class ConfirmOrderArrivalController {
 
     public Merchandise findMerchandiseById(int merchandiseId) {
         return MerchandiseUseCase.findById(merchandiseId);
+    }
+
+    public Map<Integer, Merchandise> findMerchandiseByIds(Collection<Integer> merchandiseIds) {
+        return MerchandiseUseCase.findByIds(merchandiseIds);
     }
 
     public ValidationResult validateInspection(List<InspectionItemDto> items, String overallNote) {

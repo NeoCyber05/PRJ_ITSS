@@ -32,6 +32,9 @@ public final class SalesRequestCreationView implements ViewLifecycle {
     public void init(Stage dialog, SalesRequestCreationController controller) {
         this.dialog = dialog;
         this.controller = controller;
+        if (controller != null) {
+            controller.preloadCacheAsync(); // tải cache trong nền, không block UI
+        }
 
         if (itemsScroll != null && itemsContainer != null) {
             itemsScroll.setMinHeight(0);
