@@ -6,9 +6,13 @@ import org.itss.prj_itss.controller.sales.request.create.SalesRequestCreationCon
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditController;
 import org.itss.prj_itss.controller.sales.request.update.SalesRequestEditServiceGateway;
 import org.itss.prj_itss.controller.sales.request.view.ViewOrderRequestController;
+import org.itss.prj_itss.model.request.application.lock.RequestLockUseCase;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditMapper;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditUseCase;
 import org.itss.prj_itss.model.request.application.sales.update.SalesRequestEditValidator;
+import org.itss.prj_itss.model.request.domain.lock.LockOwner;
+
+import java.util.function.Supplier;
 
 public final class SalesRequestControllerModule {
 
@@ -17,9 +21,15 @@ public final class SalesRequestControllerModule {
     private final SalesRequestEditController salesRequestEditController;
     private final ViewOrderRequestController viewOrderRequestController;
 
-    public SalesRequestControllerModule(RequestModule requestModule) {
+    public SalesRequestControllerModule(
+            RequestModule requestModule,
+            Supplier<LockOwner> lockOwnerSupplier
+    ) {
         this.salesRequestListController =
-            new SalesRequestListController(requestModule.receivedRequestsApplicationService());
+            new SalesRequestListController(
+                requestModule.receivedRequestsApplicationService(),
+                requestModule.requestLockUseCase()
+            );
         this.salesRequestCreationController =
             new SalesRequestCreationController(
                 requestModule.salesRequestQueryService(),
@@ -34,7 +44,9 @@ public final class SalesRequestControllerModule {
                     ),
                     new SalesRequestEditMapper(),
                     new SalesRequestEditValidator()
-                )
+                ),
+                requestModule.requestLockUseCase(),
+                lockOwnerSupplier
             );
         this.viewOrderRequestController =
             new ViewOrderRequestController(requestModule.salesRequestQueryService());

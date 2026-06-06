@@ -1,11 +1,16 @@
 package org.itss.prj_itss.view.ordering.request.process.layout;
 
+import javafx.animation.Animation;
+import javafx.animation.KeyFrame;
+import javafx.animation.Timeline;
 import javafx.fxml.FXML;
 import javafx.scene.control.Alert;
 import javafx.scene.control.DialogPane;
 import javafx.scene.control.Label;
 import javafx.scene.layout.VBox;
+import javafx.util.Duration;
 
+import org.itss.prj_itss.controller.ordering.request.process.state.LockOutcome;
 import org.itss.prj_itss.controller.ordering.request.process.state.RequestProcessingState;
 import org.itss.prj_itss.controller.ordering.request.process.state.SuggestedPlanState;
 import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingPreviewOrder;
@@ -25,6 +30,7 @@ public final class RequestProcessingLayoutView {
     private RequestProcessingLayoutController controller;
     private SiteFilterView siteFilterView;
     private Consumer<String> navigateToView = viewId -> {};
+    private Timeline heartbeatTimeline;
 
     @FXML
     private Label requestCodeLabel;
@@ -50,12 +56,49 @@ public final class RequestProcessingLayoutView {
     }
 
     public void setRequestId(int requestId) {
-        controller.setRequestId(requestId);
+        LockOutcome outcome = controller.setRequestId(requestId);
+        if (outcome.blocked()) {
+            showLockError(outcome.blockedMessage());
+            goBack();
+            return;
+        }
         renderProcessingScreen();
+        startHeartbeat();
+    }
+
+    private void showLockError(String message) {
+        Alert alert = new Alert(Alert.AlertType.WARNING);
+        alert.setTitle("Không thể xử lý");
+        alert.setHeaderText(null);
+        alert.setContentText(message != null ? message : "Yêu cầu đang bị khóa.");
+        alert.showAndWait();
+    }
+
+    private void startHeartbeat() {
+        heartbeatTimeline = new Timeline(
+            new KeyFrame(Duration.seconds(300), e -> {
+                Thread t = new Thread(controller::renewLock, "lock-heartbeat");
+                t.setDaemon(true);
+                t.start();
+            })
+        );
+        heartbeatTimeline.setCycleCount(Animation.INDEFINITE);
+        heartbeatTimeline.play();
+    }
+
+    private void stopHeartbeatAndRelease() {
+        if (heartbeatTimeline != null) {
+            heartbeatTimeline.stop();
+            heartbeatTimeline = null;
+        }
+        Thread t = new Thread(controller::releaseLock, "lock-release");
+        t.setDaemon(true);
+        t.start();
     }
 
     @FXML
     private void goBack() {
+        stopHeartbeatAndRelease();
         navigateToView.accept("received-requests");
     }
 
@@ -72,7 +115,10 @@ public final class RequestProcessingLayoutView {
 
     private void showPreviewDialog(List<ProcessingPreviewOrder> previewOrders) {
         new RequestProcessingPreviewDialog(
-            () -> navigateToView.accept("received-requests"),
+            () -> {
+                stopHeartbeatAndRelease();
+                navigateToView.accept("received-requests");
+            },
             new RequestProcessingPreviewDialogController(controller, previewOrders)
         ).show(itemsTableContainer);
     }

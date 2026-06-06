@@ -1,5 +1,9 @@
 package org.itss.prj_itss.controller.ordering.request.process.session;
 
+import org.itss.prj_itss.model.request.application.lock.RequestLockException;
+import org.itss.prj_itss.model.request.application.lock.RequestLockUseCase;
+import org.itss.prj_itss.model.request.domain.lock.LockOwner;
+import org.itss.prj_itss.model.request.domain.lock.LockResult;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingException;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
 import org.itss.prj_itss.model.request.domain.delivery.DeliveryMethod;
@@ -16,6 +20,7 @@ import org.itss.prj_itss.model.request.domain.processing.suggestion.SiteOrderSug
 import org.itss.prj_itss.model.request.domain.processing.suggestion.SuggestedPlan;
 import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeCommand;
 import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeResult;
+import org.itss.prj_itss.controller.ordering.request.process.state.LockOutcome;
 import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingItemState;
 import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingPreviewOrder;
 import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingSiteState;
@@ -31,10 +36,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public final class RequestProcessingSession {
 
     private final RequestProcessingUseCase requestProcessingUseCase;
+    private final RequestLockUseCase lockUseCase;
+    private final Supplier<LockOwner> lockOwnerSupplier;
+    private String lockedOwnerUsername;
 
     private final List<ItemRequirement> items = new ArrayList<>();
     private final List<SiteStockOption> allSites = new ArrayList<>();
@@ -50,18 +59,40 @@ public final class RequestProcessingSession {
     private AllocationControl allocationControl;
     private List<SuggestedPlan> currentSuggestedPlans = List.of();
 
-    public RequestProcessingSession(RequestProcessingUseCase requestProcessingUseCase) {
+    public RequestProcessingSession(
+            RequestProcessingUseCase requestProcessingUseCase,
+            RequestLockUseCase lockUseCase,
+            Supplier<LockOwner> lockOwnerSupplier
+    ) {
         this.requestProcessingUseCase = Objects.requireNonNull(requestProcessingUseCase, "requestProcessingUseCase");
+        this.lockUseCase = Objects.requireNonNull(lockUseCase, "lockUseCase");
+        this.lockOwnerSupplier = Objects.requireNonNull(lockOwnerSupplier, "lockOwnerSupplier");
     }
 
-    public void start(int requestId) {
+    public LockOutcome start(int requestId) {
         if (requestId <= 0) {
-            return;
+            return LockOutcome.outcomeBlocked("ID yêu cầu không hợp lệ.");
+        }
+        LockOwner owner = lockOwnerSupplier.get();
+        LockResult lockResult;
+        try {
+            lockResult = lockUseCase.acquire(requestId, owner);
+        } catch (RequestLockException e) {
+            return LockOutcome.outcomeBlocked("Có lỗi khi kiểm tra khóa yêu cầu.");
+        }
+        if (!lockResult.acquired()) {
+            var holder = lockResult.holder();
+            String msg = holder != null
+                ? "Yêu cầu đang được " + holder.ownerDisplay() + " (" + holder.ownerRole() + ") cập nhật."
+                : "Yêu cầu đang bị khóa.";
+            return LockOutcome.outcomeBlocked(msg);
         }
         this.requestId = requestId;
+        this.lockedOwnerUsername = owner.username();
         resetProcessingState();
         loadProcessingData();
         rebuildAllocationSection();
+        return LockOutcome.outcomeAcquired();
     }
 
     public int requestId() {
@@ -353,6 +384,24 @@ public final class RequestProcessingSession {
         return expandedItemIndex;
     }
 
+    public void renewLock() {
+        if (requestId <= 0 || lockedOwnerUsername == null) return;
+        LockOwner owner = lockOwnerSupplier.get();
+        try {
+            lockUseCase.renew(requestId, owner);
+        } catch (Exception ignored) {}
+    }
+
+    public void releaseLock() {
+        if (requestId <= 0 || lockedOwnerUsername == null) return;
+        int id = requestId;
+        String username = lockedOwnerUsername;
+        lockedOwnerUsername = null;
+        try {
+            lockUseCase.release(id, username);
+        } catch (Exception ignored) {}
+    }
+
     private void resetProcessingState() {
         items.clear();
         allSites.clear();
@@ -365,6 +414,7 @@ public final class RequestProcessingSession {
         expandedItemIndex = -1;
         allocationControl = null;
         currentSuggestedPlans = List.of();
+        lockedOwnerUsername = null;
     }
 
     private void loadProcessingData() {

@@ -139,8 +139,7 @@ public final class SalesRequestListView implements ViewLifecycle {
 
     private void reload() {
         if (controller == null) return;
-        List<RequestRow> requestRows = controller.getRequests();
-        allRows.setAll(requestRows);
+        allRows.setAll(controller.getRequests());
         applyFilters();
     }
 

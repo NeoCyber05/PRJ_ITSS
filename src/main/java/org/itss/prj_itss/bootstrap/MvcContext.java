@@ -19,6 +19,7 @@ import org.itss.prj_itss.model.auth.AuthModule;
 import org.itss.prj_itss.model.auth.application.AuthenticationService;
 import org.itss.prj_itss.model.auth.domain.AuthenticatedUser;
 import org.itss.prj_itss.model.merchandise.MerchandiseModule;
+import org.itss.prj_itss.model.request.domain.lock.LockOwner;
 import org.itss.prj_itss.model.dashboard.DashboardModule;
 import org.itss.prj_itss.model.order.OrderModule;
 import org.itss.prj_itss.model.request.RequestModule;
@@ -101,9 +102,9 @@ public final class MvcContext {
     private final OrderControllerModule orderControllers =
         new OrderControllerModule(orderModule, siteModule, merchandiseModule);
     private final RequestControllerModule requestControllers =
-        new RequestControllerModule(requestModule, orderModule);
+        new RequestControllerModule(requestModule, orderModule, this::currentLockOwner);
     private final SalesRequestControllerModule salesRequestControllers =
-        new SalesRequestControllerModule(requestModule);
+        new SalesRequestControllerModule(requestModule, this::currentLockOwner);
     private final SalesMerchandiseControllerModule salesMerchandiseControllers =
         new SalesMerchandiseControllerModule(merchandiseModule);
     private final WarehouseControllerModule warehouseControllers =
@@ -243,6 +244,12 @@ public final class MvcContext {
             }
         )
     ));
+
+    private LockOwner currentLockOwner() {
+        var user = currentAuthenticatedUser();
+        if (user == null) throw new IllegalStateException("No authenticated user");
+        return new LockOwner(user.username(), user.role().getName(), user.displayName());
+    }
 
     public void warmUpDatabaseConnection() {
         try {

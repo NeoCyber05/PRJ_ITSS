@@ -19,6 +19,7 @@ import org.itss.prj_itss.view.shared.ui.StatusBadgeFactory;
 import org.itss.prj_itss.view.shared.ui.TableViewSupport;
 import org.itss.prj_itss.view.shared.ViewLifecycle;
 
+import java.util.List;
 import java.util.Locale;
 
 public final class ReceivedRequestsView implements ViewLifecycle {

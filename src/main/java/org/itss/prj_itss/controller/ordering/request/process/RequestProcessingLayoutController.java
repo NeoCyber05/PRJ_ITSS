@@ -1,10 +1,13 @@
 package org.itss.prj_itss.controller.ordering.request.process;
 
 import org.itss.prj_itss.controller.ordering.request.process.session.RequestProcessingSession;
+import org.itss.prj_itss.model.request.application.lock.RequestLockUseCase;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingException;
+import org.itss.prj_itss.model.request.domain.lock.LockOwner;
 import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeCommand;
 import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeResult;
+import org.itss.prj_itss.controller.ordering.request.process.state.LockOutcome;
 import org.itss.prj_itss.controller.ordering.request.process.state.ProcessingPreviewOrder;
 import org.itss.prj_itss.controller.ordering.request.process.state.RequestProcessingState;
 import org.itss.prj_itss.controller.ordering.request.process.state.SuggestedPlanState;
@@ -12,17 +15,34 @@ import org.itss.prj_itss.controller.ordering.request.process.state.SuggestedPlan
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public final class RequestProcessingLayoutController {
 
     private final RequestProcessingSession session;
 
-    public RequestProcessingLayoutController(RequestProcessingUseCase requestProcessingUseCase) {
-        this.session = new RequestProcessingSession(Objects.requireNonNull(requestProcessingUseCase, "requestProcessingUseCase"));
+    public RequestProcessingLayoutController(
+            RequestProcessingUseCase requestProcessingUseCase,
+            RequestLockUseCase lockUseCase,
+            Supplier<LockOwner> lockOwnerSupplier
+    ) {
+        this.session = new RequestProcessingSession(
+            Objects.requireNonNull(requestProcessingUseCase, "requestProcessingUseCase"),
+            Objects.requireNonNull(lockUseCase, "lockUseCase"),
+            Objects.requireNonNull(lockOwnerSupplier, "lockOwnerSupplier")
+        );
     }
 
-    public void setRequestId(int requestId) {
-        session.start(requestId);
+    public LockOutcome setRequestId(int requestId) {
+        return session.start(requestId);
+    }
+
+    public void renewLock() {
+        session.renewLock();
+    }
+
+    public void releaseLock() {
+        session.releaseLock();
     }
 
     public RequestProcessingState snapshot() {

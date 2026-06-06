@@ -22,6 +22,12 @@ import org.itss.prj_itss.model.merchandise.application.port.MerchandiseRepositor
 import org.itss.prj_itss.model.order.application.port.OrderRepository;
 import org.itss.prj_itss.model.request.application.processing.ProcessingRequestPort;
 import org.itss.prj_itss.model.site.application.port.SiteRepository;
+import org.itss.prj_itss.model.request.domain.lock.LockOwner;
+import org.itss.prj_itss.model.request.domain.lock.LockResult;
+import org.itss.prj_itss.model.request.domain.lock.RequestLock;
+import org.itss.prj_itss.model.request.application.lock.RequestLockException;
+import org.itss.prj_itss.model.request.application.lock.RequestLockGateway;
+import org.itss.prj_itss.model.request.application.lock.RequestLockUseCase;
 import org.itss.prj_itss.model.request.domain.processing.allocation.validator.DefaultAllocationValidator;
 import org.itss.prj_itss.model.request.domain.processing.suggestion.DefaultAllocationSuggester;
 import org.itss.prj_itss.model.request.domain.processing.allocation.policy.FastDeliveryObjective;
@@ -29,11 +35,14 @@ import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Supplier;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -170,7 +179,9 @@ class RequestProcessingLayoutControllerTest {
             new DefaultAllocationValidator(),
             new DefaultAllocationSuggester(new FastDeliveryObjective())
         );
-        return new RequestProcessingLayoutController(useCase);
+        RequestLockUseCase lockUseCase = new RequestLockUseCase(new AlwaysAllowLockGateway());
+        Supplier<LockOwner> lockOwnerSupplier = () -> new LockOwner("test", "Test", "Test");
+        return new RequestProcessingLayoutController(useCase, lockUseCase, lockOwnerSupplier);
     }
 
     private Scenario defaultScenario() {
@@ -278,6 +289,17 @@ class RequestProcessingLayoutControllerTest {
         public boolean update(Merchandise merchandise) { return false; }
         @Override
         public boolean setActive(int merchandiseId, boolean active) { return false; }
+    }
+
+    private static final class AlwaysAllowLockGateway implements RequestLockGateway {
+        @Override
+        public LockResult acquireOrRenew(int requestId, LockOwner owner, int ttlSeconds) {
+            return LockResult.acquired(new RequestLock(requestId, owner.username(), owner.role(), owner.display(), LocalDateTime.now(), LocalDateTime.now().plusSeconds(ttlSeconds)));
+        }
+        @Override
+        public void release(int requestId, String ownerUsername) {}
+        @Override
+        public Map<Integer, RequestLock> findActiveForRequests(Collection<Integer> requestIds) { return Map.of(); }
     }
 
     private static final class FakeOrderRepository implements OrderRepository {
