@@ -1,0 +1,130 @@
+@startuml Request Edit Lock - Architecture
+
+!theme plain
+skinparam backgroundColor #FEFEFE
+skinparam handwritten false
+
+skinparam rectangle {
+    BackgroundColor<<Domain>> #E8F5E9
+    BackgroundColor<<Application>> #E3F2FD
+    BackgroundColor<<Infrastructure>> #FFF3E0
+    BackgroundColor<<Controller>> #F3E5F5
+    BackgroundColor<<View>> #ECEFF1
+    BorderColor #333
+}
+
+skinparam component {
+    BackgroundColor<<Domain>> #E8F5E9
+    BackgroundColor<<Application>> #E3F2FD
+    BackgroundColor<<Infrastructure>> #FFF3E0
+    BackgroundColor<<Controller>> #F3E5F5
+    BackgroundColor<<View>> #ECEFF1
+}
+
+title Request Edit Lock Module - Clean Architecture
+
+rectangle "Domain Layer" <<Domain>> as DomainLayer {
+    component "LockOwner" <<record>> as LockOwner
+    component "RequestLock" <<record>> as RequestLock
+    component "LockResult" <<record>> as LockResult
+}
+
+rectangle "Application Layer" <<Application>> as AppLayer {
+    component "RequestLockGateway\n(Port Interface)" <<interface>> as Gateway
+    component "RequestLockUseCase" as UseCase
+    component "RequestLockException" as Exception
+}
+
+rectangle "Infrastructure Layer" <<Infrastructure>> as InfraLayer {
+    component "JdbcRequestLockRepository" <<JDBC Adapter>> as JdbcRepo
+    database "PostgreSQL" as DB {
+        component "request_edit_lock" as LockTable
+    }
+}
+
+rectangle "Controller Layer" <<Controller>> as CtrlLayer {
+    component "SalesRequestEditSession" as SalesSession
+    component "RequestProcessingSession" as ProcSession
+    component "LockOutcome" <<record>> as LockOutcome
+}
+
+rectangle "View Layer (JavaFX)" <<View>> as ViewLayer {
+    component "SalesRequestEditView" as EditView
+    component "RequestProcessingLayoutView" as ProcView
+    component "Timeline\n(Heartbeat)" as Heartbeat
+}
+
+' Domain relationships
+LockOwner --> RequestLock : used by
+LockResult --> RequestLock : holds
+
+' Application relationships
+UseCase --> Gateway : depends on
+UseCase --> LockOwner : uses
+UseCase --> LockResult : returns
+UseCase --> Exception : throws
+
+' Infrastructure relationships
+JdbcRepo ..|> Gateway : implements
+JdbcRepo --> LockTable : INSERT/UPDATE/DELETE
+JdbcRepo --> RequestLock : maps rows
+JdbcRepo --> LockResult : builds
+
+' Controller relationships
+SalesSession --> UseCase : acquire/renew/release
+ProcSession --> UseCase : acquire/renew/release
+SalesSession --> LockOutcome : N/A (uses StartResult)
+ProcSession --> LockOutcome : returns
+
+' View relationships
+EditView --> SalesSession : via SalesRequestEditController
+EditView --> Heartbeat : starts 5min interval
+Heartbeat --> SalesSession : renewLock()
+ProcView --> ProcSession : via RequestProcessingLayoutController
+ProcView --> Heartbeat : starts 5min interval
+Heartbeat --> ProcSession : renewLock()
+
+' Data flow annotations
+note right of UseCase
+  **Acquire Flow:**
+  1. acquire(requestId, owner)
+  2. gateway.acquireOrRenew(...)
+  3. SQL: INSERT ... ON CONFLICT DO UPDATE
+  4. Returns: LockResult.acquired() or blocked()
+endnote
+
+note right of JdbcRepo
+  **Atomic Upsert SQL:**
+  - Insert new lock row
+  - If conflict: update only if
+    same owner OR expired
+  - RETURNING to confirm success
+endnote
+
+note bottom of Heartbeat
+  **Heartbeat (every 5 min):**
+  Timeline fires on JavaFX thread
+  → spawns daemon thread
+  → calls renewLock() → DB update
+  → extends expires_at by 15 min
+endnote
+
+note bottom of ProcView
+  **Blocked UX Flow:**
+  1. User clicks "Xử lý"
+  2. setRequestId() → LockOutcome
+  3. If blocked():
+     - show Alert popup
+     - goBack() (no screen change)
+  4. If acquired():
+     - render screen
+     - start heartbeat
+endnote
+
+' Cross-boundary rules
+DomainLayer -[hidden]-> AppLayer
+AppLayer -[hidden]-> InfraLayer
+InfraLayer -[hidden]-> CtrlLayer
+CtrlLayer -[hidden]-> ViewLayer
+
+@enduml

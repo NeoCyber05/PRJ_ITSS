@@ -31,6 +31,11 @@ public final class RequestLockUseCase {
         gateway.release(requestId, ownerUsername);
     }
 
+    public void releaseAllForOwner(String ownerUsername) throws RequestLockException {
+        if (ownerUsername == null || ownerUsername.isBlank()) return;
+        gateway.releaseAllForOwner(ownerUsername);
+    }
+
     public Map<Integer, RequestLock> activeLocks(Collection<Integer> requestIds) throws RequestLockException {
         if (requestIds == null || requestIds.isEmpty()) return Map.of();
         return gateway.findActiveForRequests(requestIds);

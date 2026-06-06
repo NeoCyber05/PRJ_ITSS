@@ -87,9 +87,9 @@ public final class RequestProcessingSession {
                 : "Yêu cầu đang bị khóa.";
             return LockOutcome.outcomeBlocked(msg);
         }
+        resetProcessingState();
         this.requestId = requestId;
         this.lockedOwnerUsername = owner.username();
-        resetProcessingState();
         loadProcessingData();
         rebuildAllocationSection();
         return LockOutcome.outcomeAcquired();

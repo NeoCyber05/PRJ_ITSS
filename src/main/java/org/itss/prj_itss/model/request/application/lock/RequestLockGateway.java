@@ -16,5 +16,8 @@ public interface RequestLockGateway {
 
     void release(int requestId, String ownerUsername) throws RequestLockException;
 
+    /** Release every lock currently held by this owner. Used on logout / app exit cleanup. */
+    void releaseAllForOwner(String ownerUsername) throws RequestLockException;
+
     Map<Integer, RequestLock> findActiveForRequests(Collection<Integer> requestIds) throws RequestLockException;
 }

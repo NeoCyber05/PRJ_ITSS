@@ -299,6 +299,8 @@ class RequestProcessingLayoutControllerTest {
         @Override
         public void release(int requestId, String ownerUsername) {}
         @Override
+        public void releaseAllForOwner(String ownerUsername) {}
+        @Override
         public Map<Integer, RequestLock> findActiveForRequests(Collection<Integer> requestIds) { return Map.of(); }
     }
 

@@ -126,6 +126,11 @@ class RequestLockUseCaseTest {
         }
 
         @Override
+        public void releaseAllForOwner(String ownerUsername) throws RequestLockException {
+            if (releaseFn != null) releaseFn.release(-1, ownerUsername);
+        }
+
+        @Override
         public Map<Integer, RequestLock> findActiveForRequests(Collection<Integer> requestIds) throws RequestLockException {
             if (findFn == null) return Map.of();
             return findFn.find(requestIds);

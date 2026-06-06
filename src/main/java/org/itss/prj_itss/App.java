@@ -34,6 +34,7 @@ public class App extends Application {
         stage.setMinWidth(1100);
         stage.setMinHeight(700);
         stage.getIcons().add(appIcon);
+        stage.setOnCloseRequest(event -> viewLoader.releaseLocksForCurrentUser());
         showLogin();
         stage.show();
     }
@@ -71,7 +72,10 @@ public class App extends Application {
 
     private void showMainLayout(AuthenticatedUser user) {
         try {
-            Parent root = viewLoader.loadMainLayout(user, this::showLogin);
+            Parent root = viewLoader.loadMainLayout(user, () -> {
+                viewLoader.releaseLocksForCurrentUser();
+                showLogin();
+            });
             setScene(root);
         } catch (IOException exception) {
             throw new IllegalStateException("Unable to load application layout", exception);

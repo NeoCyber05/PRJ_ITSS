@@ -263,6 +263,15 @@ public final class MvcContext {
         return authModule.authenticationService();
     }
 
+    /** Best-effort: release any locks held by the current user (logout / app exit cleanup). */
+    public void releaseLocksForCurrentUser() {
+        AuthenticatedUser user = currentAuthenticatedUser();
+        if (user == null) return;
+        try {
+            requestModule.requestLockUseCase().releaseAllForOwner(user.username());
+        } catch (Exception ignored) {}
+    }
+
     public void setAuthenticatedUser(AuthenticatedUser user) {
         authModule.setAuthenticatedUser(user);
     }

@@ -114,6 +114,18 @@ public final class JdbcRequestLockRepository extends JdbcRepositorySupport imple
     }
 
     @Override
+    public void releaseAllForOwner(String ownerUsername) throws RequestLockException {
+        String sql = "DELETE FROM request_edit_lock WHERE owner_username = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, ownerUsername);
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new RequestLockException("releaseAllForOwner failed for owner=" + ownerUsername, e);
+        }
+    }
+
+    @Override
     public Map<Integer, RequestLock> findActiveForRequests(Collection<Integer> requestIds) throws RequestLockException {
         if (requestIds.isEmpty()) return Map.of();
         // Build  WHERE request_id = ANY(?) using Array

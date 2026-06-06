@@ -24,6 +24,10 @@ public final class ViewLoader {
         mvcContext.warmUpDatabaseConnection();
     }
 
+    public void releaseLocksForCurrentUser() {
+        mvcContext.releaseLocksForCurrentUser();
+    }
+
     public Parent loadLoginView(Consumer<AuthenticatedUser> loginHandler, LoginViewWarmingListener listener) throws IOException {
         FXMLLoader loader = new FXMLLoader(Objects.requireNonNull(
             App.class.getResource("/org/itss/prj_itss/view/auth/login-view.fxml"),
