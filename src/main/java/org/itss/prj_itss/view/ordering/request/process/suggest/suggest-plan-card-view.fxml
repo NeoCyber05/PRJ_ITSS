@@ -45,7 +45,7 @@
         </HBox>
         <VBox spacing="8">
             <children>
-                <Label fx:id="summaryText"/>
+                <VBox fx:id="siteDetailsBox" spacing="8"/>
             </children>
         </VBox>
     </children>

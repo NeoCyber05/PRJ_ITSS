@@ -35,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -89,8 +90,27 @@ class RequestProcessingLayoutControllerTest {
 
         List<SuggestedPlanState> plans = controller.handleShowAllPlans();
         assertFalse(plans.isEmpty());
+        SuggestedPlanState plan = plans.get(0);
+        SuggestedPlanState.SuggestedSiteState site = plan.siteAllocations().get(0);
+        SuggestedPlanState.SuggestedLineState line = site.lines().get(0);
 
-        controller.applySelectedPlan(plans.get(0).signature());
+        assertAll(
+            () -> assertEquals(2, plan.longestDeliveryDays()),
+            () -> assertEquals(1, plan.siteAllocations().size()),
+            () -> assertEquals("S1", site.siteCode()),
+            () -> assertEquals("Site 1", site.siteName()),
+            () -> assertEquals(5, site.totalQuantity()),
+            () -> assertEquals(1, site.lineCount()),
+            () -> assertEquals(2, site.deliveryDays()),
+            () -> assertEquals("Đường biển", site.transportSummary()),
+            () -> assertEquals("M10", line.itemCode()),
+            () -> assertEquals("Part 10", line.itemName()),
+            () -> assertEquals(5, line.quantity()),
+            () -> assertEquals("Đường biển", line.transportLabel()),
+            () -> assertEquals(2, line.deliveryDays())
+        );
+
+        controller.applySelectedPlan(plan.signature());
 
         vm = controller.snapshot();
         assertEquals(5, vm.allocationItems().get(0).allocated());

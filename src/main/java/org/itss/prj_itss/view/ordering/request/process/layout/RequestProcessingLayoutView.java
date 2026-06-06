@@ -127,7 +127,10 @@ public final class RequestProcessingLayoutView {
     }
 
     private void handleOptimizeAllocation() {
-        controller.handleOptimizeAllocation();
+        boolean success = controller.handleOptimizeAllocation();
+        if (!success) {
+            showWarningAlert("Thông báo", "Không tìm được phương án đáp ứng đủ số lượng và thời hạn hiện tại.");
+        }
         renderItemsViewSection();
     }
 
@@ -154,8 +157,12 @@ public final class RequestProcessingLayoutView {
     }
 
     private void showValidationError(String message) {
+        showWarningAlert("Không hợp lệ", message);
+    }
+
+    private void showWarningAlert(String title, String message) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
-        alert.setTitle("Không hợp lệ");
+        alert.setTitle(title);
         alert.setHeaderText(null);
         alert.setContentText(message);
         styleDialog(alert);

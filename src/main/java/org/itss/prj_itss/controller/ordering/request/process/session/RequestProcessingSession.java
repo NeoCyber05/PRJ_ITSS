@@ -2,6 +2,7 @@ package org.itss.prj_itss.controller.ordering.request.process.session;
 
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingException;
 import org.itss.prj_itss.model.request.application.processing.RequestProcessingUseCase;
+import org.itss.prj_itss.model.request.domain.delivery.DeliveryMethod;
 import org.itss.prj_itss.model.shared.formatting.OrderingFormatters;
 import org.itss.prj_itss.model.shared.formatting.DeliveryStatusFormatter;
 import org.itss.prj_itss.model.request.domain.processing.allocation.AllocationControl;
@@ -10,6 +11,8 @@ import org.itss.prj_itss.model.request.domain.processing.allocation.AllocationPl
 import org.itss.prj_itss.model.request.domain.processing.ItemRequirement;
 import org.itss.prj_itss.model.request.domain.processing.RequestProcessingData;
 import org.itss.prj_itss.model.request.domain.processing.SiteStockOption;
+import org.itss.prj_itss.model.request.domain.processing.suggestion.OrderLineSuggestion;
+import org.itss.prj_itss.model.request.domain.processing.suggestion.SiteOrderSuggestion;
 import org.itss.prj_itss.model.request.domain.processing.suggestion.SuggestedPlan;
 import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeCommand;
 import org.itss.prj_itss.controller.ordering.request.process.state.AllocationChangeResult;
@@ -174,21 +177,61 @@ public final class RequestProcessingSession {
         rebuildAllocationSection();
     }
 
-    public void handleOptimizeAllocation() {
-        allocationControl.applyOptimalAllocation();
+    public boolean handleOptimizeAllocation() {
+        return allocationControl.applyOptimalAllocation();
     }
 
     public List<SuggestedPlanState> handleShowAllPlans() {
         currentSuggestedPlans = allocationControl.buildSuggestedPlans();
         return currentSuggestedPlans.stream()
-            .map(p -> new SuggestedPlanState(
-                p.signature(),
-                p.totalQuantity(),
-                p.totalLineCount(),
-                p.siteCount(),
-                p.totalDeliveryDays()
-            ))
+            .map(this::toSuggestedPlanState)
             .toList();
+    }
+
+    private SuggestedPlanState toSuggestedPlanState(SuggestedPlan plan) {
+        List<SuggestedPlanState.SuggestedSiteState> siteAllocations = plan.siteOrders().stream()
+            .map(this::toSuggestedSiteState)
+            .toList();
+        int longestDeliveryDays = siteAllocations.stream()
+            .mapToInt(SuggestedPlanState.SuggestedSiteState::deliveryDays)
+            .max()
+            .orElse(0);
+        return new SuggestedPlanState(
+            plan.signature(),
+            plan.totalQuantity(),
+            plan.totalLineCount(),
+            plan.siteCount(),
+            plan.totalDeliveryDays(),
+            longestDeliveryDays,
+            siteAllocations
+        );
+    }
+
+    private SuggestedPlanState.SuggestedSiteState toSuggestedSiteState(SiteOrderSuggestion siteOrder) {
+        SiteStockOption site = siteOrder.site();
+        List<SuggestedPlanState.SuggestedLineState> lines = siteOrder.lines().stream()
+            .map(this::toSuggestedLineState)
+            .toList();
+        return new SuggestedPlanState.SuggestedSiteState(
+            safeText(site.siteCode),
+            safeText(site.name),
+            siteOrder.totalQuantity(),
+            lines.size(),
+            siteOrder.deliveryDays(),
+            safeText(siteOrder.transportSummary()),
+            lines
+        );
+    }
+
+    private SuggestedPlanState.SuggestedLineState toSuggestedLineState(OrderLineSuggestion line) {
+        ItemRequirement item = line.item();
+        return new SuggestedPlanState.SuggestedLineState(
+            safeText(item.code),
+            safeText(item.name),
+            line.quantity(),
+            DeliveryMethod.displayLabelOf(line.transport()),
+            line.deliveryDays()
+        );
     }
 
     public void applySelectedPlanBySignature(String signature) {
@@ -361,7 +404,9 @@ public final class RequestProcessingSession {
             .sum();
     }
 
-
+    private static String safeText(String value) {
+        return value == null ? "" : value;
+    }
 
     private Set<Integer> copyIds(Set<Integer> ids) {
         return ids == null ? new LinkedHashSet<>() : new LinkedHashSet<>(ids);

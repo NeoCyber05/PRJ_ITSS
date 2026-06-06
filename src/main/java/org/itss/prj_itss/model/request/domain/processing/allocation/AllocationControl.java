@@ -108,14 +108,19 @@ public class AllocationControl {
         return AllocationChangeResult.applied(deliveryStatus(request.site(), transport));
     }
 
-    public void applyOptimalAllocation() {
-        applyPlan.apply(allocationSuggester.buildOptimalDrafts(
+    public boolean applyOptimalAllocation() {
+        var optimalDrafts = allocationSuggester.buildOptimalDrafts(
             items,
             allSites,
             excludedSiteIds,
             selectedSiteIds,
             deadlineDays
-        ));
+        );
+        if (optimalDrafts.isEmpty()) {
+            return false;
+        }
+        applyPlan.apply(optimalDrafts);
+        return true;
     }
 
     public List<SuggestedPlan> buildSuggestedPlans() {

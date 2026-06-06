@@ -33,8 +33,8 @@ public final class RequestProcessingLayoutController {
         session.handleSiteFilterChanged(excludedSiteIds, selectedSiteIds);
     }
 
-    public void handleOptimizeAllocation() {
-        session.handleOptimizeAllocation();
+    public boolean handleOptimizeAllocation() {
+        return session.handleOptimizeAllocation();
     }
 
     public List<SuggestedPlanState> handleShowAllPlans() {

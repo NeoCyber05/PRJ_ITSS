@@ -28,9 +28,9 @@ import java.util.function.Consumer;
 
 public class MainLayoutView implements Navigator {
 
-    private static final double SIDEBAR_COLLAPSED_WIDTH = 56;
-    private static final double SIDEBAR_EXPANDED_WIDTH  = 230;
-    private static final int    SIDEBAR_ANIM_MS         = 200;
+    private static final double SIDEBAR_COLLAPSED_WIDTH = 4;
+    private static final double SIDEBAR_EXPANDED_WIDTH  = 280;
+    private static final int    SIDEBAR_ANIM_MS         = 250;
 
     private final Map<String, Button> navButtons = new LinkedHashMap<>();
 
@@ -158,26 +158,37 @@ public class MainLayoutView implements Navigator {
         clip.heightProperty().bind(shellSidebar.heightProperty());
         shellSidebar.setClip(clip);
 
-        // Start collapsed
+        // Start collapsed — chỉ là thanh mỏng 4px
         shellSidebar.setPrefWidth(SIDEBAR_COLLAPSED_WIDTH);
 
-        shellSidebar.setOnMouseEntered(e -> animateSidebar(SIDEBAR_EXPANDED_WIDTH));
-        shellSidebar.setOnMouseExited(e  -> animateSidebar(SIDEBAR_COLLAPSED_WIDTH));
+        shellSidebar.setOnMouseEntered(e -> {
+            // Huỷ delay collapse nếu đang chờ
+            if (collapseTimeline != null) collapseTimeline.stop();
+            animateSidebarExpand();
+        });
+        shellSidebar.setOnMouseExited(e -> animateSidebarCollapse());
     }
 
-    private void animateSidebar(double targetWidth) {
-        if (expandTimeline != null)  expandTimeline.stop();
-        if (collapseTimeline != null) collapseTimeline.stop();
-        Timeline tl = new Timeline(new KeyFrame(
+    private void animateSidebarExpand() {
+        if (expandTimeline != null) expandTimeline.stop();
+        expandTimeline = new Timeline(new KeyFrame(
             Duration.millis(SIDEBAR_ANIM_MS),
-            new KeyValue(shellSidebar.prefWidthProperty(), targetWidth, Interpolator.EASE_BOTH)
+            new KeyValue(shellSidebar.prefWidthProperty(), SIDEBAR_EXPANDED_WIDTH, Interpolator.EASE_OUT)
         ));
-        if (targetWidth > SIDEBAR_COLLAPSED_WIDTH) {
-            expandTimeline  = tl;
-        } else {
-            collapseTimeline = tl;
-        }
-        tl.play();
+        expandTimeline.play();
+    }
+
+    private void animateSidebarCollapse() {
+        if (collapseTimeline != null) collapseTimeline.stop();
+        // Delay nhỏ 120ms trước khi đóng — tránh đóng ngay khi chuột vô tình ra khỏi sidebar
+        collapseTimeline = new Timeline(
+            new KeyFrame(Duration.millis(120)), // pause
+            new KeyFrame(
+                Duration.millis(120 + SIDEBAR_ANIM_MS),
+                new KeyValue(shellSidebar.prefWidthProperty(), SIDEBAR_COLLAPSED_WIDTH, Interpolator.EASE_IN)
+            )
+        );
+        collapseTimeline.play();
     }
 
     // ── Site tab navigation ────────────────────────────────────────────────
@@ -269,9 +280,9 @@ public class MainLayoutView implements Navigator {
         boolean adminRole    = role.isAdminRole();
         boolean warehouseRole= role.isWarehouseRole();
 
-        // Home button: hidden for site role (site uses direct nav instead) and sales role
-        homeButton.setVisible(!siteRole && !salesRole);
-        homeButton.setManaged(!siteRole && !salesRole);
+        // Home button: hidden for site role (site uses direct nav instead), sales role and warehouse role
+        homeButton.setVisible(!siteRole && !salesRole && !warehouseRole);
+        homeButton.setManaged(!siteRole && !salesRole && !warehouseRole);
 
         ordersNavContainer.setVisible(orderingRole);
         ordersNavContainer.setManaged(orderingRole);
